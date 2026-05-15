@@ -49,7 +49,8 @@ describe('jiosaavn API (HTTP)', () => {
   it('maps network errors to friendly message', async () => {
     const { AxiosError } = require('axios');
     const err = new AxiosError('Network');
-    err.code = 'ERR_NETWORK';
+    // No err.response means the request never reached the server (network down)
+    err.response = undefined;
     mockGet.mockRejectedValueOnce(err);
 
     const { searchSongs } = loadApi();

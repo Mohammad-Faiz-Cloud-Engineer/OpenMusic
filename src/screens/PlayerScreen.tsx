@@ -58,7 +58,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
       tension: 60,
       friction: 8,
     }).start();
-  }, [isPlaying]);
+  }, [isPlaying, artworkScale]);
 
   const handleSeekBarPress = useCallback(
     (evt: any) => {
@@ -70,7 +70,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
       setPosition(newPosition);
       seekTo(newPosition);
     },
-    [duration, seekTo]
+    [duration, seekTo, setIsSeeking, setPosition]
   );
 
   const cycleRepeat = () => {
@@ -79,8 +79,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     setRepeat(modes[(current + 1) % modes.length]);
   };
 
-  const repeatIcon = () => {
-    if (repeatMode === 'one') return 'repeat-outline';
+  const repeatIcon = (): keyof typeof Ionicons.glyphMap => {
     return 'repeat';
   };
 
@@ -571,23 +570,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontWeight: '500',
   },
-  qualityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.accentOverlay,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: Colors.accentOverlayStrong,
-  },
-  qualityText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.accent,
-  },
-
   // Up Next
   upNext: {
     marginHorizontal: 16,

@@ -51,6 +51,7 @@
     "nowPlaying": "NOW PLAYING",
     "nextUp": "Next Up · {{count}} tracks",
     "clear": "Clear",
+    "removeTrack": "Remove",
     "queueEmpty": "Queue is empty",
     "queueEmptyHint": "Search for songs and start playing",
     "findMusic": "Find Music",

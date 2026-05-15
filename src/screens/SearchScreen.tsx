@@ -161,7 +161,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
       {showCategories && (
         <FlatList
           data={genreCategories}
-          keyExtractor={(c) => c.label}
+          keyExtractor={(c) => c.key}
           numColumns={2}
           contentContainerStyle={styles.categoriesContainer}
           showsVerticalScrollIndicator={false}
@@ -192,7 +192,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
       {showResults && (
         <FlatList
           data={searchData?.results ?? []}
-          keyExtractor={(t) => t.id}
+          keyExtractor={(track) => track.id}
           contentContainerStyle={styles.resultsContainer}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={

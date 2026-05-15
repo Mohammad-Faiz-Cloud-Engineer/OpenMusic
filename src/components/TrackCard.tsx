@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../theme/colors';
-import { Track, formatDuration } from '../api/jiosaavn';
+import type { Track } from '../api/jiosaavn';
+import { formatDuration } from '../api/jiosaavn';
 import { usePlayerStore } from '../store/playerStore';
 import { Ionicons } from '@expo/vector-icons';
 import { a11yButton } from '../utils/a11y';

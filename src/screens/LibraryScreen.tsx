@@ -17,7 +17,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../theme/colors';
 import { usePlayerStore } from '../store/playerStore';
 import { useRecentStore } from '../store/recentStore';
-import { formatDuration, Track } from '../api/jiosaavn';
+import { formatDuration } from '../api/jiosaavn';
+import type { Track } from '../api/jiosaavn';
 import type { RootStackParamList, TabParamList } from '../navigation/types';
 import { a11yButton } from '../utils/a11y';
 import { TrackCard } from '../components/TrackCard';
@@ -86,7 +87,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             onPress={() => removeFromQueue(index)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={styles.removeBtn}
-            {...a11yButton(t('library.clear'), 'Remove from queue')}
+            {...a11yButton(`${t('library.removeTrack')} ${item.title}`)}
           >
             <Ionicons name="close" size={16} color={Colors.textMuted} />
           </TouchableOpacity>

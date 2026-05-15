@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme/colors';
 import { TrackCard } from '../components/TrackCard';
 import { usePlayerStore } from '../store/playerStore';
-import { Track } from '../api/jiosaavn';
+import type { Track } from '../api/jiosaavn';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';

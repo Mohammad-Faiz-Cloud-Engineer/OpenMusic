@@ -118,7 +118,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
                     end={{ x: 1, y: 0 }}
                   >
                     <Ionicons name="play" size={20} color="#fff" />
-                    <Text style={styles.playAllText}>Play All</Text>
+                    <Text style={styles.playAllText}>{t('common.playAll')}</Text>
                   </LinearGradient>
                 </TouchableOpacity>
 
@@ -130,7 +130,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
                   }}
                 >
                   <Ionicons name="shuffle" size={20} color={Colors.text} />
-                  <Text style={styles.shuffleText}>Shuffle</Text>
+                  <Text style={styles.shuffleText}>{t('common.shuffle')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -138,7 +138,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
             {/* Track count header */}
             <View style={styles.tracksHeader}>
               <Text style={styles.tracksHeaderText}>
-                {data.tracks.length} Tracks
+                {t('common.tracks', { count: data.tracks.length })}
               </Text>
             </View>
           </View>

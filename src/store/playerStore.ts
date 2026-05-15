@@ -176,7 +176,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (!tracks.length) return;
     const track = tracks[startIndex];
     await get().playTrack(track, tracks);
-    set({ currentIndex: startIndex });
   },
 
   togglePlay: async () => {

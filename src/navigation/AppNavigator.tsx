@@ -65,12 +65,6 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
             marginBottom: 6,
           },
           tabBarItemStyle: { paddingTop: 8 },
-          tabBarAccessibilityLabel:
-            route.name === 'Home'
-              ? t('tabs.home')
-              : route.name === 'Search'
-                ? t('tabs.search')
-                : t('tabs.library'),
           tabBarIcon: ({ focused, color }) => {
             let iconName: keyof typeof Ionicons.glyphMap = 'home';
             if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';

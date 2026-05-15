@@ -39,13 +39,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const { playQueue } = usePlayerStore();
 
-  const { data: chartsData, isLoading: chartsLoading, refetch: refetchCharts } = useQuery({
+  const { data: chartsData, isLoading: chartsLoading, isFetching: chartsFetching, refetch: refetchCharts } = useQuery({
     queryKey: ['charts'],
     queryFn: getCharts,
     staleTime: 10 * 60 * 1000,
   });
 
-  const { data: trendingData, isLoading: trendingLoading, refetch: refetchTrending } = useQuery({
+  const { data: trendingData, isLoading: trendingLoading, isFetching: trendingFetching, refetch: refetchTrending } = useQuery({
     queryKey: ['trending'],
     queryFn: () => searchSongs('trending bollywood 2025'),
     staleTime: 10 * 60 * 1000,
@@ -63,7 +63,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     staleTime: 15 * 60 * 1000,
   });
 
-  const isRefreshing = chartsLoading || trendingLoading;
+  const isRefreshing = chartsFetching || trendingFetching;
 
   const onRefresh = useCallback(() => {
     refetchCharts();
