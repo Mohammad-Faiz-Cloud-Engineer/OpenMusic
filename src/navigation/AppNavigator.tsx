@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HomeScreen } from '../screens/HomeScreen';
 import { SearchScreen } from '../screens/SearchScreen';
@@ -32,6 +33,10 @@ type TabNavigatorProps = StackScreenProps<RootStackParamList, 'Tabs'>;
 function TabNavigator({ navigation }: TabNavigatorProps) {
   const { t } = useTranslation();
   const { currentTrack } = usePlayerStore();
+  const insets = useSafeAreaInsets();
+
+  // Total tab bar height = visible content + system nav bar inset
+  const tabBarTotalHeight = TAB_BAR_HEIGHT + insets.bottom;
 
   return (
     <View style={styles.tabRoot}>
@@ -43,7 +48,7 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
             bottom: 0,
             left: 0,
             right: 0,
-            height: TAB_BAR_HEIGHT,
+            height: tabBarTotalHeight,
             backgroundColor: 'transparent',
             borderTopWidth: 0,
             elevation: 0,
@@ -94,7 +99,7 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
       {currentTrack && (
         <MiniPlayer
           onPress={() => navigation.navigate('Player')}
-          bottomOffset={TAB_BAR_HEIGHT}
+          bottomOffset={tabBarTotalHeight}
         />
       )}
     </View>
