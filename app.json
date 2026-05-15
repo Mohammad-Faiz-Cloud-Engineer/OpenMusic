@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
+    "scheme": "openmusic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -14,16 +15,36 @@
     },
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.openmusic.app",
       "infoPlist": {
         "UIBackgroundModes": ["audio"]
-      }
+      },
+      "associatedDomains": ["applinks:openmusic.app"]
     },
     "android": {
+      "package": "com.openmusic.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A0A0F"
       },
-      "permissions": ["android.permission.FOREGROUND_SERVICE", "android.permission.WAKE_LOCK"]
+      "permissions": [
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.WAKE_LOCK"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "openmusic.app",
+              "pathPrefix": "/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,7 +55,8 @@
         {
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-localization"
     ]
   }
 }

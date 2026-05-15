@@ -18,11 +18,15 @@ import { formatDuration } from '../api/jiosaavn';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ARTWORK_SIZE = SCREEN_WIDTH - 64;
 
-interface PlayerScreenProps {
-  navigation: any;
-}
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../navigation/types';
+import { useTranslation } from 'react-i18next';
+import { a11yButton } from '../utils/a11y';
+
+type PlayerScreenProps = StackScreenProps<RootStackParamList, 'Player'>;
 
 export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
   const {
     currentTrack,
     isPlaying,
@@ -87,9 +91,13 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
       <View style={styles.emptyContainer}>
         <LinearGradient colors={['#1A0A2E', '#0A0A1A', '#0A0A0F']} style={StyleSheet.absoluteFill} />
         <Ionicons name="musical-notes" size={64} color={Colors.textMuted} />
-        <Text style={styles.emptyText}>Nothing playing</Text>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtnText}>Go back</Text>
+        <Text style={styles.emptyText}>{t('player.nothingPlaying')}</Text>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          {...a11yButton(t('common.goBack'))}
+        >
+          <Text style={styles.backBtnText}>{t('common.goBack')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -126,7 +134,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             <Ionicons name="chevron-down" size={28} color={Colors.text} />
           </TouchableOpacity>
           <View style={styles.topCenter}>
-            <Text style={styles.topLabel}>NOW PLAYING</Text>
+            <Text style={styles.topLabel}>{t('player.nowPlaying')}</Text>
             <Text style={styles.topQueue}>
               {currentIndex + 1} / {queue.length}
             </Text>
@@ -280,22 +288,18 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         <View style={styles.extraControls}>
           <TouchableOpacity style={styles.extraBtn}>
             <Ionicons name="list" size={20} color={Colors.textSecondary} />
-            <Text style={styles.extraBtnText}>Queue</Text>
+            <Text style={styles.extraBtnText}>{t('player.queue')}</Text>
           </TouchableOpacity>
-          <View style={styles.qualityBadge}>
-            <Ionicons name="musical-note" size={12} color={Colors.accent} />
-            <Text style={styles.qualityText}>320kbps</Text>
-          </View>
           <TouchableOpacity style={styles.extraBtn}>
             <Ionicons name="share-outline" size={20} color={Colors.textSecondary} />
-            <Text style={styles.extraBtnText}>Share</Text>
+            <Text style={styles.extraBtnText}>{t('player.share')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Up Next */}
         {queue.length > 1 && (
           <View style={styles.upNext}>
-            <Text style={styles.upNextTitle}>Up Next</Text>
+            <Text style={styles.upNextTitle}>{t('player.upNext')}</Text>
             {queue.slice(currentIndex + 1, currentIndex + 4).map((track, i) => (
               <View key={track.id} style={styles.upNextItem}>
                 <Image

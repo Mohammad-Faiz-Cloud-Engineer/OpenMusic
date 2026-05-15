@@ -18,25 +18,29 @@ import { searchSongs, getSuggestions, Track } from '../api/jiosaavn';
 import { Colors } from '../theme/colors';
 import { TrackCard } from '../components/TrackCard';
 import { SectionHeader } from '../components/SectionHeader';
+import { useTranslation } from 'react-i18next';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const GENRE_CATEGORIES = [
-  { label: 'Bollywood', query: 'bollywood hits 2025', color: ['#A855F7', '#7C3AED'] as const, icon: '🎬' },
-  { label: 'Punjabi', query: 'punjabi hits', color: ['#EC4899', '#BE185D'] as const, icon: '🎵' },
-  { label: 'Romantic', query: 'romantic hindi songs', color: ['#EF4444', '#DC2626'] as const, icon: '❤️' },
-  { label: 'Party', query: 'party songs hindi', color: ['#F59E0B', '#D97706'] as const, icon: '🎉' },
-  { label: 'Arijit Singh', query: 'arijit singh', color: ['#3B82F6', '#1D4ED8'] as const, icon: '🎤' },
-  { label: 'Devotional', query: 'devotional songs hindi', color: ['#10B981', '#059669'] as const, icon: '🙏' },
-  { label: 'Retro', query: 'old hindi songs classic', color: ['#8B5CF6', '#6D28D9'] as const, icon: '📻' },
-  { label: 'English', query: 'english pop hits 2025', color: ['#06B6D4', '#0891B2'] as const, icon: '🌍' },
-];
+const GENRE_KEYS = [
+  { key: 'bollywood', query: 'bollywood hits 2025', color: ['#A855F7', '#7C3AED'] as const, icon: '🎬' },
+  { key: 'punjabi', query: 'punjabi hits', color: ['#EC4899', '#BE185D'] as const, icon: '🎵' },
+  { key: 'romantic', query: 'romantic hindi songs', color: ['#EF4444', '#DC2626'] as const, icon: '❤️' },
+  { key: 'party', query: 'party songs hindi', color: ['#F59E0B', '#D97706'] as const, icon: '🎉' },
+  { key: 'arijit', query: 'arijit singh', color: ['#3B82F6', '#1D4ED8'] as const, icon: '🎤' },
+  { key: 'devotional', query: 'devotional songs hindi', color: ['#10B981', '#059669'] as const, icon: '🙏' },
+  { key: 'retro', query: 'old hindi songs classic', color: ['#8B5CF6', '#6D28D9'] as const, icon: '📻' },
+  { key: 'english', query: 'english pop hits 2025', color: ['#06B6D4', '#0891B2'] as const, icon: '🌍' },
+] as const;
 
-interface SearchScreenProps {
-  navigation: any;
-}
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { TabParamList } from '../navigation/types';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
+type SearchScreenProps = BottomTabScreenProps<TabParamList, 'Search'>;
+
+export const SearchScreen: React.FC<SearchScreenProps> = () => {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -78,7 +82,12 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     Keyboard.dismiss();
   };
 
-  const handleCategoryPress = (cat: typeof GENRE_CATEGORIES[0]) => {
+  const genreCategories = GENRE_KEYS.map((g) => ({
+    ...g,
+    label: t(`categories.${g.key}`),
+  }));
+
+  const handleCategoryPress = (cat: (typeof genreCategories)[0]) => {
     setQuery(cat.label);
     setDebouncedQuery(cat.query);
     setIsFocused(false);
@@ -96,16 +105,17 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const showCategories = !debouncedQuery;
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Search</Text>
+        <Text style={styles.headerTitle} accessibilityRole="header">
+          {t('search.title')}
+        </Text>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={18} color={Colors.textSecondary} style={styles.searchIcon} />
           <TextInput
             ref={inputRef}
             style={styles.searchInput}
-            placeholder="Songs, artists, albums..."
+            placeholder={t('search.placeholder')}
             placeholderTextColor={Colors.textMuted}
             value={query}
             onChangeText={handleQueryChange}
@@ -150,13 +160,13 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       {/* Categories */}
       {showCategories && (
         <FlatList
-          data={GENRE_CATEGORIES}
+          data={genreCategories}
           keyExtractor={(c) => c.label}
           numColumns={2}
           contentContainerStyle={styles.categoriesContainer}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <Text style={styles.categoriesTitle}>Browse Categories</Text>
+            <Text style={styles.categoriesTitle}>{t('search.browseCategories')}</Text>
           }
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -188,8 +198,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
           ListHeaderComponent={
             searchData?.results?.length ? (
               <SectionHeader
-                title={`Results for "${debouncedQuery}"`}
-                subtitle={`${searchData.results.length} songs found`}
+                title={t('search.resultsFor', { query: debouncedQuery })}
+                subtitle={t('common.songsFound', { count: searchData.results.length })}
               />
             ) : null
           }
@@ -197,10 +207,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
             !searchLoading ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyIcon}>🎵</Text>
-                <Text style={styles.emptyTitle}>No results found</Text>
-                <Text style={styles.emptySubtitle}>
-                  Try a different search term
-                </Text>
+                <Text style={styles.emptyTitle}>{t('common.noResults')}</Text>
+                <Text style={styles.emptySubtitle}>{t('common.noResultsHint')}</Text>
               </View>
             ) : null
           }
@@ -214,7 +222,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
           ListFooterComponent={<View style={{ height: 160 }} />}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

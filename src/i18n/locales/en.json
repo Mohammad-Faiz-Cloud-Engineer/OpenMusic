@@ -1,0 +1,90 @@
+{
+  "common": {
+    "seeAll": "See all",
+    "retry": "Retry",
+    "play": "Play",
+    "pause": "Pause",
+    "shuffle": "Shuffle",
+    "playAll": "Play All",
+    "goBack": "Go back",
+    "tryAgain": "Try again",
+    "offline": "You're offline",
+    "offlineHint": "Connect to the internet to browse and stream music.",
+    "errorGeneric": "Something went wrong",
+    "errorLoad": "Failed to load content",
+    "noResults": "No results found",
+    "noResultsHint": "Try a different search term",
+    "songsFound": "{{count}} songs found",
+    "tracks": "{{count}} Tracks",
+    "songs": "{{count}} songs"
+  },
+  "tabs": {
+    "home": "Home",
+    "search": "Search",
+    "library": "Library"
+  },
+  "home": {
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "headline": "What's playing?",
+    "trendingBadge": "TRENDING NOW",
+    "playNow": "Play Now",
+    "quickPicks": "Quick Picks",
+    "quickPicksSub": "Jump back in",
+    "topCharts": "Top Charts",
+    "trendingNow": "Trending Now",
+    "loveSongs": "Love Songs",
+    "loveSongsSub": "Romantic hits",
+    "punjabiHits": "Punjabi Hits"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Songs, artists, albums...",
+    "browseCategories": "Browse Categories",
+    "resultsFor": "Results for \"{{query}}\""
+  },
+  "library": {
+    "title": "Library",
+    "queue": "Queue",
+    "recent": "Recent",
+    "nowPlaying": "NOW PLAYING",
+    "nextUp": "Next Up · {{count}} tracks",
+    "clear": "Clear",
+    "queueEmpty": "Queue is empty",
+    "queueEmptyHint": "Search for songs and start playing",
+    "findMusic": "Find Music",
+    "recentEmpty": "No recent plays",
+    "recentEmptyHint": "Your recently played songs will appear here"
+  },
+  "player": {
+    "nowPlaying": "NOW PLAYING",
+    "nothingPlaying": "Nothing playing",
+    "upNext": "Up Next",
+    "queue": "Queue",
+    "share": "Share",
+    "repeatOne": "Repeat one"
+  },
+  "charts": {
+    "title": "Top Charts"
+  },
+  "playlist": {
+    "loading": "Loading playlist...",
+    "error": "Failed to load playlist",
+    "by": "by {{owner}}"
+  },
+  "categories": {
+    "bollywood": "Bollywood",
+    "punjabi": "Punjabi",
+    "romantic": "Romantic",
+    "party": "Party",
+    "arijit": "Arijit Singh",
+    "devotional": "Devotional",
+    "retro": "Retro",
+    "english": "English"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "subtitle": "Please restart the app."
+  }
+}

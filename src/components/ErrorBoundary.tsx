@@ -1,8 +1,10 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { withTranslation, WithTranslation } from 'react-i18next';
 import { Colors } from '../theme/colors';
+import { captureException } from '../services/monitoring';
 
-interface Props {
+interface Props extends WithTranslation {
   children: ReactNode;
 }
 
@@ -10,7 +12,7 @@ interface State {
   hasError: boolean;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryBase extends Component<Props, State> {
   state: State = { hasError: false };
 
   static getDerivedStateFromError(): State {
@@ -18,24 +20,23 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    if (__DEV__) {
-      console.error('[ErrorBoundary]', error, info.componentStack);
-    }
+    captureException(error, { componentStack: info.componentStack ?? '' });
   }
 
   render(): ReactNode {
+    const { t } = this.props;
     if (this.state.hasError) {
       return (
         <View style={styles.container}>
-          <Text style={styles.title}>Something went wrong</Text>
-          <Text style={styles.subtitle}>Please restart the app.</Text>
+          <Text style={styles.title}>{t('errorBoundary.title')}</Text>
+          <Text style={styles.subtitle}>{t('errorBoundary.subtitle')}</Text>
           <TouchableOpacity
             style={styles.button}
             onPress={() => this.setState({ hasError: false })}
             accessibilityRole="button"
-            accessibilityLabel="Try again"
+            accessibilityLabel={t('common.tryAgain')}
           >
-            <Text style={styles.buttonText}>Try again</Text>
+            <Text style={styles.buttonText}>{t('common.tryAgain')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -43,6 +44,8 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export const ErrorBoundary = withTranslation()(ErrorBoundaryBase);
 
 const styles = StyleSheet.create({
   container: {

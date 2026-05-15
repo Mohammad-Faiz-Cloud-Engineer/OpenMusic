@@ -9,17 +9,28 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { StackScreenProps } from '@react-navigation/stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../theme/colors';
 import { usePlayerStore } from '../store/playerStore';
-import { formatDuration } from '../api/jiosaavn';
+import { useRecentStore } from '../store/recentStore';
+import { formatDuration, Track } from '../api/jiosaavn';
+import type { RootStackParamList, TabParamList } from '../navigation/types';
+import { a11yButton } from '../utils/a11y';
+import { TrackCard } from '../components/TrackCard';
 
 type LibraryTab = 'queue' | 'recent';
 
-interface LibraryScreenProps {
-  navigation: any;
-}
+type LibraryScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'Library'>,
+  StackScreenProps<RootStackParamList>
+>;
 
 export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<LibraryTab>('queue');
   const {
     queue,
@@ -29,22 +40,25 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
     removeFromQueue,
     clearQueue,
   } = usePlayerStore();
+  const recentTracks = useRecentStore((s) => s.tracks);
 
   const placeholder = require('../../assets/placeholder.png');
 
-  const renderQueueItem = ({ item, index }: { item: any; index: number }) => {
+  const renderQueueItem = ({ item, index }: { item: Track; index: number }) => {
     const isActive = index === currentIndex;
     return (
       <TouchableOpacity
         style={[styles.queueItem, isActive && styles.queueItemActive]}
         onPress={() => playTrack(item, queue)}
         activeOpacity={0.75}
+        {...a11yButton(`${item.title} by ${item.artist}`)}
       >
         <View style={styles.queueLeft}>
           <View style={styles.queueImageContainer}>
             <Image
               source={item.thumbnail ? { uri: item.thumbnail } : placeholder}
               style={styles.queueImage}
+              accessibilityLabel={item.title}
             />
             {isActive && (
               <View style={styles.queueActiveOverlay}>
@@ -72,6 +86,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             onPress={() => removeFromQueue(index)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={styles.removeBtn}
+            {...a11yButton(t('library.clear'), 'Remove from queue')}
           >
             <Ionicons name="close" size={16} color={Colors.textMuted} />
           </TouchableOpacity>
@@ -81,43 +96,43 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.container} edges={['top']}>
       <LinearGradient
         colors={['rgba(168,85,247,0.15)', 'transparent']}
         style={styles.headerGradient}
       >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Library</Text>
+          <Text style={styles.headerTitle} accessibilityRole="header">
+            {t('library.title')}
+          </Text>
         </View>
 
-        {/* Tabs */}
         <View style={styles.tabs}>
           {(['queue', 'recent'] as LibraryTab[]).map((tab) => (
             <TouchableOpacity
               key={tab}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
+              {...a11yButton(tab === 'queue' ? t('library.queue') : t('library.recent'))}
             >
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'queue' ? 'Queue' : 'Recent'}
+                {tab === 'queue' ? t('library.queue') : t('library.recent')}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
       </LinearGradient>
 
-      {/* Queue Tab */}
       {activeTab === 'queue' && (
         <>
           {queue.length > 0 ? (
             <>
-              {/* Now Playing */}
               {currentTrack && (
                 <TouchableOpacity
                   style={styles.nowPlayingCard}
                   onPress={() => navigation.navigate('Player')}
                   activeOpacity={0.85}
+                  {...a11yButton(`${t('library.nowPlaying')}: ${currentTrack.title}`)}
                 >
                   <Image
                     source={
@@ -143,7 +158,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
                         style={styles.nowPlayingArt}
                       />
                       <View style={styles.nowPlayingInfo}>
-                        <Text style={styles.nowPlayingLabel}>NOW PLAYING</Text>
+                        <Text style={styles.nowPlayingLabel}>{t('library.nowPlaying')}</Text>
                         <Text style={styles.nowPlayingTitle} numberOfLines={1}>
                           {currentTrack.title}
                         </Text>
@@ -157,19 +172,18 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
                 </TouchableOpacity>
               )}
 
-              {/* Queue Header */}
               <View style={styles.queueHeader}>
                 <Text style={styles.queueHeaderTitle}>
-                  Next Up · {queue.length} tracks
+                  {t('library.nextUp', { count: queue.length })}
                 </Text>
-                <TouchableOpacity onPress={clearQueue}>
-                  <Text style={styles.clearBtn}>Clear</Text>
+                <TouchableOpacity onPress={clearQueue} {...a11yButton(t('library.clear'))}>
+                  <Text style={styles.clearBtn}>{t('library.clear')}</Text>
                 </TouchableOpacity>
               </View>
 
               <FlatList
                 data={queue}
-                keyExtractor={(t, i) => `${t.id}-${i}`}
+                keyExtractor={(track, i) => `${track.id}-${i}`}
                 renderItem={renderQueueItem}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 160 }}
@@ -185,13 +199,12 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
                   <Ionicons name="list" size={32} color="#fff" />
                 </LinearGradient>
               </View>
-              <Text style={styles.emptyTitle}>Queue is empty</Text>
-              <Text style={styles.emptySubtitle}>
-                Search for songs and start playing
-              </Text>
+              <Text style={styles.emptyTitle}>{t('library.queueEmpty')}</Text>
+              <Text style={styles.emptySubtitle}>{t('library.queueEmptyHint')}</Text>
               <TouchableOpacity
                 style={styles.emptyAction}
                 onPress={() => navigation.navigate('Search')}
+                {...a11yButton(t('library.findMusic'))}
               >
                 <LinearGradient
                   colors={['#A855F7', '#EC4899']}
@@ -200,7 +213,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
                   end={{ x: 1, y: 0 }}
                 >
                   <Ionicons name="search" size={16} color="#fff" />
-                  <Text style={styles.emptyActionText}>Find Music</Text>
+                  <Text style={styles.emptyActionText}>{t('library.findMusic')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -208,24 +221,33 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
         </>
       )}
 
-      {/* Recent Tab */}
       {activeTab === 'recent' && (
-        <View style={styles.emptyState}>
-          <View style={styles.emptyIconContainer}>
-            <LinearGradient
-              colors={['#A855F7', '#EC4899']}
-              style={styles.emptyIconGradient}
-            >
-              <Ionicons name="time" size={32} color="#fff" />
-            </LinearGradient>
+        recentTracks.length > 0 ? (
+          <FlatList
+            data={recentTracks}
+            keyExtractor={(track) => track.id}
+            renderItem={({ item, index }) => (
+              <TrackCard track={item} queue={recentTracks} showIndex={index} />
+            )}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 160 }}
+          />
+        ) : (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconContainer}>
+              <LinearGradient
+                colors={['#A855F7', '#EC4899']}
+                style={styles.emptyIconGradient}
+              >
+                <Ionicons name="time" size={32} color="#fff" />
+              </LinearGradient>
+            </View>
+            <Text style={styles.emptyTitle}>{t('library.recentEmpty')}</Text>
+            <Text style={styles.emptySubtitle}>{t('library.recentEmptyHint')}</Text>
           </View>
-          <Text style={styles.emptyTitle}>No recent plays</Text>
-          <Text style={styles.emptySubtitle}>
-            Your recently played songs will appear here
-          </Text>
-        </View>
+        )
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -235,12 +257,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg,
   },
   headerGradient: {
-    paddingTop: 60,
     paddingBottom: 8,
   },
   header: {
     paddingHorizontal: 20,
     marginBottom: 16,
+    marginTop: 8,
   },
   headerTitle: {
     fontSize: 28,
@@ -274,8 +296,6 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: '#fff',
   },
-
-  // Now Playing Card
   nowPlayingCard: {
     marginHorizontal: 16,
     marginVertical: 12,
@@ -327,8 +347,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 2,
   },
-
-  // Queue
   queueHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -412,8 +430,6 @@ const styles = StyleSheet.create({
   activeText: {
     color: Colors.accent,
   },
-
-  // Empty State
   emptyState: {
     flex: 1,
     alignItems: 'center',

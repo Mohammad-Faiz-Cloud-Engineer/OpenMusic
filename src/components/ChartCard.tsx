@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme/colors';
 import { Chart } from '../api/jiosaavn';
+import { a11yButton } from '../utils/a11y';
 
 interface ChartCardProps {
   chart: Chart;
@@ -22,7 +23,12 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, onPress, index }) =
   const imageSource = chart.thumbnail ? { uri: chart.thumbnail } : placeholder;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.8}
+      {...a11yButton(chart.title)}
+    >
       <View style={styles.imageContainer}>
         <Image source={imageSource} style={styles.image} />
         <LinearGradient

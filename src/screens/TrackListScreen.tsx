@@ -13,12 +13,14 @@ import { TrackCard } from '../components/TrackCard';
 import { usePlayerStore } from '../store/playerStore';
 import { Track } from '../api/jiosaavn';
 
-interface TrackListScreenProps {
-  navigation: any;
-  route: { params: { title: string; tracks: Track[] } };
-}
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../navigation/types';
+import { useTranslation } from 'react-i18next';
+
+type TrackListScreenProps = StackScreenProps<RootStackParamList, 'TrackList'>;
 
 export const TrackListScreen: React.FC<TrackListScreenProps> = ({ navigation, route }) => {
+  const { t } = useTranslation();
   const { title, tracks } = route.params;
   const { playQueue } = usePlayerStore();
 
@@ -55,7 +57,7 @@ export const TrackListScreen: React.FC<TrackListScreenProps> = ({ navigation, ro
               end={{ x: 1, y: 0 }}
             >
               <Ionicons name="play" size={16} color="#fff" />
-              <Text style={styles.playAllText}>Play All</Text>
+              <Text style={styles.playAllText}>{t('common.playAll')}</Text>
             </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity
@@ -66,9 +68,9 @@ export const TrackListScreen: React.FC<TrackListScreenProps> = ({ navigation, ro
             }}
           >
             <Ionicons name="shuffle" size={16} color={Colors.text} />
-            <Text style={styles.shuffleText}>Shuffle</Text>
+            <Text style={styles.shuffleText}>{t('common.shuffle')}</Text>
           </TouchableOpacity>
-          <Text style={styles.trackCount}>{tracks.length} songs</Text>
+          <Text style={styles.trackCount}>{t('common.songs', { count: tracks.length })}</Text>
         </View>
       </LinearGradient>
 

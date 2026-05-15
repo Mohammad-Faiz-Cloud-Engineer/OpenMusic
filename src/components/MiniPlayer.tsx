@@ -12,6 +12,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { usePlayerStore } from '../store/playerStore';
 import { Colors } from '../theme/colors';
+import { a11yButton } from '../utils/a11y';
+import { useTranslation } from 'react-i18next';
 
 export const MINI_PLAYER_HEIGHT = 72;
 
@@ -22,6 +24,7 @@ interface MiniPlayerProps {
 }
 
 export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 0 }) => {
+  const { t } = useTranslation();
   const { currentTrack, isPlaying, isLoading, togglePlay, next, position, duration } =
     usePlayerStore();
 
@@ -92,7 +95,12 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
         <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      <TouchableOpacity style={styles.content} onPress={onPress} activeOpacity={0.9}>
+      <TouchableOpacity
+        style={styles.content}
+        onPress={onPress}
+        activeOpacity={0.9}
+        {...a11yButton(`${currentTrack.title} — ${t('player.nowPlaying')}`)}
+      >
         {/* Artwork */}
         <Animated.View style={[styles.artContainer, { transform: [{ scale: pulseAnim }] }]}>
           <Image source={imageSource} style={styles.art} />
@@ -114,6 +122,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
             style={styles.controlBtn}
             onPress={(e) => { e.stopPropagation(); togglePlay(); }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            {...a11yButton(isPlaying ? t('common.pause') : t('common.play'))}
           >
             {isLoading ? (
               <Ionicons name="hourglass-outline" size={22} color={Colors.accent} />

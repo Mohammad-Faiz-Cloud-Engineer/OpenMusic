@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Colors } from '../theme/colors';
+import { a11yButton, a11yHeader } from '../utils/a11y';
 
 interface SectionHeaderProps {
   title: string;
@@ -12,19 +14,28 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   title,
   onSeeAll,
   subtitle,
-}) => (
-  <View style={styles.container}>
-    <View style={styles.left}>
-      <Text style={styles.title}>{title}</Text>
-      {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+}) => {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.container}>
+      <View style={styles.left}>
+        <Text style={styles.title} {...a11yHeader(title)}>
+          {title}
+        </Text>
+        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+      </View>
+      {onSeeAll && (
+        <TouchableOpacity
+          onPress={onSeeAll}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          {...a11yButton(t('common.seeAll'))}
+        >
+          <Text style={styles.seeAll}>{t('common.seeAll')}</Text>
+        </TouchableOpacity>
+      )}
     </View>
-    {onSeeAll && (
-      <TouchableOpacity onPress={onSeeAll} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-        <Text style={styles.seeAll}>See all</Text>
-      </TouchableOpacity>
-    )}
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

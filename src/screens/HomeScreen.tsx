@@ -20,14 +20,23 @@ import { TrackCard } from '../components/TrackCard';
 import { ChartCard } from '../components/ChartCard';
 import { SkeletonCard } from '../components/LoadingScreen';
 import { usePlayerStore } from '../store/playerStore';
+import { useTranslation } from 'react-i18next';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList, TabParamList } from '../navigation/types';
+import { a11yButton } from '../utils/a11y';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-interface HomeScreenProps {
-  navigation: any;
-}
+type HomeScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'Home'>,
+  StackScreenProps<RootStackParamList>
+>;
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
   const { playQueue } = usePlayerStore();
 
   const { data: chartsData, isLoading: chartsLoading, refetch: refetchCharts } = useQuery({
@@ -63,9 +72,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   const getGreeting = () => {
     const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return t('home.greetingMorning');
+    if (h < 17) return t('home.greetingAfternoon');
+    return t('home.greetingEvening');
   };
 
   const renderFeaturedBanner = () => {
@@ -95,7 +104,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         />
         <View style={styles.featuredContent}>
           <View style={styles.featuredBadge}>
-            <Text style={styles.featuredBadgeText}>🔥 TRENDING NOW</Text>
+            <Text style={styles.featuredBadgeText}>🔥 {t('home.trendingBadge')}</Text>
           </View>
           <Text style={styles.featuredTitle} numberOfLines={2}>
             {featured.title}
@@ -113,7 +122,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 end={{ x: 1, y: 0 }}
               >
                 <Ionicons name="play" size={18} color="#fff" />
-                <Text style={styles.featuredPlayText}>Play Now</Text>
+                <Text style={styles.featuredPlayText}>{t('home.playNow')}</Text>
               </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity
@@ -124,7 +133,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               }}
             >
               <Ionicons name="shuffle" size={18} color={Colors.text} />
-              <Text style={styles.featuredShuffleText}>Shuffle</Text>
+              <Text style={styles.featuredShuffleText}>{t('common.shuffle')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -158,7 +167,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -179,11 +188,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <View style={styles.header}>
             <View>
               <Text style={styles.greeting}>{getGreeting()}</Text>
-              <Text style={styles.headerTitle}>What's playing?</Text>
+              <Text style={styles.headerTitle}>{t('home.headline')}</Text>
             </View>
             <TouchableOpacity
               style={styles.searchBtn}
               onPress={() => navigation.navigate('Search')}
+              {...a11yButton(t('tabs.search'))}
             >
               <Ionicons name="search" size={22} color={Colors.text} />
             </TouchableOpacity>
@@ -201,7 +211,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         {/* Quick Picks */}
         <View style={styles.section}>
-          <SectionHeader title="Quick Picks" subtitle="Jump back in" />
+          <SectionHeader title={t('home.quickPicks')} subtitle={t('home.quickPicksSub')} />
           {trendingLoading ? (
             <View style={styles.quickPicksGrid}>
               {[...Array(6)].map((_, i) => (
@@ -215,7 +225,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         {/* Charts */}
         <View style={styles.section}>
-          <SectionHeader title="Top Charts" />
+          <SectionHeader
+            title={t('home.topCharts')}
+            onSeeAll={() => navigation.navigate('Charts')}
+          />
           {chartsLoading ? (
             <FlatList
               horizontal
@@ -255,10 +268,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         {/* Trending Tracks */}
         <View style={styles.section}>
           <SectionHeader
-            title="Trending Now"
+            title={t('home.trendingNow')}
             onSeeAll={() =>
               navigation.navigate('TrackList', {
-                title: 'Trending Now',
+                title: t('home.trendingNow'),
                 tracks: trendingData?.results ?? [],
               })
             }
@@ -284,11 +297,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         {/* Romantic */}
         <View style={styles.section}>
           <SectionHeader
-            title="Love Songs"
-            subtitle="Romantic hits"
+            title={t('home.loveSongs')}
+            subtitle={t('home.loveSongsSub')}
             onSeeAll={() =>
               navigation.navigate('TrackList', {
-                title: 'Love Songs',
+                title: t('home.loveSongs'),
                 tracks: romanticData?.results ?? [],
               })
             }
@@ -327,10 +340,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         {/* Punjabi */}
         <View style={styles.section}>
           <SectionHeader
-            title="Punjabi Hits"
+            title={t('home.punjabiHits')}
             onSeeAll={() =>
               navigation.navigate('TrackList', {
-                title: 'Punjabi Hits',
+                title: t('home.punjabiHits'),
                 tracks: punjabData?.results ?? [],
               })
             }
@@ -355,7 +368,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         <View style={{ height: 160 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

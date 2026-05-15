@@ -12,6 +12,7 @@ import { Colors } from '../theme/colors';
 import { Track, formatDuration } from '../api/jiosaavn';
 import { usePlayerStore } from '../store/playerStore';
 import { Ionicons } from '@expo/vector-icons';
+import { a11yButton } from '../utils/a11y';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
@@ -51,6 +52,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
         style={[styles.gridCard, { width: CARD_WIDTH }]}
         onPress={handlePress}
         activeOpacity={0.75}
+        {...a11yButton(`${track.title} by ${track.artist}`)}
       >
         <View style={styles.gridImageContainer}>
           <Image source={imageSource} style={styles.gridImage} />
@@ -89,6 +91,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
         style={styles.horizontalCard}
         onPress={handlePress}
         activeOpacity={0.75}
+        {...a11yButton(`${track.title} by ${track.artist}`)}
       >
         <Image source={imageSource} style={styles.horizontalImage} />
         <View style={styles.horizontalInfo}>
@@ -114,6 +117,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
       style={[styles.listCard, isActive && styles.listCardActive]}
       onPress={handlePress}
       activeOpacity={0.7}
+      {...a11yButton(`${track.title} by ${track.artist}`)}
     >
       <View style={styles.listLeft}>
         {showIndex !== undefined ? (

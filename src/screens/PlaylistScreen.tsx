@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,16 +15,15 @@ import { getPlaylist, formatDuration } from '../api/jiosaavn';
 import { Colors } from '../theme/colors';
 import { TrackCard } from '../components/TrackCard';
 import { usePlayerStore } from '../store/playerStore';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../navigation/types';
+import { useTranslation } from 'react-i18next';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-interface PlaylistScreenProps {
-  navigation: any;
-  route: { params: { id: string; title?: string } };
-}
+type PlaylistScreenProps = StackScreenProps<RootStackParamList, 'Playlist'>;
 
 export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, route }) => {
-  const { id, title } = route.params;
+  const { t } = useTranslation();
+  const { id } = route.params;
   const { playQueue } = usePlayerStore();
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -46,7 +44,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
       <View style={styles.loadingContainer}>
         <LinearGradient colors={['#1A0A2E', '#0A0A1A', '#0A0A0F']} style={StyleSheet.absoluteFill} />
         <ActivityIndicator size="large" color={Colors.accent} />
-        <Text style={styles.loadingText}>Loading playlist...</Text>
+        <Text style={styles.loadingText}>{t('playlist.loading')}</Text>
       </View>
     );
   }
@@ -56,9 +54,9 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
       <View style={styles.loadingContainer}>
         <LinearGradient colors={['#1A0A2E', '#0A0A1A', '#0A0A0F']} style={StyleSheet.absoluteFill} />
         <Ionicons name="alert-circle-outline" size={48} color={Colors.red} />
-        <Text style={styles.errorText}>Failed to load playlist</Text>
+        <Text style={styles.errorText}>{t('playlist.error')}</Text>
         <TouchableOpacity style={styles.retryBtn} onPress={() => refetch()}>
-          <Text style={styles.retryText}>Retry</Text>
+          <Text style={styles.retryText}>{t('common.retry')}</Text>
         </TouchableOpacity>
       </View>
     );

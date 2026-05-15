@@ -3,9 +3,11 @@ import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import type { StackScreenProps } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 
 import { HomeScreen } from '../screens/HomeScreen';
 import { SearchScreen } from '../screens/SearchScreen';
@@ -13,28 +15,29 @@ import { LibraryScreen } from '../screens/LibraryScreen';
 import { PlayerScreen } from '../screens/PlayerScreen';
 import { PlaylistScreen } from '../screens/PlaylistScreen';
 import { TrackListScreen } from '../screens/TrackListScreen';
+import { ChartsScreen } from '../screens/ChartsScreen';
 import { MiniPlayer } from '../components/MiniPlayer';
 import { Colors } from '../theme/colors';
 import { usePlayerStore } from '../store/playerStore';
+import { linking } from './linking';
+import type { RootStackParamList, TabParamList } from './types';
 
-const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator<TabParamList>();
+const Stack = createStackNavigator<RootStackParamList>();
 
-// Heights — keep in sync with MiniPlayer container height
 const TAB_BAR_HEIGHT = 64;
-const MINI_PLAYER_HEIGHT = 72;
 
-// ── Tab Navigator ─────────────────────────────────────────────────────────
-function TabNavigator({ navigation }: any) {
+type TabNavigatorProps = StackScreenProps<RootStackParamList, 'Tabs'>;
+
+function TabNavigator({ navigation }: TabNavigatorProps) {
+  const { t } = useTranslation();
   const { currentTrack } = usePlayerStore();
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Screens — pad bottom so content isn't hidden behind tab bar + mini player */}
+    <View style={styles.tabRoot}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          // Tab bar is always a fixed height at the very bottom
           tabBarStyle: {
             position: 'absolute',
             bottom: 0,
@@ -54,7 +57,6 @@ function TabNavigator({ navigation }: any) {
               />
             </View>
           ),
-          // Push screen content up by mini player height when it's visible
           tabBarActiveTintColor: Colors.accent,
           tabBarInactiveTintColor: Colors.textMuted,
           tabBarLabelStyle: {
@@ -62,9 +64,13 @@ function TabNavigator({ navigation }: any) {
             fontWeight: '600',
             marginBottom: 6,
           },
-          tabBarItemStyle: {
-            paddingTop: 8,
-          },
+          tabBarItemStyle: { paddingTop: 8 },
+          tabBarAccessibilityLabel:
+            route.name === 'Home'
+              ? t('tabs.home')
+              : route.name === 'Search'
+                ? t('tabs.search')
+                : t('tabs.library'),
           tabBarIcon: ({ focused, color }) => {
             let iconName: keyof typeof Ionicons.glyphMap = 'home';
             if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
@@ -74,12 +80,23 @@ function TabNavigator({ navigation }: any) {
           },
         })}
       >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Search" component={SearchScreen} />
-        <Tab.Screen name="Library" component={LibraryScreen} />
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ tabBarLabel: t('tabs.home'), title: t('tabs.home') }}
+        />
+        <Tab.Screen
+          name="Search"
+          component={SearchScreen}
+          options={{ tabBarLabel: t('tabs.search'), title: t('tabs.search') }}
+        />
+        <Tab.Screen
+          name="Library"
+          component={LibraryScreen}
+          options={{ tabBarLabel: t('tabs.library'), title: t('tabs.library') }}
+        />
       </Tab.Navigator>
 
-      {/* MiniPlayer floats directly above the tab bar, never overlapping it */}
       {currentTrack && (
         <MiniPlayer
           onPress={() => navigation.navigate('Player')}
@@ -90,10 +107,9 @@ function TabNavigator({ navigation }: any) {
   );
 }
 
-// ── Root Stack Navigator ──────────────────────────────────────────────────
 export function AppNavigator() {
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Tabs" component={TabNavigator} />
         <Stack.Screen
@@ -116,17 +132,14 @@ export function AppNavigator() {
             }),
           }}
         />
-        <Stack.Screen
-          name="Playlist"
-          component={PlaylistScreen as any}
-          options={{ presentation: 'card' }}
-        />
-        <Stack.Screen
-          name="TrackList"
-          component={TrackListScreen as any}
-          options={{ presentation: 'card' }}
-        />
+        <Stack.Screen name="Playlist" component={PlaylistScreen} options={{ presentation: 'card' }} />
+        <Stack.Screen name="TrackList" component={TrackListScreen} options={{ presentation: 'card' }} />
+        <Stack.Screen name="Charts" component={ChartsScreen} options={{ presentation: 'card' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  tabRoot: { flex: 1 },
+});

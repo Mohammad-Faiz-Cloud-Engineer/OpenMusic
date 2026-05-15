@@ -1,14 +1,11 @@
 import { create } from 'zustand';
 import { Audio, AVPlaybackStatus } from 'expo-av';
 import { Track, getStreamUrl, getProxyPlayUrl } from '../api/jiosaavn';
+import { useRecentStore } from './recentStore';
 import { devError, devWarn } from '../utils/devLog';
+import { isCacheExpired, pickShuffleIndex, type CachedStream } from '../utils/playerUtils';
 
 export type RepeatMode = 'off' | 'all' | 'one';
-
-interface CachedStream {
-  url: string;
-  expiresAt: string | null;
-}
 
 interface PlayerState {
   // Queue
@@ -48,14 +45,6 @@ interface PlayerState {
   setIsSeeking: (v: boolean) => void;
   setPosition: (v: number) => void;
 }
-
-/** Returns true if the cached URL is expired or within 3 min of expiring */
-const isCacheExpired = (cached: CachedStream): boolean => {
-  if (!cached.expiresAt) return false; // no expiry info — trust it
-  const exp = new Date(cached.expiresAt).getTime();
-  if (isNaN(exp)) return true;
-  return exp - Date.now() <= 3 * 60 * 1000;
-};
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
   queue: [],
@@ -174,6 +163,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       }
 
       set({ sound, isPlaying: true, isLoading: false, position: 0 });
+      void useRecentStore.getState().addRecent(track);
     } catch (err) {
       if (!isStale()) {
         devError('[player] playTrack error:', err);
@@ -213,13 +203,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     let nextIndex: number;
     if (isShuffle) {
-      if (queue.length === 1) {
-        nextIndex = 0;
-      } else {
-        do {
-          nextIndex = Math.floor(Math.random() * queue.length);
-        } while (nextIndex === currentIndex);
-      }
+      nextIndex = pickShuffleIndex(queue.length, currentIndex);
     } else {
       nextIndex = currentIndex + 1;
       if (nextIndex >= queue.length) {
