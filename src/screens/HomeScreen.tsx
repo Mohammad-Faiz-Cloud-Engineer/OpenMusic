@@ -78,7 +78,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <View style={styles.featuredContent}>
           <View style={styles.featuredBadgeWrap}>
             <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-            <Text style={styles.featuredBadgeText}>🔥 {t('home.trendingBadge')}</Text>
+            <Text style={styles.featuredBadgeText}>{t('home.trendingBadge')}</Text>
           </View>
           <Text style={styles.featuredTitle} numberOfLines={2}>{featured.title}</Text>
           <Text style={styles.featuredArtist}>{featured.artist}</Text>
