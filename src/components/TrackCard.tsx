@@ -26,11 +26,7 @@ interface TrackCardProps {
 }
 
 export const TrackCard: React.FC<TrackCardProps> = ({
-  track,
-  queue,
-  variant = 'list',
-  showIndex,
-  onPress,
+  track, queue, variant = 'list', showIndex, onPress,
 }) => {
   const { playTrack, currentTrack, isPlaying } = usePlayerStore();
   const isActive = currentTrack?.id === track.id;
@@ -43,44 +39,38 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   const placeholder = require('../../assets/placeholder.png');
   const imageSource = track.thumbnail ? { uri: track.thumbnail } : placeholder;
 
-  // ── Grid variant ──────────────────────────────────────────────────────────
+  // ── Grid ──────────────────────────────────────────────────────────────────
   if (variant === 'grid') {
     return (
       <TouchableOpacity
         style={[styles.gridCard, { width: GRID_CARD_WIDTH }]}
         onPress={handlePress}
-        activeOpacity={0.7}
+        activeOpacity={0.75}
         {...a11yButton(`${track.title} by ${track.artist}`)}
       >
         <View style={styles.gridImageWrap}>
           <Image source={imageSource} style={styles.gridImage} />
           {isActive && (
             <View style={styles.gridActiveOverlay}>
-              <Ionicons
-                name={isPlaying ? 'pause' : 'play'}
-                size={20}
-                color="#fff"
-              />
+              <Ionicons name={isPlaying ? 'pause' : 'play'} size={22} color="#fff" />
             </View>
           )}
         </View>
         <Text style={[styles.gridTitle, isActive && styles.activeText]} numberOfLines={1}>
           {track.title}
         </Text>
-        <Text style={styles.gridArtist} numberOfLines={1}>
-          {track.artist}
-        </Text>
+        <Text style={styles.gridArtist} numberOfLines={1}>{track.artist}</Text>
       </TouchableOpacity>
     );
   }
 
-  // ── Horizontal variant ────────────────────────────────────────────────────
+  // ── Horizontal ────────────────────────────────────────────────────────────
   if (variant === 'horizontal') {
     return (
       <TouchableOpacity
         style={styles.horizontalCard}
         onPress={handlePress}
-        activeOpacity={0.7}
+        activeOpacity={0.75}
         {...a11yButton(`${track.title} by ${track.artist}`)}
       >
         <Image source={imageSource} style={styles.horizontalImage} />
@@ -88,37 +78,30 @@ export const TrackCard: React.FC<TrackCardProps> = ({
           <Text style={[styles.horizontalTitle, isActive && styles.activeText]} numberOfLines={1}>
             {track.title}
           </Text>
-          <Text style={styles.horizontalArtist} numberOfLines={1}>
-            {track.artist}
-          </Text>
+          <Text style={styles.horizontalArtist} numberOfLines={1}>{track.artist}</Text>
         </View>
         {isActive && isPlaying && <EqualizerBars />}
       </TouchableOpacity>
     );
   }
 
-  // ── List variant (default) ────────────────────────────────────────────────
+  // ── List (default) ────────────────────────────────────────────────────────
   return (
     <TouchableOpacity
-      style={styles.listCard}
+      style={[styles.listCard, isActive && styles.listCardActive]}
       onPress={handlePress}
-      activeOpacity={0.7}
+      activeOpacity={0.75}
       {...a11yButton(`${track.title} by ${track.artist}`)}
     >
-      {/* Index or equalizer */}
       {showIndex !== undefined && (
         <View style={styles.indexWrap}>
-          {isActive && isPlaying ? (
-            <EqualizerBars small />
-          ) : (
-            <Text style={[styles.indexText, isActive && styles.activeText]}>
-              {showIndex + 1}
-            </Text>
-          )}
+          {isActive && isPlaying
+            ? <EqualizerBars small />
+            : <Text style={[styles.indexText, isActive && styles.activeText]}>{showIndex + 1}</Text>
+          }
         </View>
       )}
 
-      {/* Artwork */}
       <View style={styles.listImageWrap}>
         <Image source={imageSource} style={styles.listImage} />
         {isActive && (
@@ -128,7 +111,6 @@ export const TrackCard: React.FC<TrackCardProps> = ({
         )}
       </View>
 
-      {/* Info */}
       <View style={styles.listInfo}>
         <Text style={[styles.listTitle, isActive && styles.activeText]} numberOfLines={1}>
           {track.title}
@@ -139,38 +121,25 @@ export const TrackCard: React.FC<TrackCardProps> = ({
               <Text style={styles.explicitText}>E</Text>
             </View>
           )}
-          <Text style={styles.listArtist} numberOfLines={1}>
-            {track.artist}
-          </Text>
+          <Text style={styles.listArtist} numberOfLines={1}>{track.artist}</Text>
         </View>
       </View>
 
-      {/* Duration + more */}
       <View style={styles.listRight}>
         <Text style={styles.listDuration}>{formatDuration(track.duration_seconds)}</Text>
-        <Ionicons name="ellipsis-horizontal" size={16} color={Colors.textMuted} style={styles.moreIcon} />
+        <Ionicons name="ellipsis-horizontal" size={16} color={Colors.textMuted} style={{ marginLeft: 6 }} />
       </View>
     </TouchableOpacity>
   );
 };
 
-// ── Equalizer bars ────────────────────────────────────────────────────────────
 const EqualizerBars: React.FC<{ small?: boolean }> = ({ small }) => {
-  const barWidth = small ? 2 : 3;
+  const w = small ? 2 : 3;
   const heights = [10, 16, 8, 14, 6];
   return (
     <View style={[styles.equalizer, small && styles.equalizerSmall]}>
       {heights.map((h, i) => (
-        <View
-          key={i}
-          style={{
-            height: h * (small ? 0.65 : 1),
-            width: barWidth,
-            marginHorizontal: 1,
-            backgroundColor: Colors.accent,
-            borderRadius: 1,
-          }}
-        />
+        <View key={i} style={{ height: h * (small ? 0.65 : 1), width: w, marginHorizontal: 1, backgroundColor: Colors.accent, borderRadius: 1 }} />
       ))}
     </View>
   );
@@ -178,157 +147,83 @@ const EqualizerBars: React.FC<{ small?: boolean }> = ({ small }) => {
 
 const styles = StyleSheet.create({
   // ── Grid ──────────────────────────────────────────────────────────────────
-  gridCard: {
-    marginBottom: 16,
-  },
+  gridCard: { marginBottom: 16 },
   gridImageWrap: {
-    borderRadius: 4,
+    borderRadius: 16,
     overflow: 'hidden',
     aspectRatio: 1,
     backgroundColor: Colors.surface2,
   },
-  gridImage: {
-    width: '100%',
-    height: '100%',
-  },
+  gridImage: { width: '100%', height: '100%' },
   gridActiveOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gridTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.text,
-    marginTop: 8,
-  },
-  gridArtist: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
+  gridTitle: { fontSize: 13, fontWeight: '600', color: Colors.text, marginTop: 8 },
+  gridArtist: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
 
   // ── Horizontal ────────────────────────────────────────────────────────────
   horizontalCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 4,
+    backgroundColor: Colors.glass,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
     padding: 10,
     marginRight: 12,
     width: 220,
   },
-  horizontalImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 2,
-    backgroundColor: Colors.surface2,
-  },
-  horizontalInfo: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  horizontalTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  horizontalArtist: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
+  horizontalImage: { width: 48, height: 48, borderRadius: 12, backgroundColor: Colors.surface2 },
+  horizontalInfo: { flex: 1, marginLeft: 10 },
+  horizontalTitle: { fontSize: 13, fontWeight: '600', color: Colors.text },
+  horizontalArtist: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
 
   // ── List ──────────────────────────────────────────────────────────────────
   listCard: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
+    marginHorizontal: 8,
+    marginVertical: 2,
+    borderRadius: 16,
   },
-  indexWrap: {
-    width: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 4,
+  listCardActive: {
+    backgroundColor: Colors.accentOverlay,
+    borderWidth: 1,
+    borderColor: 'rgba(29,185,84,0.2)',
   },
-  indexText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '400',
-  },
-  listImageWrap: {
-    position: 'relative',
-    marginRight: 12,
-  },
-  listImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 2,
-    backgroundColor: Colors.surface2,
-  },
+  indexWrap: { width: 28, alignItems: 'center', justifyContent: 'center', marginRight: 4 },
+  indexText: { fontSize: 14, color: Colors.textSecondary, fontWeight: '400' },
+  listImageWrap: { position: 'relative', marginRight: 12 },
+  listImage: { width: 48, height: 48, borderRadius: 12, backgroundColor: Colors.surface2 },
   listActiveOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 2,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  listInfo: {
-    flex: 1,
-  },
-  listTitle: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: Colors.text,
-  },
-  listMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 3,
-  },
+  listInfo: { flex: 1 },
+  listTitle: { fontSize: 14, fontWeight: '400', color: Colors.text },
+  listMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 3 },
   explicitBadge: {
     backgroundColor: Colors.surface3,
-    borderRadius: 2,
+    borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 1,
     marginRight: 5,
   },
-  explicitText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: Colors.textMuted,
-  },
-  listArtist: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    flex: 1,
-  },
-  listRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 8,
-    gap: 6,
-  },
-  listDuration: {
-    fontSize: 12,
-    color: Colors.textMuted,
-  },
-  moreIcon: {
-    marginLeft: 4,
-  },
+  explicitText: { fontSize: 9, fontWeight: '700', color: Colors.textMuted },
+  listArtist: { fontSize: 12, color: Colors.textSecondary, flex: 1 },
+  listRight: { flexDirection: 'row', alignItems: 'center', marginLeft: 8 },
+  listDuration: { fontSize: 12, color: Colors.textMuted },
 
   // ── Shared ────────────────────────────────────────────────────────────────
-  activeText: {
-    color: Colors.accent,
-  },
-  equalizer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: 20,
-  },
-  equalizerSmall: {
-    height: 14,
-  },
+  activeText: { color: Colors.accent },
+  equalizer: { flexDirection: 'row', alignItems: 'flex-end', height: 20 },
+  equalizerSmall: { height: 14 },
 });

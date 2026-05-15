@@ -1,18 +1,13 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { getCharts } from '../api/jiosaavn';
-import { Colors } from '../theme/colors';
+import { Colors, Gradients } from '../theme/colors';
 import { ChartCard } from '../components/ChartCard';
 import { QueryErrorView } from '../components/QueryErrorView';
 import { a11yButton } from '../utils/a11y';
@@ -31,17 +26,17 @@ export const ChartsScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <LinearGradient colors={Gradients.ambientBg} style={StyleSheet.absoluteFill} />
+
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => navigation.goBack()}
-          {...a11yButton(t('common.goBack'))}
-        >
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} {...a11yButton(t('common.goBack'))}>
+          <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill} />
+          <View style={styles.backBtnGlass} />
           <Ionicons name="chevron-back" size={22} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('charts.title')}</Text>
-        <View style={{ width: 36 }} />
+        <View style={{ width: 38 }} />
       </View>
 
       {isLoading ? (
@@ -61,9 +56,7 @@ export const ChartsScreen: React.FC<Props> = ({ navigation }) => {
             <ChartCard
               chart={item}
               index={index}
-              onPress={() =>
-                navigation.navigate('Playlist', { id: item.id, title: item.title })
-              }
+              onPress={() => navigation.navigate('Playlist', { id: item.id, title: item.title })}
             />
           )}
         />
@@ -73,43 +66,23 @@ export const ChartsScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.bg,
-  },
+  container: { flex: 1, backgroundColor: Colors.bg },
+
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    paddingTop: 8,
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8,
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.surface2,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 38, height: 38, borderRadius: 19, overflow: 'hidden',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: Colors.glassBorder,
   },
+  backBtnGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.glass },
   headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.text,
-    textAlign: 'center',
-    marginHorizontal: 8,
-    letterSpacing: -0.2,
+    flex: 1, fontSize: 18, fontWeight: '700', color: Colors.text,
+    textAlign: 'center', marginHorizontal: 8, letterSpacing: -0.2,
   },
-  loader: {
-    marginTop: 48,
-  },
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 160,
-  },
-  row: {
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
+  loader: { marginTop: 48 },
+  list: { paddingHorizontal: 16, paddingBottom: 160 },
+  row: { justifyContent: 'space-between', marginBottom: 16 },
 });

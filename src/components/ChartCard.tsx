@@ -11,7 +11,7 @@ interface ChartCardProps {
   index?: number;
 }
 
-export const ChartCard: React.FC<ChartCardProps> = ({ chart, onPress, index }) => {
+export const ChartCard: React.FC<ChartCardProps> = ({ chart, onPress }) => {
   const placeholder = require('../../assets/placeholder.png');
   const imageSource = chart.thumbnail ? { uri: chart.thumbnail } : placeholder;
 
@@ -19,49 +19,37 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, onPress, index }) =
     <TouchableOpacity
       style={styles.card}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={0.75}
       {...a11yButton(chart.title)}
     >
       <View style={styles.imageWrap}>
         <Image source={imageSource} style={styles.image} />
-        {/* Play button overlay */}
         <View style={styles.playBtn}>
           <Ionicons name="play" size={16} color="#000" />
         </View>
       </View>
-      <Text style={styles.title} numberOfLines={2}>
-        {chart.title}
-      </Text>
+      <Text style={styles.title} numberOfLines={2}>{chart.title}</Text>
       {chart.description ? (
-        <Text style={styles.desc} numberOfLines={1}>
-          {chart.description}
-        </Text>
+        <Text style={styles.desc} numberOfLines={1}>{chart.description}</Text>
       ) : null}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    width: 160,
-    marginRight: 12,
-  },
+  card: { width: 160, marginRight: 12 },
   imageWrap: {
     width: 160,
     height: 160,
-    borderRadius: 4,
+    borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: Colors.surface2,
-    position: 'relative',
   },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
+  image: { width: '100%', height: '100%' },
   playBtn: {
     position: 'absolute',
-    bottom: 8,
-    right: 8,
+    bottom: 10,
+    right: 10,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -74,15 +62,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  title: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.text,
-    marginTop: 8,
-  },
-  desc: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
+  title: { fontSize: 13, fontWeight: '600', color: Colors.text, marginTop: 10 },
+  desc: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
 });

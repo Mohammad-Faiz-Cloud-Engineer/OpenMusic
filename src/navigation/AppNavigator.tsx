@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -24,7 +25,7 @@ import type { RootStackParamList, TabParamList } from './types';
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createStackNavigator<RootStackParamList>();
 
-const TAB_BAR_HEIGHT = 56;
+const TAB_BAR_HEIGHT = 60;
 
 type TabNavigatorProps = StackScreenProps<RootStackParamList, 'Tabs'>;
 
@@ -46,11 +47,17 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
             left: 0,
             right: 0,
             height: tabBarTotalHeight,
-            backgroundColor: Colors.surface,
-            borderTopWidth: 1,
-            borderTopColor: Colors.border,
+            backgroundColor: 'transparent',
+            borderTopWidth: 0,
             elevation: 0,
           },
+          tabBarBackground: () => (
+            <View style={StyleSheet.absoluteFill}>
+              <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+              <View style={styles.tabBarGlass} />
+              <View style={styles.tabBarTopBorder} />
+            </View>
+          ),
           tabBarActiveTintColor: Colors.text,
           tabBarInactiveTintColor: Colors.textMuted,
           tabBarLabelStyle: {
@@ -72,21 +79,9 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
           },
         })}
       >
-        <Tab.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ tabBarLabel: t('tabs.home'), title: t('tabs.home') }}
-        />
-        <Tab.Screen
-          name="Search"
-          component={SearchScreen}
-          options={{ tabBarLabel: t('tabs.search'), title: t('tabs.search') }}
-        />
-        <Tab.Screen
-          name="Library"
-          component={LibraryScreen}
-          options={{ tabBarLabel: t('tabs.library'), title: t('tabs.library') }}
-        />
+        <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t('tabs.home') }} />
+        <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: t('tabs.search') }} />
+        <Tab.Screen name="Library" component={LibraryScreen} options={{ tabBarLabel: t('tabs.library') }} />
       </Tab.Navigator>
 
       {currentTrack && (
@@ -112,33 +107,19 @@ export function AppNavigator() {
             gestureEnabled: true,
             cardStyleInterpolator: ({ current, layouts }) => ({
               cardStyle: {
-                transform: [
-                  {
-                    translateY: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [layouts.screen.height, 0],
-                    }),
-                  },
-                ],
+                transform: [{
+                  translateY: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.height, 0],
+                  }),
+                }],
               },
             }),
           }}
         />
-        <Stack.Screen
-          name="Playlist"
-          component={PlaylistScreen}
-          options={{ presentation: 'card' }}
-        />
-        <Stack.Screen
-          name="TrackList"
-          component={TrackListScreen}
-          options={{ presentation: 'card' }}
-        />
-        <Stack.Screen
-          name="Charts"
-          component={ChartsScreen}
-          options={{ presentation: 'card' }}
-        />
+        <Stack.Screen name="Playlist" component={PlaylistScreen} options={{ presentation: 'card' }} />
+        <Stack.Screen name="TrackList" component={TrackListScreen} options={{ presentation: 'card' }} />
+        <Stack.Screen name="Charts" component={ChartsScreen} options={{ presentation: 'card' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -146,4 +127,16 @@ export function AppNavigator() {
 
 const styles = StyleSheet.create({
   tabRoot: { flex: 1 },
+  tabBarGlass: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.glass,
+  },
+  tabBarTopBorder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: Colors.glassBorder,
+  },
 });

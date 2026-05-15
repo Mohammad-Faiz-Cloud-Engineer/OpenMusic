@@ -9,6 +9,7 @@ import {
   Keyboard,
   ActivityIndicator,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { searchSongs, getSuggestions } from '../api/jiosaavn';
@@ -18,6 +19,7 @@ import { SectionHeader } from '../components/SectionHeader';
 import { useTranslation } from 'react-i18next';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { TabParamList } from '../navigation/types';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type SearchScreenProps = BottomTabScreenProps<TabParamList, 'Search'>;
@@ -87,6 +89,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
 
         {/* Search bar */}
         <View style={[styles.searchBar, isFocused && styles.searchBarFocused]}>
+          <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill} />
+          <View style={styles.searchBarGlass} />
           <Ionicons name="search" size={18} color={Colors.textSecondary} style={styles.searchIcon} />
           <TextInput
             ref={inputRef}
@@ -202,19 +206,18 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface2,
-    borderRadius: 8,
+    overflow: 'hidden',
+    borderRadius: 20,
     paddingHorizontal: 14,
-    height: 48,
+    height: 50,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: Colors.glassBorder,
   },
   searchBarFocused: {
-    borderColor: Colors.text,
+    borderColor: Colors.glassBorderStrong,
   },
-  searchIcon: {
-    marginRight: 10,
-  },
+  searchIcon: { marginRight: 10 },
+  searchBarGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.glass },
   searchInput: {
     flex: 1,
     fontSize: 15,
@@ -224,12 +227,12 @@ const styles = StyleSheet.create({
 
   // ── Suggestions ────────────────────────────────────────────────────────────
   suggestionsContainer: {
-    backgroundColor: Colors.surface2,
-    marginHorizontal: 16,
-    borderRadius: 8,
     overflow: 'hidden',
+    marginHorizontal: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.glassBorder,
+    backgroundColor: Colors.glass,
   },
   suggestionItem: {
     flexDirection: 'row',
