@@ -63,7 +63,30 @@
     "upNext": "Up Next",
     "queue": "Queue",
     "share": "Share",
-    "repeatOne": "Repeat one"
+    "repeatOne": "Repeat one",
+    "controlsGuide": "Controls Guide",
+    "controlsGuideSubtitle": "What each button does",
+    "gotIt": "Got it",
+    "controls": {
+      "shuffle": "Shuffle",
+      "shuffleDesc": "Plays songs in random order.",
+      "prev": "Previous",
+      "prevDesc": "Go back to the previous song. Tap twice fast to restart the current one.",
+      "playPause": "Play / Pause",
+      "playPauseDesc": "Start or pause the song.",
+      "next": "Next",
+      "nextDesc": "Skip to the next song.",
+      "repeat": "Repeat",
+      "repeatDesc": "Tap to switch between Off, Repeat All (loops the queue) and Repeat One (loops this song).",
+      "seekBar": "Progress Bar",
+      "seekBarDesc": "Shows where you are in the song. Tap anywhere to jump to that spot.",
+      "like": "Like",
+      "likeDesc": "Save this song to your liked songs.",
+      "queue": "Queue",
+      "queueDesc": "See all songs coming up next.",
+      "share": "Share",
+      "shareDesc": "Share this song via any app on your phone."
+    }
   },
   "charts": {
     "title": "Top Charts"

@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Dimensions,
   Animated,
   ScrollView,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,6 +51,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
   const artworkScale = useRef(new Animated.Value(isPlaying ? 1 : 0.85)).current;
   const seekBarWidth = useRef(0);
+  const [showGuide, setShowGuide] = useState(false);
 
   // Animate artwork on play/pause
   React.useEffect(() => {
@@ -138,12 +141,21 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
               {currentIndex + 1} / {queue.length}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.topBtn}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="ellipsis-horizontal" size={24} color={Colors.text} />
-          </TouchableOpacity>
+          <View style={styles.topRightBtns}>
+            <TouchableOpacity
+              style={styles.topBtn}
+              onPress={() => setShowGuide(true)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="information-circle-outline" size={26} color={Colors.text} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.topBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="ellipsis-vertical" size={22} color={Colors.text} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Artwork */}
@@ -323,6 +335,69 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Controls Guide Modal */}
+      <Modal
+        visible={showGuide}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={() => setShowGuide(false)}
+      >
+        <Pressable style={styles.guideOverlay} onPress={() => setShowGuide(false)}>
+          <Pressable style={styles.guideSheet} onPress={() => {}}>
+            {/* Handle */}
+            <View style={styles.guideHandle} />
+
+            <Text style={styles.guideTitle}>{t('player.controlsGuide')}</Text>
+            <Text style={styles.guideSubtitle}>{t('player.controlsGuideSubtitle')}</Text>
+
+            <ScrollView
+              style={styles.guideScroll}
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+            >
+              {[
+                { icon: 'shuffle' as const,           label: t('player.controls.shuffle'),   desc: t('player.controls.shuffleDesc'),   color: Colors.accent },
+                { icon: 'play-skip-back' as const,    label: t('player.controls.prev'),      desc: t('player.controls.prevDesc'),      color: Colors.text },
+                { icon: 'play-circle' as const,       label: t('player.controls.playPause'), desc: t('player.controls.playPauseDesc'), color: Colors.accent },
+                { icon: 'play-skip-forward' as const, label: t('player.controls.next'),      desc: t('player.controls.nextDesc'),      color: Colors.text },
+                { icon: 'repeat' as const,            label: t('player.controls.repeat'),    desc: t('player.controls.repeatDesc'),    color: Colors.accent },
+                { icon: 'remove-outline' as const,    label: t('player.controls.seekBar'),   desc: t('player.controls.seekBarDesc'),   color: Colors.textSecondary },
+                { icon: 'heart-outline' as const,     label: t('player.controls.like'),      desc: t('player.controls.likeDesc'),      color: '#EC4899' },
+                { icon: 'list' as const,              label: t('player.controls.queue'),     desc: t('player.controls.queueDesc'),     color: Colors.textSecondary },
+                { icon: 'share-outline' as const,     label: t('player.controls.share'),     desc: t('player.controls.shareDesc'),     color: Colors.textSecondary },
+              ].map((item, index) => (
+                <View key={index} style={styles.guideRow}>
+                  <View style={[styles.guideIconWrap, { backgroundColor: Colors.surface2 }]}>
+                    <Ionicons name={item.icon} size={20} color={item.color} />
+                  </View>
+                  <View style={styles.guideRowText}>
+                    <Text style={styles.guideRowLabel}>{item.label}</Text>
+                    <Text style={styles.guideRowDesc}>{item.desc}</Text>
+                  </View>
+                </View>
+              ))}
+              <View style={{ height: 8 }} />
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.guideDoneBtn}
+              onPress={() => setShowGuide(false)}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={['#A855F7', '#7C3AED', '#EC4899']}
+                style={styles.guideDoneBtnGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.guideDoneBtnText}>{t('player.gotIt')}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
@@ -389,6 +464,11 @@ const styles = StyleSheet.create({
   },
   topCenter: {
     alignItems: 'center',
+  },
+  topRightBtns: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   topLabel: {
     fontSize: 11,
@@ -615,5 +695,91 @@ const styles = StyleSheet.create({
   upNextDuration: {
     fontSize: 12,
     color: Colors.textMuted,
+  },
+
+  // Controls Guide Modal
+  guideOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'flex-end',
+  },
+  guideSheet: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 32,
+    maxHeight: '80%',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderBottomWidth: 0,
+  },
+  guideHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.border,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  guideTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.text,
+    marginBottom: 4,
+    letterSpacing: -0.3,
+  },
+  guideSubtitle: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 20,
+  },
+  guideScroll: {
+    flexGrow: 0,
+  },
+  guideRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 18,
+    gap: 14,
+  },
+  guideIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  guideRowText: {
+    flex: 1,
+  },
+  guideRowLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 3,
+  },
+  guideRowDesc: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  guideDoneBtn: {
+    marginTop: 20,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  guideDoneBtnGradient: {
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guideDoneBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 0.3,
   },
 });
