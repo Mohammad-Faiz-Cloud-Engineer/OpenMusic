@@ -1,14 +1,14 @@
 # OpenMusic
 
-[![CI](https://github.com/faiz2/OpenMusic/actions/workflows/ci.yml/badge.svg)](https://github.com/faiz2/OpenMusic/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-Jest-2e93ff?logo=jest)](https://github.com/faiz2/OpenMusic/actions/workflows/ci.yml)
-[![Build Check](https://img.shields.io/badge/build%20check-passing-brightgreen)](https://github.com/faiz2/OpenMusic/blob/main/scripts/build-check.js)
+[![CI](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-Jest-2e93ff?logo=jest)](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/actions/workflows/ci.yml)
+[![Build Check](https://img.shields.io/badge/build%20check-passing-brightgreen)](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/blob/main/scripts/build-check.js)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020?logo=expo&logoColor=white)](https://expo.dev/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react&logoColor=black)](https://reactnative.dev/)
 [![Coverage](https://img.shields.io/badge/coverage-npm%20run%20test%3Acoverage-lightgrey)](./package.json)
 
-> Replace `faiz2/OpenMusic` in badge URLs with your GitHub `owner/repo` after you fork or publish.
+> Replace `Mohammad-Faiz-Cloud-Engineer/OpenMusic` in badge URLs with your GitHub `owner/repo` after you fork or publish.
 
 OpenMusic is a mobile music app built with React Native and Expo. Browse charts, search for songs, build a queue, and listen with a full-screen player and a mini player that stays above the tab bar while you explore. The UI is dark-first, purple-accented, and meant to feel closer to a streaming app than a demo.
 
