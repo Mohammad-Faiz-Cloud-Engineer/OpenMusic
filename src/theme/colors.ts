@@ -1,53 +1,63 @@
+/**
+ * OpenMusic Design Tokens — Spotify-inspired professional dark theme
+ *
+ * Philosophy (same as Spotify):
+ *  - UI chrome is near-black and neutral so album art owns the color
+ *  - One accent color (#1DB954 green) used sparingly for interactive states
+ *  - No decorative gradients on UI elements — gradients only on artwork overlays
+ *  - Text hierarchy: white → #B3B3B3 → #6A6A6A
+ */
+
 export const Colors = {
-  // Backgrounds
-  bg: '#0A0A0F',
-  surface: '#12121A',
-  surface2: '#1A1A26',
-  surface3: '#242433',
-  card: '#16161F',
+  // ── Backgrounds ──────────────────────────────────────────────────────────
+  bg: '#121212',          // Spotify's exact base background
+  surface: '#181818',     // Cards, sheets, bottom bar
+  surface2: '#242424',    // Elevated surfaces, inputs
+  surface3: '#2A2A2A',    // Hover / pressed states
+  card: '#181818',
 
-  // Borders
-  border: '#2A2A3A',
-  borderLight: '#3A3A50',
+  // ── Borders ───────────────────────────────────────────────────────────────
+  border: '#282828',
+  borderLight: '#3E3E3E',
 
-  // Text
-  text: '#F0F0FF',
-  textSecondary: '#9090B0',
-  textMuted: '#5A5A78',
+  // ── Text ──────────────────────────────────────────────────────────────────
+  text: '#FFFFFF',
+  textSecondary: '#B3B3B3',   // Spotify's secondary text
+  textMuted: '#6A6A6A',       // Disabled / placeholder
 
-  // Accent — vibrant purple-pink gradient
-  accent: '#A855F7',
-  accentDark: '#7C3AED',
-  accentLight: '#C084FC',
-  pink: '#EC4899',
-  pinkDark: '#BE185D',
+  // ── Accent — Spotify green ────────────────────────────────────────────────
+  accent: '#1DB954',          // Spotify's brand green
+  accentDark: '#158A3E',      // Pressed / darker variant
+  accentLight: '#1ED760',     // Hover / lighter variant
 
-  // Status
-  green: '#22C55E',
-  red: '#EF4444',
-  yellow: '#F59E0B',
+  // ── Status ────────────────────────────────────────────────────────────────
+  green: '#1DB954',
+  red: '#E22134',
+  yellow: '#F59B23',
 
-  // Gradient stops
-  gradientStart: '#A855F7',
-  gradientMid: '#7C3AED',
-  gradientEnd: '#EC4899',
+  // ── Gradient stops (artwork overlays only) ────────────────────────────────
+  gradientStart: '#1DB954',
+  gradientMid: '#158A3E',
+  gradientEnd: '#1DB954',
 
-  // Player
-  playerBg: '#0D0D18',
-  playerSurface: '#1A1A2E',
+  // ── Player ────────────────────────────────────────────────────────────────
+  playerBg: '#121212',
+  playerSurface: '#181818',
 
-  // Transparent
-  overlay: 'rgba(0,0,0,0.6)',
-  overlayLight: 'rgba(0,0,0,0.3)',
-  accentOverlay: 'rgba(168,85,247,0.15)',
-  accentOverlayStrong: 'rgba(168,85,247,0.25)',
+  // ── Overlays ──────────────────────────────────────────────────────────────
+  overlay: 'rgba(0,0,0,0.7)',
+  overlayLight: 'rgba(0,0,0,0.4)',
+  accentOverlay: 'rgba(29,185,84,0.12)',
+  accentOverlayStrong: 'rgba(29,185,84,0.22)',
 };
 
 export const Gradients = {
-  accent: ['#A855F7', '#7C3AED', '#EC4899'] as const,
-  accentHorizontal: ['#A855F7', '#EC4899'] as const,
-  dark: ['#0A0A0F', '#12121A'] as const,
-  card: ['#1A1A26', '#12121A'] as const,
-  playerBg: ['#1A0A2E', '#0A0A1A', '#0A0A0F'] as const,
+  // Used only on artwork/image overlays — never on UI chrome
+  artworkBottom: ['transparent', 'rgba(0,0,0,0.9)'] as const,
+  artworkFull: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.85)'] as const,
+  dark: ['#121212', '#181818'] as const,
+  playerBg: ['#1A1A1A', '#121212', '#0A0A0A'] as const,
   transparent: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.9)'] as const,
+  // Accent gradient — used only on the play button
+  accent: ['#1DB954', '#158A3E'] as const,
 };

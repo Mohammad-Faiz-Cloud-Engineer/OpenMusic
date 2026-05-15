@@ -10,11 +10,7 @@ interface SectionHeaderProps {
   subtitle?: string;
 }
 
-export const SectionHeader: React.FC<SectionHeaderProps> = ({
-  title,
-  onSeeAll,
-  subtitle,
-}) => {
+export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, onSeeAll, subtitle }) => {
   const { t } = useTranslation();
   return (
     <View style={styles.container}>
@@ -44,16 +40,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     marginBottom: 12,
-    marginTop: 8,
+    marginTop: 24,
   },
-  left: {
-    flex: 1,
-  },
+  left: { flex: 1 },
   title: {
     fontSize: 20,
     fontWeight: '700',
     color: Colors.text,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   subtitle: {
     fontSize: 12,
@@ -61,8 +55,10 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   seeAll: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.accent,
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
 });

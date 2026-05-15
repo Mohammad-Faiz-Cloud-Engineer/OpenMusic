@@ -1,18 +1,9 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme/colors';
 import { TrackCard } from '../components/TrackCard';
 import { usePlayerStore } from '../store/playerStore';
-import type { Track } from '../api/jiosaavn';
-
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
@@ -26,40 +17,21 @@ export const TrackListScreen: React.FC<TrackListScreenProps> = ({ navigation, ro
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <LinearGradient
-        colors={['rgba(168,85,247,0.2)', 'transparent']}
-        style={styles.headerGradient}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="chevron-back" size={24} color={Colors.text} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {title}
-          </Text>
-          <View style={{ width: 40 }} />
-        </View>
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={22} color={Colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {title}
+        </Text>
+        <View style={{ width: 36 }} />
+      </View>
 
-        {/* Actions */}
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.playAllBtn}
-            onPress={() => playQueue(tracks, 0)}
-          >
-            <LinearGradient
-              colors={['#A855F7', '#EC4899']}
-              style={styles.playAllGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <Ionicons name="play" size={16} color="#fff" />
-              <Text style={styles.playAllText}>{t('common.playAll')}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+      {/* ── Actions ────────────────────────────────────────────────────────── */}
+      <View style={styles.actions}>
+        <Text style={styles.trackCount}>{t('common.songs', { count: tracks.length })}</Text>
+        <View style={styles.actionBtns}>
           <TouchableOpacity
             style={styles.shuffleBtn}
             onPress={() => {
@@ -67,12 +39,16 @@ export const TrackListScreen: React.FC<TrackListScreenProps> = ({ navigation, ro
               playQueue(shuffled, 0);
             }}
           >
-            <Ionicons name="shuffle" size={16} color={Colors.text} />
-            <Text style={styles.shuffleText}>{t('common.shuffle')}</Text>
+            <Ionicons name="shuffle" size={18} color={Colors.text} />
           </TouchableOpacity>
-          <Text style={styles.trackCount}>{t('common.songs', { count: tracks.length })}</Text>
+          <TouchableOpacity
+            style={styles.playBtn}
+            onPress={() => playQueue(tracks, 0)}
+          >
+            <Ionicons name="play" size={18} color="#000" />
+          </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </View>
 
       <FlatList
         data={tracks}
@@ -92,75 +68,64 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg,
   },
-  headerGradient: {
-    paddingTop: 56,
-    paddingBottom: 12,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingTop: 56,
+    paddingBottom: 12,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.surface,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surface2,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
   headerTitle: {
     flex: 1,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.text,
     textAlign: 'center',
     marginHorizontal: 8,
+    letterSpacing: -0.2,
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    gap: 10,
-  },
-  playAllBtn: {
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  playAllGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 6,
-  },
-  playAllText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  shuffleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  shuffleText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.text,
+    paddingBottom: 12,
   },
   trackCount: {
     fontSize: 13,
     color: Colors.textSecondary,
-    marginLeft: 'auto',
+    fontWeight: '400',
+  },
+  actionBtns: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  shuffleBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });

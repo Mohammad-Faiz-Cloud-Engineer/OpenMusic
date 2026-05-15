@@ -41,19 +41,16 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <LinearGradient colors={['#1A0A2E', '#0A0A1A', '#0A0A0F']} style={StyleSheet.absoluteFill} />
+      <View style={styles.centered}>
         <ActivityIndicator size="large" color={Colors.accent} />
-        <Text style={styles.loadingText}>{t('playlist.loading')}</Text>
       </View>
     );
   }
 
   if (isError || !data) {
     return (
-      <View style={styles.loadingContainer}>
-        <LinearGradient colors={['#1A0A2E', '#0A0A1A', '#0A0A0F']} style={StyleSheet.absoluteFill} />
-        <Ionicons name="alert-circle-outline" size={48} color={Colors.red} />
+      <View style={styles.centered}>
+        <Ionicons name="alert-circle-outline" size={44} color={Colors.textMuted} />
         <Text style={styles.errorText}>{t('playlist.error')}</Text>
         <TouchableOpacity style={styles.retryBtn} onPress={() => refetch()}>
           <Text style={styles.retryText}>{t('common.retry')}</Text>
@@ -73,24 +70,21 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
         contentContainerStyle={{ paddingBottom: 160 }}
         ListHeaderComponent={
           <View>
-            {/* Hero */}
+            {/* ── Hero ─────────────────────────────────────────────────────── */}
             <View style={styles.hero}>
-              <Image source={imageSource} style={styles.heroBg} blurRadius={30} />
+              <Image source={imageSource} style={styles.heroBg} blurRadius={40} />
               <LinearGradient
-                colors={['rgba(168,85,247,0.3)', 'rgba(0,0,0,0.7)', Colors.bg]}
+                colors={['rgba(0,0,0,0.2)', Colors.bg]}
                 style={StyleSheet.absoluteFill}
               />
 
-              {/* Back Button */}
-              <TouchableOpacity
-                style={styles.backBtn}
-                onPress={() => navigation.goBack()}
-              >
-                <Ionicons name="chevron-back" size={24} color={Colors.text} />
+              {/* Back */}
+              <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+                <Ionicons name="chevron-back" size={22} color={Colors.text} />
               </TouchableOpacity>
 
               {/* Artwork */}
-              <View style={styles.artworkContainer}>
+              <View style={styles.artworkWrap}>
                 <Image source={imageSource} style={styles.artwork} />
               </View>
 
@@ -99,29 +93,14 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
                 <Text style={styles.playlistTitle} numberOfLines={2}>
                   {data.title}
                 </Text>
-                <Text style={styles.playlistOwner}>by {data.owner}</Text>
+                <Text style={styles.playlistOwner}>{t('playlist.by', { owner: data.owner })}</Text>
                 <Text style={styles.playlistMeta}>
                   {data.song_count} songs · {durationStr}
                 </Text>
               </View>
 
-              {/* Action Buttons */}
+              {/* Actions */}
               <View style={styles.heroActions}>
-                <TouchableOpacity
-                  style={styles.playAllBtn}
-                  onPress={() => playQueue(data.tracks, 0)}
-                >
-                  <LinearGradient
-                    colors={['#A855F7', '#EC4899']}
-                    style={styles.playAllGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                  >
-                    <Ionicons name="play" size={20} color="#fff" />
-                    <Text style={styles.playAllText}>{t('common.playAll')}</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-
                 <TouchableOpacity
                   style={styles.shuffleBtn}
                   onPress={() => {
@@ -130,12 +109,17 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
                   }}
                 >
                   <Ionicons name="shuffle" size={20} color={Colors.text} />
-                  <Text style={styles.shuffleText}>{t('common.shuffle')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.playBtn}
+                  onPress={() => playQueue(data.tracks, 0)}
+                >
+                  <Ionicons name="play" size={22} color="#000" />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Track count header */}
+            {/* Track count */}
             <View style={styles.tracksHeader}>
               <Text style={styles.tracksHeaderText}>
                 {t('common.tracks', { count: data.tracks.length })}
@@ -144,11 +128,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
           </View>
         }
         renderItem={({ item, index }) => (
-          <TrackCard
-            track={item}
-            queue={data.tracks}
-            showIndex={index}
-          />
+          <TrackCard track={item} queue={data.tracks} showIndex={index} />
         )}
       />
     </View>
@@ -160,39 +140,35 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg,
   },
-  loadingContainer: {
+  centered: {
     flex: 1,
+    backgroundColor: Colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
-    backgroundColor: Colors.bg,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
   },
   errorText: {
-    fontSize: 16,
-    color: Colors.text,
-    fontWeight: '600',
+    fontSize: 15,
+    color: Colors.textSecondary,
+    fontWeight: '400',
   },
   retryBtn: {
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.textSecondary,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
   retryText: {
-    color: Colors.accent,
-    fontWeight: '600',
+    color: Colors.text,
+    fontWeight: '700',
+    fontSize: 13,
   },
 
-  // Hero
+  // ── Hero ──────────────────────────────────────────────────────────────────
   hero: {
-    minHeight: 420,
-    paddingBottom: 24,
+    minHeight: 380,
+    paddingBottom: 20,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -201,109 +177,94 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 420,
-    opacity: 0.5,
+    height: 380,
+    opacity: 0.6,
   },
   backBtn: {
     position: 'absolute',
-    top: 56,
+    top: 52,
     left: 16,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
   },
-  artworkContainer: {
+  artworkWrap: {
     alignItems: 'center',
     marginTop: 80,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.6,
     shadowRadius: 24,
     elevation: 16,
   },
   artwork: {
     width: 180,
     height: 180,
-    borderRadius: 16,
+    borderRadius: 4,
     backgroundColor: Colors.surface2,
   },
   heroInfo: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     marginBottom: 20,
   },
   playlistTitle: {
-    fontSize: 26,
-    fontWeight: '800',
+    fontSize: 24,
+    fontWeight: '700',
     color: Colors.text,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
     marginBottom: 6,
   },
   playlistOwner: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textSecondary,
-    marginBottom: 4,
+    marginBottom: 3,
   },
   playlistMeta: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.textMuted,
   },
   heroActions: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
-    gap: 12,
-  },
-  playAllBtn: {
-    flex: 1,
-    borderRadius: 28,
-    overflow: 'hidden',
-  },
-  playAllGradient: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    gap: 8,
-  },
-  playAllText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
+    paddingHorizontal: 20,
+    gap: 16,
+    justifyContent: 'flex-end',
   },
   shuffleBtn: {
-    flexDirection: 'row',
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 28,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: 8,
   },
-  shuffleText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
+  playBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 
-  // Tracks
+  // ── Tracks header ─────────────────────────────────────────────────────────
   tracksHeader: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingVertical: 10,
   },
   tracksHeaderText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
 });

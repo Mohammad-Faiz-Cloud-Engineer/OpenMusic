@@ -4,19 +4,19 @@ import { Colors } from './colors';
 export const Typography = StyleSheet.create({
   h1: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.text,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   h2: {
     fontSize: 22,
     fontWeight: '700',
     color: Colors.text,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   h3: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     color: Colors.text,
   },
   h4: {
@@ -36,15 +36,15 @@ export const Typography = StyleSheet.create({
   },
   caption: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '400',
     color: Colors.textMuted,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    letterSpacing: 0.5,
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textMuted,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
 });

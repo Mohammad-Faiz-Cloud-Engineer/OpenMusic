@@ -16,14 +16,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { usePlayerStore, RepeatMode } from '../store/playerStore';
 import { Colors } from '../theme/colors';
 import { formatDuration } from '../api/jiosaavn';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const ARTWORK_SIZE = SCREEN_WIDTH - 80;
-
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
 import { a11yButton } from '../utils/a11y';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const ARTWORK_SIZE = SCREEN_WIDTH - 64;
 
 type PlayerScreenProps = StackScreenProps<RootStackParamList, 'Player'>;
 
@@ -49,18 +48,17 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     setPosition,
   } = usePlayerStore();
 
-  const artworkScale = useRef(new Animated.Value(isPlaying ? 1 : 0.85)).current;
+  const artworkScale = useRef(new Animated.Value(isPlaying ? 1 : 0.9)).current;
   const seekBarWidth = useRef(0);
   const [showGuide, setShowGuide] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
-  // Animate artwork on play/pause
   React.useEffect(() => {
     Animated.spring(artworkScale, {
-      toValue: isPlaying ? 1 : 0.85,
+      toValue: isPlaying ? 1 : 0.9,
       useNativeDriver: true,
-      tension: 60,
-      friction: 8,
+      tension: 80,
+      friction: 10,
     }).start();
   }, [isPlaying, artworkScale]);
 
@@ -83,13 +81,10 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     setRepeat(modes[(current + 1) % modes.length]);
   };
 
-  const repeatColor = repeatMode !== 'off' ? Colors.accent : Colors.textSecondary;
-
   if (!currentTrack) {
     return (
       <View style={styles.emptyContainer}>
-        <LinearGradient colors={['#1A0A2E', '#0A0A1A', '#0A0A0F']} style={StyleSheet.absoluteFill} />
-        <Ionicons name="musical-notes" size={64} color={Colors.textMuted} />
+        <Ionicons name="musical-notes-outline" size={56} color={Colors.textMuted} />
         <Text style={styles.emptyText}>{t('player.nothingPlaying')}</Text>
         <TouchableOpacity
           style={styles.backBtn}
@@ -104,18 +99,13 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
   const progress = duration > 0 ? position / duration : 0;
   const placeholder = require('../../assets/placeholder.png');
-  const imageSource = currentTrack.thumbnail
-    ? { uri: currentTrack.thumbnail }
-    : placeholder;
+  const imageSource = currentTrack.thumbnail ? { uri: currentTrack.thumbnail } : placeholder;
 
   return (
     <View style={styles.container}>
-      {/* Background blur artwork */}
-      <Image source={imageSource} style={styles.bgArtwork} blurRadius={40} />
-      <LinearGradient
-        colors={['rgba(10,10,15,0.5)', 'rgba(10,10,15,0.85)', '#0A0A0F']}
-        style={StyleSheet.absoluteFill}
-      />
+      {/* Blurred artwork background */}
+      <Image source={imageSource} style={styles.bgArtwork} blurRadius={60} />
+      <View style={styles.bgOverlay} />
 
       <ScrollView
         style={styles.scroll}
@@ -123,49 +113,37 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
-        {/* Top Bar */}
+        {/* ── Top bar ──────────────────────────────────────────────────────── */}
         <View style={styles.topBar}>
           <TouchableOpacity
             style={styles.topBtn}
             onPress={() => navigation.goBack()}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="chevron-down" size={28} color={Colors.text} />
+            <Ionicons name="chevron-down" size={26} color={Colors.text} />
           </TouchableOpacity>
           <View style={styles.topCenter}>
             <Text style={styles.topLabel}>{t('player.nowPlaying')}</Text>
-            <Text style={styles.topQueue}>
-              {currentIndex + 1} / {queue.length}
-            </Text>
           </View>
           <TouchableOpacity
             style={styles.topBtn}
             onPress={() => setShowMenu(true)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="ellipsis-vertical" size={22} color={Colors.text} />
+            <Ionicons name="ellipsis-horizontal" size={22} color={Colors.text} />
           </TouchableOpacity>
         </View>
 
-        {/* Artwork */}
+        {/* ── Artwork ──────────────────────────────────────────────────────── */}
         <View style={styles.artworkContainer}>
           <Animated.View
-            style={[
-              styles.artworkWrapper,
-              { transform: [{ scale: artworkScale }] },
-            ]}
+            style={[styles.artworkWrapper, { transform: [{ scale: artworkScale }] }]}
           >
             <Image source={imageSource} style={styles.artwork} />
-            <LinearGradient
-              colors={['transparent', 'rgba(168,85,247,0.15)']}
-              style={StyleSheet.absoluteFill}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
           </Animated.View>
         </View>
 
-        {/* Track Info */}
+        {/* ── Track info ───────────────────────────────────────────────────── */}
         <View style={styles.trackInfo}>
           <View style={styles.trackInfoLeft}>
             <Text style={styles.trackTitle} numberOfLines={1}>
@@ -176,14 +154,14 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             </Text>
           </View>
           <TouchableOpacity style={styles.likeBtn}>
-            <Ionicons name="heart-outline" size={26} color={Colors.textSecondary} />
+            <Ionicons name="heart-outline" size={24} color={Colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
-        {/* Seek Bar */}
+        {/* ── Seek bar ─────────────────────────────────────────────────────── */}
         <View style={styles.seekSection}>
           <TouchableOpacity
-            style={styles.seekBarContainer}
+            style={styles.seekBarHitArea}
             onPress={handleSeekBarPress}
             activeOpacity={1}
             onLayout={(e) => {
@@ -191,18 +169,8 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             }}
           >
             <View style={styles.seekBarTrack}>
-              <LinearGradient
-                colors={['#A855F7', '#EC4899']}
-                style={[styles.seekBarFill, { width: `${progress * 100}%` }]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              />
-              <View
-                style={[
-                  styles.seekBarThumb,
-                  { left: `${progress * 100}%` },
-                ]}
-              />
+              <View style={[styles.seekBarFill, { width: `${progress * 100}%` }]} />
+              <View style={[styles.seekBarThumb, { left: `${progress * 100}%` }]} />
             </View>
           </TouchableOpacity>
           <View style={styles.seekTimes}>
@@ -211,7 +179,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Controls */}
+        {/* ── Controls ─────────────────────────────────────────────────────── */}
         <View style={styles.controls}>
           {/* Shuffle */}
           <TouchableOpacity
@@ -233,32 +201,21 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             onPress={prev}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="play-skip-back" size={30} color={Colors.text} />
+            <Ionicons name="play-skip-back" size={28} color={Colors.text} />
           </TouchableOpacity>
 
-          {/* Play/Pause */}
-          <TouchableOpacity
-            style={styles.playBtn}
-            onPress={togglePlay}
-            activeOpacity={0.85}
-          >
-            <LinearGradient
-              colors={['#A855F7', '#7C3AED', '#EC4899']}
-              style={styles.playBtnGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              {isLoading ? (
-                <Ionicons name="hourglass-outline" size={32} color="#fff" />
-              ) : (
-                <Ionicons
-                  name={isPlaying ? 'pause' : 'play'}
-                  size={32}
-                  color="#fff"
-                  style={!isPlaying ? { marginLeft: 4 } : undefined}
-                />
-              )}
-            </LinearGradient>
+          {/* Play / Pause */}
+          <TouchableOpacity style={styles.playBtn} onPress={togglePlay} activeOpacity={0.85}>
+            {isLoading ? (
+              <Ionicons name="hourglass-outline" size={28} color="#000" />
+            ) : (
+              <Ionicons
+                name={isPlaying ? 'pause' : 'play'}
+                size={28}
+                color="#000"
+                style={!isPlaying ? { marginLeft: 3 } : undefined}
+              />
+            )}
           </TouchableOpacity>
 
           {/* Next */}
@@ -267,7 +224,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             onPress={next}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="play-skip-forward" size={30} color={Colors.text} />
+            <Ionicons name="play-skip-forward" size={28} color={Colors.text} />
           </TouchableOpacity>
 
           {/* Repeat */}
@@ -276,18 +233,20 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             onPress={cycleRepeat}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="repeat" size={22} color={repeatColor} />
-            {repeatMode === 'one' && (
-              <Text style={styles.repeatOneLabel}>1</Text>
-            )}
+            <Ionicons
+              name="repeat"
+              size={22}
+              color={repeatMode !== 'off' ? Colors.accent : Colors.textSecondary}
+            />
+            {repeatMode === 'one' && <Text style={styles.repeatOneLabel}>1</Text>}
             {repeatMode !== 'off' && <View style={styles.activeIndicator} />}
           </TouchableOpacity>
         </View>
 
-        {/* Extra Controls */}
+        {/* ── Extra controls ───────────────────────────────────────────────── */}
         <View style={styles.extraControls}>
           <TouchableOpacity style={styles.extraBtn}>
-            <Ionicons name="list" size={20} color={Colors.textSecondary} />
+            <Ionicons name="list-outline" size={20} color={Colors.textSecondary} />
             <Text style={styles.extraBtnText}>{t('player.queue')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.extraBtn}>
@@ -296,7 +255,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Up Next */}
+        {/* ── Up Next ──────────────────────────────────────────────────────── */}
         {queue.length > 1 && (
           <View style={styles.upNext}>
             <Text style={styles.upNextTitle}>{t('player.upNext')}</Text>
@@ -322,10 +281,10 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           </View>
         )}
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 48 }} />
       </ScrollView>
 
-      {/* 3-dot Dropdown Menu */}
+      {/* ── 3-dot menu ───────────────────────────────────────────────────────── */}
       <Modal
         visible={showMenu}
         transparent
@@ -333,33 +292,32 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         statusBarTranslucent
         onRequestClose={() => setShowMenu(false)}
       >
-        <Pressable style={styles.menuOverlay} onPress={() => setShowMenu(false)}>
-          <Pressable style={styles.menuSheet} onPress={() => {}}>
-            <View style={styles.guideHandle} />
-            <Text style={styles.menuTitle}>{t('player.menu')}</Text>
-
+        <Pressable style={styles.sheetOverlay} onPress={() => setShowMenu(false)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>{t('player.menu')}</Text>
             <TouchableOpacity
-              style={styles.menuItem}
+              style={styles.sheetItem}
               onPress={() => {
                 setShowMenu(false);
                 setTimeout(() => setShowGuide(true), 250);
               }}
               activeOpacity={0.7}
             >
-              <View style={styles.menuIconWrap}>
-                <Ionicons name="information-circle-outline" size={22} color={Colors.accent} />
+              <View style={styles.sheetIconWrap}>
+                <Ionicons name="information-circle-outline" size={20} color={Colors.text} />
               </View>
-              <View style={styles.menuItemText}>
-                <Text style={styles.menuItemLabel}>{t('player.controlsGuide')}</Text>
-                <Text style={styles.menuItemSub}>{t('player.controlsGuideSubtitle')}</Text>
+              <View style={styles.sheetItemText}>
+                <Text style={styles.sheetItemLabel}>{t('player.controlsGuide')}</Text>
+                <Text style={styles.sheetItemSub}>{t('player.controlsGuideSubtitle')}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
             </TouchableOpacity>
           </Pressable>
         </Pressable>
       </Modal>
 
-      {/* Controls Guide Modal */}
+      {/* ── Controls guide modal ─────────────────────────────────────────────── */}
       <Modal
         visible={showGuide}
         transparent
@@ -367,33 +325,26 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         statusBarTranslucent
         onRequestClose={() => setShowGuide(false)}
       >
-        <Pressable style={styles.guideOverlay} onPress={() => setShowGuide(false)}>
-          <Pressable style={styles.guideSheet} onPress={() => {}}>
-            {/* Handle */}
-            <View style={styles.guideHandle} />
-
-            <Text style={styles.guideTitle}>{t('player.controlsGuide')}</Text>
-            <Text style={styles.guideSubtitle}>{t('player.controlsGuideSubtitle')}</Text>
-
-            <ScrollView
-              style={styles.guideScroll}
-              showsVerticalScrollIndicator={false}
-              bounces={false}
-            >
+        <Pressable style={styles.sheetOverlay} onPress={() => setShowGuide(false)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>{t('player.controlsGuide')}</Text>
+            <Text style={styles.sheetSubtitle}>{t('player.controlsGuideSubtitle')}</Text>
+            <ScrollView style={styles.guideScroll} showsVerticalScrollIndicator={false} bounces={false}>
               {[
-                { icon: 'shuffle' as const,           label: t('player.controls.shuffle'),   desc: t('player.controls.shuffleDesc'),   color: Colors.accent },
-                { icon: 'play-skip-back' as const,    label: t('player.controls.prev'),      desc: t('player.controls.prevDesc'),      color: Colors.text },
-                { icon: 'play-circle' as const,       label: t('player.controls.playPause'), desc: t('player.controls.playPauseDesc'), color: Colors.accent },
-                { icon: 'play-skip-forward' as const, label: t('player.controls.next'),      desc: t('player.controls.nextDesc'),      color: Colors.text },
-                { icon: 'repeat' as const,            label: t('player.controls.repeat'),    desc: t('player.controls.repeatDesc'),    color: Colors.accent },
-                { icon: 'remove-outline' as const,    label: t('player.controls.seekBar'),   desc: t('player.controls.seekBarDesc'),   color: Colors.textSecondary },
-                { icon: 'heart-outline' as const,     label: t('player.controls.like'),      desc: t('player.controls.likeDesc'),      color: '#EC4899' },
-                { icon: 'list' as const,              label: t('player.controls.queue'),     desc: t('player.controls.queueDesc'),     color: Colors.textSecondary },
-                { icon: 'share-outline' as const,     label: t('player.controls.share'),     desc: t('player.controls.shareDesc'),     color: Colors.textSecondary },
+                { icon: 'shuffle' as const,           label: t('player.controls.shuffle'),   desc: t('player.controls.shuffleDesc') },
+                { icon: 'play-skip-back' as const,    label: t('player.controls.prev'),      desc: t('player.controls.prevDesc') },
+                { icon: 'play-circle' as const,       label: t('player.controls.playPause'), desc: t('player.controls.playPauseDesc') },
+                { icon: 'play-skip-forward' as const, label: t('player.controls.next'),      desc: t('player.controls.nextDesc') },
+                { icon: 'repeat' as const,            label: t('player.controls.repeat'),    desc: t('player.controls.repeatDesc') },
+                { icon: 'remove-outline' as const,    label: t('player.controls.seekBar'),   desc: t('player.controls.seekBarDesc') },
+                { icon: 'heart-outline' as const,     label: t('player.controls.like'),      desc: t('player.controls.likeDesc') },
+                { icon: 'list' as const,              label: t('player.controls.queue'),     desc: t('player.controls.queueDesc') },
+                { icon: 'share-outline' as const,     label: t('player.controls.share'),     desc: t('player.controls.shareDesc') },
               ].map((item, index) => (
                 <View key={index} style={styles.guideRow}>
-                  <View style={[styles.guideIconWrap, { backgroundColor: Colors.surface2 }]}>
-                    <Ionicons name={item.icon} size={20} color={item.color} />
+                  <View style={styles.guideIconWrap}>
+                    <Ionicons name={item.icon} size={20} color={Colors.text} />
                   </View>
                   <View style={styles.guideRowText}>
                     <Text style={styles.guideRowLabel}>{item.label}</Text>
@@ -403,20 +354,12 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
               ))}
               <View style={{ height: 8 }} />
             </ScrollView>
-
             <TouchableOpacity
               style={styles.guideDoneBtn}
               onPress={() => setShowGuide(false)}
               activeOpacity={0.85}
             >
-              <LinearGradient
-                colors={['#A855F7', '#7C3AED', '#EC4899']}
-                style={styles.guideDoneBtnGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                <Text style={styles.guideDoneBtnText}>{t('player.gotIt')}</Text>
-              </LinearGradient>
+              <Text style={styles.guideDoneBtnText}>{t('player.gotIt')}</Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>
@@ -430,54 +373,60 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg,
   },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
+  scroll: { flex: 1 },
+  scrollContent: { paddingBottom: 40 },
+
   bgArtwork: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: SCREEN_HEIGHT * 0.6,
-    opacity: 0.4,
+    height: SCREEN_HEIGHT * 0.55,
+    opacity: 0.35,
+  },
+  bgOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.55)',
   },
 
-  // Empty
+  // ── Empty ─────────────────────────────────────────────────────────────────
   emptyContainer: {
     flex: 1,
+    backgroundColor: Colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 16,
     color: Colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: '400',
   },
   backBtn: {
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.textSecondary,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
   backBtnText: {
     color: Colors.text,
-    fontWeight: '600',
+    fontWeight: '700',
+    fontSize: 13,
   },
 
-  // Top Bar
+  // ── Top bar ───────────────────────────────────────────────────────────────
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 52,
-    paddingBottom: 12,
+    paddingBottom: 16,
   },
   topBtn: {
     width: 40,
@@ -485,38 +434,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  topCenter: {
-    alignItems: 'center',
-  },
+  topCenter: { alignItems: 'center' },
   topLabel: {
     fontSize: 11,
     fontWeight: '700',
     color: Colors.textSecondary,
     letterSpacing: 1.5,
-  },
-  topQueue: {
-    fontSize: 12,
-    color: Colors.textMuted,
-    marginTop: 2,
+    textTransform: 'uppercase',
   },
 
-  // Artwork
+  // ── Artwork ───────────────────────────────────────────────────────────────
   artworkContainer: {
     alignItems: 'center',
-    paddingHorizontal: 40,
-    marginTop: 12,
-    marginBottom: 24,
+    paddingHorizontal: 32,
+    marginTop: 8,
+    marginBottom: 28,
   },
   artworkWrapper: {
     width: ARTWORK_SIZE,
     height: ARTWORK_SIZE,
-    borderRadius: 24,
+    borderRadius: 8,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.6,
-    shadowRadius: 30,
-    elevation: 20,
+    shadowOffset: { width: 0, height: 24 },
+    shadowOpacity: 0.7,
+    shadowRadius: 32,
+    elevation: 24,
   },
   artwork: {
     width: '100%',
@@ -524,27 +467,25 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface2,
   },
 
-  // Track Info
+  // ── Track info ────────────────────────────────────────────────────────────
   trackInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 32,
     marginBottom: 20,
   },
-  trackInfoLeft: {
-    flex: 1,
-  },
+  trackInfoLeft: { flex: 1 },
   trackTitle: {
-    fontSize: 23,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '700',
     color: Colors.text,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   trackArtist: {
     fontSize: 15,
     color: Colors.textSecondary,
     marginTop: 4,
-    fontWeight: '500',
+    fontWeight: '400',
   },
   likeBtn: {
     width: 44,
@@ -553,12 +494,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Seek Bar
+  // ── Seek bar ──────────────────────────────────────────────────────────────
   seekSection: {
     paddingHorizontal: 32,
-    marginBottom: 26,
+    marginBottom: 28,
   },
-  seekBarContainer: {
+  seekBarHitArea: {
     height: 20,
     justifyContent: 'center',
   },
@@ -570,21 +511,17 @@ const styles = StyleSheet.create({
   },
   seekBarFill: {
     height: '100%',
+    backgroundColor: Colors.text,
     borderRadius: 2,
   },
   seekBarThumb: {
     position: 'absolute',
     top: -6,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    marginLeft: -8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: Colors.text,
+    marginLeft: -7,
   },
   seekTimes: {
     flexDirection: 'row',
@@ -592,18 +529,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   seekTime: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.textMuted,
-    fontWeight: '500',
+    fontWeight: '400',
   },
 
-  // Controls
+  // ── Controls ──────────────────────────────────────────────────────────────
   controls: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 32,
-    marginBottom: 26,
+    marginBottom: 28,
   },
   sideControl: {
     width: 44,
@@ -635,29 +572,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   playBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    overflow: 'hidden',
-    shadowColor: Colors.accent,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  playBtnGradient: {
-    flex: 1,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.text,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 
-  // Extra Controls
+  // ── Extra controls ────────────────────────────────────────────────────────
   extraControls: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 40,
-    marginBottom: 26,
+    paddingHorizontal: 48,
+    marginBottom: 28,
   },
   extraBtn: {
     alignItems: 'center',
@@ -666,22 +600,21 @@ const styles = StyleSheet.create({
   extraBtnText: {
     fontSize: 11,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '400',
   },
-  // Up Next
+
+  // ── Up Next ───────────────────────────────────────────────────────────────
   upNext: {
     marginHorizontal: 16,
     backgroundColor: Colors.surface,
-    borderRadius: 16,
+    borderRadius: 8,
     padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
   upNextTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
     color: Colors.textSecondary,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 12,
   },
@@ -693,7 +626,7 @@ const styles = StyleSheet.create({
   upNextImage: {
     width: 44,
     height: 44,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: Colors.surface2,
   },
   upNextInfo: {
@@ -702,7 +635,7 @@ const styles = StyleSheet.create({
   },
   upNextTrackTitle: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '400',
     color: Colors.text,
   },
   upNextArtist: {
@@ -715,30 +648,41 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
 
-  // Menu Bottom Sheet
-  menuOverlay: {
+  // ── Bottom sheet ──────────────────────────────────────────────────────────
+  sheetOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end',
   },
-  menuSheet: {
+  sheet: {
     backgroundColor: Colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 40,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderBottomWidth: 0,
+    maxHeight: '80%',
   },
-  menuTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.text,
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.surface3,
+    alignSelf: 'center',
     marginBottom: 20,
   },
-  menuItem: {
+  sheetTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  sheetSubtitle: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 20,
+  },
+  sheetItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
@@ -746,68 +690,28 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
-  menuIconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
+  sheetIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
     backgroundColor: Colors.surface2,
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
   },
-  menuItemText: {
-    flex: 1,
-  },
-  menuItemLabel: {
+  sheetItemText: { flex: 1 },
+  sheetItemLabel: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     color: Colors.text,
   },
-  menuItemSub: {
+  sheetItemSub: {
     fontSize: 12,
     color: Colors.textSecondary,
     marginTop: 2,
   },
 
-  guideOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'flex-end',
-  },
-  guideSheet: {
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 32,
-    maxHeight: '80%',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderBottomWidth: 0,
-  },
-  guideHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.border,
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  guideTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  guideSubtitle: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginBottom: 20,
-  },
-  guideScroll: {
-    flexGrow: 0,
-  },
+  // ── Guide ─────────────────────────────────────────────────────────────────
+  guideScroll: { flexGrow: 0 },
   guideRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -815,19 +719,18 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   guideIconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: Colors.surface2,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  guideRowText: {
-    flex: 1,
-  },
+  guideRowText: { flex: 1 },
   guideRowLabel: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     color: Colors.text,
     marginBottom: 3,
   },
@@ -838,18 +741,14 @@ const styles = StyleSheet.create({
   },
   guideDoneBtn: {
     marginTop: 20,
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  guideDoneBtnGradient: {
-    paddingVertical: 15,
+    backgroundColor: Colors.text,
+    borderRadius: 24,
+    paddingVertical: 14,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   guideDoneBtnText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#fff',
-    letterSpacing: 0.3,
+    color: '#000',
   },
 });

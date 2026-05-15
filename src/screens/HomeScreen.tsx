@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { getCharts, searchSongs } from '../api/jiosaavn';
-import { Colors, Gradients } from '../theme/colors';
+import { Colors } from '../theme/colors';
 import { SectionHeader } from '../components/SectionHeader';
 import { TrackCard } from '../components/TrackCard';
 import { ChartCard } from '../components/ChartCard';
@@ -39,13 +39,23 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const { playQueue } = usePlayerStore();
 
-  const { data: chartsData, isLoading: chartsLoading, isFetching: chartsFetching, refetch: refetchCharts } = useQuery({
+  const {
+    data: chartsData,
+    isLoading: chartsLoading,
+    isFetching: chartsFetching,
+    refetch: refetchCharts,
+  } = useQuery({
     queryKey: ['charts'],
     queryFn: getCharts,
     staleTime: 10 * 60 * 1000,
   });
 
-  const { data: trendingData, isLoading: trendingLoading, isFetching: trendingFetching, refetch: refetchTrending } = useQuery({
+  const {
+    data: trendingData,
+    isLoading: trendingLoading,
+    isFetching: trendingFetching,
+    refetch: refetchTrending,
+  } = useQuery({
     queryKey: ['trending'],
     queryFn: () => searchSongs('trending bollywood 2025'),
     staleTime: 10 * 60 * 1000,
@@ -78,6 +88,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return t('home.greetingNight');
   };
 
+  // ── Featured hero banner ──────────────────────────────────────────────────
   const renderFeaturedBanner = () => {
     const tracks = trendingData?.results?.slice(0, 5) ?? [];
     if (!tracks.length) return null;
@@ -86,27 +97,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <TouchableOpacity
         style={styles.featuredBanner}
         onPress={() => playQueue(tracks, 0)}
-        activeOpacity={0.9}
+        activeOpacity={0.85}
       >
         <Image
-          source={featured.thumbnail ? { uri: featured.thumbnail } : require('../../assets/placeholder.png')}
+          source={
+            featured.thumbnail
+              ? { uri: featured.thumbnail }
+              : require('../../assets/placeholder.png')
+          }
           style={StyleSheet.absoluteFill}
-          blurRadius={2}
         />
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.85)']}
+          colors={['transparent', 'rgba(0,0,0,0.92)']}
           style={StyleSheet.absoluteFill}
-        />
-        <LinearGradient
-          colors={['rgba(168,85,247,0.3)', 'transparent']}
-          style={StyleSheet.absoluteFill}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
         />
         <View style={styles.featuredContent}>
-          <View style={styles.featuredBadge}>
-            <Text style={styles.featuredBadgeText}>🔥 {t('home.trendingBadge')}</Text>
-          </View>
+          <Text style={styles.featuredLabel}>🔥 {t('home.trendingBadge')}</Text>
           <Text style={styles.featuredTitle} numberOfLines={2}>
             {featured.title}
           </Text>
@@ -116,15 +122,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               style={styles.featuredPlayBtn}
               onPress={() => playQueue(tracks, 0)}
             >
-              <LinearGradient
-                colors={['#A855F7', '#EC4899']}
-                style={styles.featuredPlayGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                <Ionicons name="play" size={18} color="#fff" />
-                <Text style={styles.featuredPlayText}>{t('home.playNow')}</Text>
-              </LinearGradient>
+              <Ionicons name="play" size={16} color="#000" />
+              <Text style={styles.featuredPlayText}>{t('home.playNow')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.featuredShuffleBtn}
@@ -133,7 +132,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 playQueue(shuffled, 0);
               }}
             >
-              <Ionicons name="shuffle" size={18} color={Colors.text} />
+              <Ionicons name="shuffle" size={16} color={Colors.text} />
               <Text style={styles.featuredShuffleText}>{t('common.shuffle')}</Text>
             </TouchableOpacity>
           </View>
@@ -142,6 +141,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     );
   };
 
+  // ── Quick picks grid (Spotify-style 2-col pill rows) ─────────────────────
   const renderQuickPicks = () => {
     const tracks = trendingData?.results?.slice(0, 6) ?? [];
     if (!tracks.length) return null;
@@ -152,10 +152,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             key={track.id}
             style={styles.quickPickItem}
             onPress={() => playQueue(tracks, i)}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
             <Image
-              source={track.thumbnail ? { uri: track.thumbnail } : require('../../assets/placeholder.png')}
+              source={
+                track.thumbnail
+                  ? { uri: track.thumbnail }
+                  : require('../../assets/placeholder.png')
+              }
               style={styles.quickPickImage}
             />
             <Text style={styles.quickPickTitle} numberOfLines={1}>
@@ -181,42 +185,44 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           />
         }
       >
-        {/* Header */}
-        <LinearGradient
-          colors={['rgba(168,85,247,0.2)', 'transparent']}
-          style={styles.headerGradient}
-        >
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.greeting}>{getGreeting()}</Text>
-              <Text style={styles.headerTitle}>{t('home.headline')}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.searchBtn}
-              onPress={() => navigation.navigate('Search')}
-              {...a11yButton(t('tabs.search'))}
-            >
-              <Ionicons name="search" size={22} color={Colors.text} />
-            </TouchableOpacity>
+        {/* ── Header ─────────────────────────────────────────────────────── */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>{getGreeting()}</Text>
+            <Text style={styles.headerTitle}>{t('home.headline')}</Text>
           </View>
-        </LinearGradient>
+          <TouchableOpacity
+            style={styles.searchBtn}
+            onPress={() => navigation.navigate('Search')}
+            {...a11yButton(t('tabs.search'))}
+          >
+            <Ionicons name="search" size={20} color={Colors.text} />
+          </TouchableOpacity>
+        </View>
 
-        {/* Featured Banner */}
+        {/* ── Featured Banner ─────────────────────────────────────────────── */}
         <View style={styles.section}>
           {trendingLoading ? (
-            <SkeletonCard height={220} borderRadius={20} />
+            <View style={{ paddingHorizontal: 16 }}>
+              <SkeletonCard height={200} borderRadius={8} />
+            </View>
           ) : (
             renderFeaturedBanner()
           )}
         </View>
 
-        {/* Quick Picks */}
+        {/* ── Quick Picks ─────────────────────────────────────────────────── */}
         <View style={styles.section}>
           <SectionHeader title={t('home.quickPicks')} subtitle={t('home.quickPicksSub')} />
           {trendingLoading ? (
             <View style={styles.quickPicksGrid}>
               {[...Array(6)].map((_, i) => (
-                <SkeletonCard key={i} width={(SCREEN_WIDTH - 48) / 2} height={56} borderRadius={10} />
+                <SkeletonCard
+                  key={i}
+                  width={(SCREEN_WIDTH - 48) / 2}
+                  height={52}
+                  borderRadius={4}
+                />
               ))}
             </View>
           ) : (
@@ -224,7 +230,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           )}
         </View>
 
-        {/* Charts */}
+        {/* ── Charts ──────────────────────────────────────────────────────── */}
         <View style={styles.section}>
           <SectionHeader
             title={t('home.topCharts')}
@@ -237,9 +243,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               keyExtractor={(i) => String(i)}
               renderItem={() => (
                 <View style={{ marginRight: 12 }}>
-                  <SkeletonCard width={160} height={160} borderRadius={12} />
+                  <SkeletonCard width={160} height={160} borderRadius={4} />
                   <View style={{ marginTop: 8 }}>
-                    <SkeletonCard width={120} height={14} borderRadius={4} />
+                    <SkeletonCard width={120} height={12} borderRadius={4} />
                   </View>
                 </View>
               )}
@@ -266,7 +272,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           )}
         </View>
 
-        {/* Trending Tracks */}
+        {/* ── Trending Tracks ─────────────────────────────────────────────── */}
         <View style={styles.section}>
           <SectionHeader
             title={t('home.trendingNow')}
@@ -277,25 +283,23 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               })
             }
           />
-          {trendingLoading ? (
-            [...Array(5)].map((_, i) => (
-              <View key={i} style={{ paddingHorizontal: 16, marginBottom: 8 }}>
-                <SkeletonCard height={60} borderRadius={10} />
-              </View>
-            ))
-          ) : (
-            (trendingData?.results ?? []).slice(0, 8).map((track, i) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                queue={trendingData?.results}
-                showIndex={i}
-              />
-            ))
-          )}
+          {trendingLoading
+            ? [...Array(5)].map((_, i) => (
+                <View key={i} style={{ paddingHorizontal: 16, marginBottom: 8 }}>
+                  <SkeletonCard height={56} borderRadius={4} />
+                </View>
+              ))
+            : (trendingData?.results ?? []).slice(0, 8).map((track, i) => (
+                <TrackCard
+                  key={track.id}
+                  track={track}
+                  queue={trendingData?.results}
+                  showIndex={i}
+                />
+              ))}
         </View>
 
-        {/* Romantic */}
+        {/* ── Romantic ────────────────────────────────────────────────────── */}
         <View style={styles.section}>
           <SectionHeader
             title={t('home.loveSongs')}
@@ -314,7 +318,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               keyExtractor={(i) => String(i)}
               renderItem={() => (
                 <View style={{ marginRight: 12 }}>
-                  <SkeletonCard width={140} height={140} borderRadius={12} />
+                  <SkeletonCard width={140} height={140} borderRadius={4} />
                 </View>
               )}
               showsHorizontalScrollIndicator={false}
@@ -326,11 +330,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               data={romanticData?.results?.slice(0, 10) ?? []}
               keyExtractor={(t) => t.id}
               renderItem={({ item }) => (
-                <TrackCard
-                  track={item}
-                  queue={romanticData?.results}
-                  variant="grid"
-                />
+                <TrackCard track={item} queue={romanticData?.results} variant="grid" />
               )}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.horizontalList}
@@ -338,7 +338,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           )}
         </View>
 
-        {/* Punjabi */}
+        {/* ── Punjabi ─────────────────────────────────────────────────────── */}
         <View style={styles.section}>
           <SectionHeader
             title={t('home.punjabiHits')}
@@ -349,22 +349,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               })
             }
           />
-          {punjabLoading ? (
-            [...Array(4)].map((_, i) => (
-              <View key={i} style={{ paddingHorizontal: 16, marginBottom: 8 }}>
-                <SkeletonCard height={60} borderRadius={10} />
-              </View>
-            ))
-          ) : (
-            (punjabData?.results ?? []).slice(0, 6).map((track, i) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                queue={punjabData?.results}
-                showIndex={i}
-              />
-            ))
-          )}
+          {punjabLoading
+            ? [...Array(4)].map((_, i) => (
+                <View key={i} style={{ paddingHorizontal: 16, marginBottom: 8 }}>
+                  <SkeletonCard height={56} borderRadius={4} />
+                </View>
+              ))
+            : (punjabData?.results ?? []).slice(0, 6).map((track, i) => (
+                <TrackCard
+                  key={track.id}
+                  track={track}
+                  queue={punjabData?.results}
+                  showIndex={i}
+                />
+              ))}
         </View>
 
         <View style={{ height: 160 }} />
@@ -378,54 +376,51 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg,
   },
-  scroll: {
-    flex: 1,
-  },
-  headerGradient: {
-    paddingTop: 60,
-    paddingBottom: 16,
-  },
+  scroll: { flex: 1 },
+
+  // ── Header ────────────────────────────────────────────────────────────────
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 20,
   },
   greeting: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '400',
+    marginBottom: 2,
   },
   headerTitle: {
-    fontSize: 26,
-    fontWeight: '800',
+    fontSize: 24,
+    fontWeight: '700',
     color: Colors.text,
-    letterSpacing: -0.5,
-    marginTop: 2,
+    letterSpacing: -0.3,
   },
   searchBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.surface,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface2,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
+
   section: {
-    marginBottom: 8,
+    marginBottom: 4,
   },
   horizontalList: {
     paddingHorizontal: 16,
     paddingBottom: 4,
   },
 
-  // Featured Banner
+  // ── Featured Banner ───────────────────────────────────────────────────────
   featuredBanner: {
     marginHorizontal: 16,
-    height: 220,
-    borderRadius: 20,
+    height: 200,
+    borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: Colors.surface2,
   },
@@ -434,74 +429,63 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 20,
+    padding: 16,
   },
-  featuredBadge: {
-    backgroundColor: 'rgba(168,85,247,0.3)',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(168,85,247,0.5)',
-  },
-  featuredBadgeText: {
+  featuredLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: Colors.accentLight,
-    letterSpacing: 0.5,
+    color: Colors.textSecondary,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 6,
   },
   featuredTitle: {
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '700',
     color: Colors.text,
     letterSpacing: -0.3,
   },
   featuredArtist: {
     fontSize: 13,
     color: Colors.textSecondary,
-    marginTop: 4,
-    marginBottom: 14,
+    marginTop: 3,
+    marginBottom: 12,
   },
   featuredActions: {
     flexDirection: 'row',
     gap: 10,
   },
   featuredPlayBtn: {
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  featuredPlayGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    backgroundColor: Colors.accent,
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
     gap: 6,
   },
   featuredPlayText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#fff',
+    color: '#000',
   },
   featuredShuffleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 24,
+    borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 9,
     gap: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: Colors.textSecondary,
   },
   featuredShuffleText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: Colors.text,
   },
 
-  // Quick Picks
+  // ── Quick Picks ───────────────────────────────────────────────────────────
   quickPicksGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -511,18 +495,16 @@ const styles = StyleSheet.create({
   quickPickItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 10,
+    backgroundColor: Colors.surface2,
+    borderRadius: 4,
     overflow: 'hidden',
     width: (SCREEN_WIDTH - 48) / 2,
-    height: 56,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    height: 52,
   },
   quickPickImage: {
-    width: 56,
-    height: 56,
-    backgroundColor: Colors.surface2,
+    width: 52,
+    height: 52,
+    backgroundColor: Colors.surface3,
   },
   quickPickTitle: {
     flex: 1,

@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../theme/colors';
 import type { Track } from '../api/jiosaavn';
 import { formatDuration } from '../api/jiosaavn';
@@ -16,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { a11yButton } from '../utils/a11y';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
+const GRID_CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
 
 interface TrackCardProps {
   track: Track;
@@ -37,61 +36,51 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   const isActive = currentTrack?.id === track.id;
 
   const handlePress = () => {
-    if (onPress) {
-      onPress();
-    } else {
-      playTrack(track, queue);
-    }
+    if (onPress) onPress();
+    else playTrack(track, queue);
   };
 
   const placeholder = require('../../assets/placeholder.png');
   const imageSource = track.thumbnail ? { uri: track.thumbnail } : placeholder;
 
+  // ── Grid variant ──────────────────────────────────────────────────────────
   if (variant === 'grid') {
     return (
       <TouchableOpacity
-        style={[styles.gridCard, { width: CARD_WIDTH }]}
+        style={[styles.gridCard, { width: GRID_CARD_WIDTH }]}
         onPress={handlePress}
-        activeOpacity={0.75}
+        activeOpacity={0.7}
         {...a11yButton(`${track.title} by ${track.artist}`)}
       >
-        <View style={styles.gridImageContainer}>
+        <View style={styles.gridImageWrap}>
           <Image source={imageSource} style={styles.gridImage} />
           {isActive && (
-            <LinearGradient
-              colors={['transparent', 'rgba(168,85,247,0.7)']}
-              style={StyleSheet.absoluteFill}
-            />
-          )}
-          <View style={[styles.gridPlayBtn, isActive && styles.gridPlayBtnActive]}>
-            <Ionicons
-              name={isActive && isPlaying ? 'pause' : 'play'}
-              size={16}
-              color="#fff"
-            />
-          </View>
-          {isActive && (
-            <View style={styles.nowPlayingDot} />
+            <View style={styles.gridActiveOverlay}>
+              <Ionicons
+                name={isPlaying ? 'pause' : 'play'}
+                size={20}
+                color="#fff"
+              />
+            </View>
           )}
         </View>
-        <View style={styles.gridInfo}>
-          <Text style={[styles.gridTitle, isActive && styles.activeText]} numberOfLines={1}>
-            {track.title}
-          </Text>
-          <Text style={styles.gridArtist} numberOfLines={1}>
-            {track.artist}
-          </Text>
-        </View>
+        <Text style={[styles.gridTitle, isActive && styles.activeText]} numberOfLines={1}>
+          {track.title}
+        </Text>
+        <Text style={styles.gridArtist} numberOfLines={1}>
+          {track.artist}
+        </Text>
       </TouchableOpacity>
     );
   }
 
+  // ── Horizontal variant ────────────────────────────────────────────────────
   if (variant === 'horizontal') {
     return (
       <TouchableOpacity
         style={styles.horizontalCard}
         onPress={handlePress}
-        activeOpacity={0.75}
+        activeOpacity={0.7}
         {...a11yButton(`${track.title} by ${track.artist}`)}
       >
         <Image source={imageSource} style={styles.horizontalImage} />
@@ -103,79 +92,84 @@ export const TrackCard: React.FC<TrackCardProps> = ({
             {track.artist}
           </Text>
         </View>
-        {isActive && isPlaying && (
-          <View style={styles.equalizerContainer}>
-            <EqualizerBars />
-          </View>
-        )}
+        {isActive && isPlaying && <EqualizerBars />}
       </TouchableOpacity>
     );
   }
 
-  // List variant (default)
+  // ── List variant (default) ────────────────────────────────────────────────
   return (
     <TouchableOpacity
-      style={[styles.listCard, isActive && styles.listCardActive]}
+      style={styles.listCard}
       onPress={handlePress}
       activeOpacity={0.7}
       {...a11yButton(`${track.title} by ${track.artist}`)}
     >
-      <View style={styles.listLeft}>
-        {showIndex !== undefined ? (
-          <View style={styles.indexContainer}>
-            {isActive && isPlaying ? (
-              <EqualizerBars small />
-            ) : (
-              <Text style={[styles.indexText, isActive && styles.activeText]}>
-                {showIndex + 1}
-              </Text>
-            )}
-          </View>
-        ) : null}
-        <View style={styles.listImageContainer}>
-          <Image source={imageSource} style={styles.listImage} />
-          {isActive && (
-            <View style={styles.listActiveOverlay}>
-              <Ionicons name={isPlaying ? 'pause' : 'play'} size={14} color="#fff" />
-            </View>
+      {/* Index or equalizer */}
+      {showIndex !== undefined && (
+        <View style={styles.indexWrap}>
+          {isActive && isPlaying ? (
+            <EqualizerBars small />
+          ) : (
+            <Text style={[styles.indexText, isActive && styles.activeText]}>
+              {showIndex + 1}
+            </Text>
           )}
         </View>
-        <View style={styles.listInfo}>
-          <Text style={[styles.listTitle, isActive && styles.activeText]} numberOfLines={1}>
-            {track.title}
-          </Text>
-          <View style={styles.listMeta}>
-            {track.explicit && (
-              <View style={styles.explicitBadge}>
-                <Text style={styles.explicitText}>E</Text>
-              </View>
-            )}
-            <Text style={styles.listArtist} numberOfLines={1}>
-              {track.artist}
-            </Text>
+      )}
+
+      {/* Artwork */}
+      <View style={styles.listImageWrap}>
+        <Image source={imageSource} style={styles.listImage} />
+        {isActive && (
+          <View style={styles.listActiveOverlay}>
+            <Ionicons name={isPlaying ? 'pause' : 'play'} size={14} color="#fff" />
           </View>
+        )}
+      </View>
+
+      {/* Info */}
+      <View style={styles.listInfo}>
+        <Text style={[styles.listTitle, isActive && styles.activeText]} numberOfLines={1}>
+          {track.title}
+        </Text>
+        <View style={styles.listMeta}>
+          {track.explicit && (
+            <View style={styles.explicitBadge}>
+              <Text style={styles.explicitText}>E</Text>
+            </View>
+          )}
+          <Text style={styles.listArtist} numberOfLines={1}>
+            {track.artist}
+          </Text>
         </View>
       </View>
+
+      {/* Duration + more */}
       <View style={styles.listRight}>
         <Text style={styles.listDuration}>{formatDuration(track.duration_seconds)}</Text>
+        <Ionicons name="ellipsis-horizontal" size={16} color={Colors.textMuted} style={styles.moreIcon} />
       </View>
     </TouchableOpacity>
   );
 };
 
-// Simple animated equalizer bars (CSS-style, static for now)
+// ── Equalizer bars ────────────────────────────────────────────────────────────
 const EqualizerBars: React.FC<{ small?: boolean }> = ({ small }) => {
-  const size = small ? 3 : 4;
+  const barWidth = small ? 2 : 3;
   const heights = [10, 16, 8, 14, 6];
   return (
     <View style={[styles.equalizer, small && styles.equalizerSmall]}>
       {heights.map((h, i) => (
         <View
           key={i}
-          style={[
-            styles.equalizerBar,
-            { height: h * (small ? 0.7 : 1), width: size, marginHorizontal: 1 },
-          ]}
+          style={{
+            height: h * (small ? 0.65 : 1),
+            width: barWidth,
+            marginHorizontal: 1,
+            backgroundColor: Colors.accent,
+            borderRadius: 1,
+          }}
         />
       ))}
     </View>
@@ -183,12 +177,12 @@ const EqualizerBars: React.FC<{ small?: boolean }> = ({ small }) => {
 };
 
 const styles = StyleSheet.create({
-  // Grid
+  // ── Grid ──────────────────────────────────────────────────────────────────
   gridCard: {
     marginBottom: 16,
   },
-  gridImageContainer: {
-    borderRadius: 12,
+  gridImageWrap: {
+    borderRadius: 4,
     overflow: 'hidden',
     aspectRatio: 1,
     backgroundColor: Colors.surface2,
@@ -197,36 +191,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  gridPlayBtn: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+  gridActiveOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  gridPlayBtnActive: {
-    backgroundColor: Colors.accent,
-  },
-  nowPlayingDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.accent,
-  },
-  gridInfo: {
-    marginTop: 8,
   },
   gridTitle: {
     fontSize: 13,
     fontWeight: '600',
     color: Colors.text,
+    marginTop: 8,
   },
   gridArtist: {
     fontSize: 11,
@@ -234,12 +209,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Horizontal
+  // ── Horizontal ────────────────────────────────────────────────────────────
   horizontalCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 10,
     marginRight: 12,
     width: 220,
@@ -247,7 +222,7 @@ const styles = StyleSheet.create({
   horizontalImage: {
     width: 48,
     height: 48,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: Colors.surface2,
   },
   horizontalInfo: {
@@ -264,51 +239,39 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 2,
   },
-  equalizerContainer: {
-    marginLeft: 8,
-  },
 
-  // List
+  // ── List ──────────────────────────────────────────────────────────────────
   listCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 10,
   },
-  listCardActive: {
-    backgroundColor: Colors.accentOverlay,
-  },
-  listLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  indexContainer: {
+  indexWrap: {
     width: 28,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 4,
   },
   indexText: {
     fontSize: 14,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '400',
   },
-  listImageContainer: {
+  listImageWrap: {
     position: 'relative',
     marginRight: 12,
   },
   listImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
+    width: 48,
+    height: 48,
+    borderRadius: 2,
     backgroundColor: Colors.surface2,
   },
   listActiveOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(168,85,247,0.5)',
-    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -317,7 +280,7 @@ const styles = StyleSheet.create({
   },
   listTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '400',
     color: Colors.text,
   },
   listMeta: {
@@ -327,7 +290,7 @@ const styles = StyleSheet.create({
   },
   explicitBadge: {
     backgroundColor: Colors.surface3,
-    borderRadius: 3,
+    borderRadius: 2,
     paddingHorizontal: 4,
     paddingVertical: 1,
     marginRight: 5,
@@ -335,7 +298,7 @@ const styles = StyleSheet.create({
   explicitText: {
     fontSize: 9,
     fontWeight: '700',
-    color: Colors.textSecondary,
+    color: Colors.textMuted,
   },
   listArtist: {
     fontSize: 12,
@@ -343,14 +306,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginLeft: 8,
+    gap: 6,
   },
   listDuration: {
     fontSize: 12,
     color: Colors.textMuted,
   },
+  moreIcon: {
+    marginLeft: 4,
+  },
 
-  // Shared
+  // ── Shared ────────────────────────────────────────────────────────────────
   activeText: {
     color: Colors.accent,
   },
@@ -361,9 +330,5 @@ const styles = StyleSheet.create({
   },
   equalizerSmall: {
     height: 14,
-  },
-  equalizerBar: {
-    backgroundColor: Colors.accent,
-    borderRadius: 2,
   },
 });

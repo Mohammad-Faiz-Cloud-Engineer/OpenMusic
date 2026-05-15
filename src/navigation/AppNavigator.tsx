@@ -5,8 +5,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -26,7 +24,7 @@ import type { RootStackParamList, TabParamList } from './types';
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createStackNavigator<RootStackParamList>();
 
-const TAB_BAR_HEIGHT = 64;
+const TAB_BAR_HEIGHT = 56;
 
 type TabNavigatorProps = StackScreenProps<RootStackParamList, 'Tabs'>;
 
@@ -35,7 +33,6 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
   const { currentTrack } = usePlayerStore();
   const insets = useSafeAreaInsets();
 
-  // Total tab bar height = visible content + system nav bar inset
   const tabBarTotalHeight = TAB_BAR_HEIGHT + insets.bottom;
 
   return (
@@ -49,32 +46,28 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
             left: 0,
             right: 0,
             height: tabBarTotalHeight,
-            backgroundColor: 'transparent',
-            borderTopWidth: 0,
+            backgroundColor: Colors.surface,
+            borderTopWidth: 1,
+            borderTopColor: Colors.border,
             elevation: 0,
           },
-          tabBarBackground: () => (
-            <View style={StyleSheet.absoluteFill}>
-              <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFill} />
-              <LinearGradient
-                colors={['rgba(10,10,15,0)', 'rgba(10,10,15,0.95)']}
-                style={StyleSheet.absoluteFill}
-              />
-            </View>
-          ),
-          tabBarActiveTintColor: Colors.accent,
+          tabBarActiveTintColor: Colors.text,
           tabBarInactiveTintColor: Colors.textMuted,
           tabBarLabelStyle: {
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: '600',
-            marginBottom: 6,
+            letterSpacing: 0.3,
+            marginBottom: 4,
           },
-          tabBarItemStyle: { paddingTop: 8 },
+          tabBarItemStyle: { paddingTop: 6 },
           tabBarIcon: ({ focused, color }) => {
             let iconName: keyof typeof Ionicons.glyphMap = 'home';
-            if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
-            else if (route.name === 'Search') iconName = focused ? 'search' : 'search-outline';
-            else if (route.name === 'Library') iconName = focused ? 'library' : 'library-outline';
+            if (route.name === 'Home')
+              iconName = focused ? 'home' : 'home-outline';
+            else if (route.name === 'Search')
+              iconName = focused ? 'search' : 'search-outline';
+            else if (route.name === 'Library')
+              iconName = focused ? 'library' : 'library-outline';
             return <Ionicons name={iconName} size={22} color={color} />;
           },
         })}
@@ -131,9 +124,21 @@ export function AppNavigator() {
             }),
           }}
         />
-        <Stack.Screen name="Playlist" component={PlaylistScreen} options={{ presentation: 'card' }} />
-        <Stack.Screen name="TrackList" component={TrackListScreen} options={{ presentation: 'card' }} />
-        <Stack.Screen name="Charts" component={ChartsScreen} options={{ presentation: 'card' }} />
+        <Stack.Screen
+          name="Playlist"
+          component={PlaylistScreen}
+          options={{ presentation: 'card' }}
+        />
+        <Stack.Screen
+          name="TrackList"
+          component={TrackListScreen}
+          options={{ presentation: 'card' }}
+        />
+        <Stack.Screen
+          name="Charts"
+          component={ChartsScreen}
+          options={{ presentation: 'card' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

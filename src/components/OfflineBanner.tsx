@@ -13,7 +13,7 @@ export const OfflineBanner: React.FC = () => {
 
   return (
     <View style={styles.banner} accessibilityRole="alert" accessibilityLiveRegion="polite">
-      <Ionicons name="cloud-offline-outline" size={18} color={Colors.text} />
+      <Ionicons name="cloud-offline-outline" size={16} color={Colors.text} />
       <View style={styles.textWrap}>
         <Text style={styles.title}>{t('common.offline')}</Text>
         <Text style={styles.hint}>{t('common.offlineHint')}</Text>
@@ -27,21 +27,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: Colors.surface2,
+    backgroundColor: '#333',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   textWrap: { flex: 1 },
   title: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: Colors.text,
   },
   hint: {
     fontSize: 11,
     color: Colors.textSecondary,
-    marginTop: 2,
+    marginTop: 1,
   },
 });

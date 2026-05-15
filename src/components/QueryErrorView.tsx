@@ -15,7 +15,7 @@ export const QueryErrorView: React.FC<QueryErrorViewProps> = ({ message, onRetry
 
   return (
     <View style={styles.container}>
-      <Ionicons name="alert-circle-outline" size={48} color={Colors.red} />
+      <Ionicons name="alert-circle-outline" size={44} color={Colors.textMuted} />
       <Text style={styles.title}>{message ?? t('common.errorLoad')}</Text>
       {onRetry && (
         <TouchableOpacity
@@ -38,22 +38,23 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
+    fontSize: 15,
+    fontWeight: '400',
+    color: Colors.textSecondary,
     textAlign: 'center',
   },
   button: {
     marginTop: 8,
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.textSecondary,
+    paddingHorizontal: 28,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
   buttonText: {
-    color: Colors.accent,
-    fontWeight: '600',
+    color: Colors.text,
+    fontWeight: '700',
+    fontSize: 13,
+    letterSpacing: 0.5,
   },
 });

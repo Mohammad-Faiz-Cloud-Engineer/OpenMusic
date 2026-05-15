@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme/colors';
 import { Chart } from '../api/jiosaavn';
@@ -26,34 +19,24 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, onPress, index }) =
     <TouchableOpacity
       style={styles.card}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
       {...a11yButton(chart.title)}
     >
-      <View style={styles.imageContainer}>
+      <View style={styles.imageWrap}>
         <Image source={imageSource} style={styles.image} />
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.8)']}
-          style={StyleSheet.absoluteFill}
-        />
-        {index !== undefined && (
-          <View style={styles.indexBadge}>
-            <Text style={styles.indexText}>#{index + 1}</Text>
-          </View>
-        )}
+        {/* Play button overlay */}
         <View style={styles.playBtn}>
-          <Ionicons name="play" size={18} color="#fff" />
+          <Ionicons name="play" size={16} color="#000" />
         </View>
       </View>
-      <View style={styles.info}>
-        <Text style={styles.title} numberOfLines={2}>
-          {chart.title}
+      <Text style={styles.title} numberOfLines={2}>
+        {chart.title}
+      </Text>
+      {chart.description ? (
+        <Text style={styles.desc} numberOfLines={1}>
+          {chart.description}
         </Text>
-        {chart.description ? (
-          <Text style={styles.desc} numberOfLines={1}>
-            {chart.description}
-          </Text>
-        ) : null}
-      </View>
+      ) : null}
     </TouchableOpacity>
   );
 };
@@ -63,54 +46,39 @@ const styles = StyleSheet.create({
     width: 160,
     marginRight: 12,
   },
-  imageContainer: {
+  imageWrap: {
     width: 160,
     height: 160,
-    borderRadius: 12,
+    borderRadius: 4,
     overflow: 'hidden',
     backgroundColor: Colors.surface2,
+    position: 'relative',
   },
   image: {
     width: '100%',
     height: '100%',
   },
-  indexBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  indexText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.accent,
-  },
   playBtn: {
     position: 'absolute',
-    bottom: 10,
-    right: 10,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    bottom: 8,
+    right: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.accent,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.4,
     shadowRadius: 8,
-    elevation: 6,
-  },
-  info: {
-    marginTop: 8,
+    elevation: 8,
   },
   title: {
     fontSize: 13,
     fontWeight: '600',
     color: Colors.text,
+    marginTop: 8,
   },
   desc: {
     fontSize: 11,

@@ -16,7 +16,6 @@ import { Colors } from '../theme/colors';
 import { TrackCard } from '../components/TrackCard';
 import { SectionHeader } from '../components/SectionHeader';
 import { useTranslation } from 'react-i18next';
-
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { TabParamList } from '../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -45,7 +44,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
     };
   }, []);
 
-  const { data: suggestionsData, isLoading: suggestionsLoading } = useQuery({
+  const { data: suggestionsData } = useQuery({
     queryKey: ['suggestions', debouncedQuery],
     queryFn: () => getSuggestions(debouncedQuery),
     enabled: debouncedQuery.length >= 2 && isFocused,
@@ -72,16 +71,22 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
     inputRef.current?.focus();
   };
 
-  const showSuggestions = isFocused && debouncedQuery.length >= 2 && (suggestionsData?.suggestions?.length ?? 0) > 0;
+  const showSuggestions =
+    isFocused &&
+    debouncedQuery.length >= 2 &&
+    (suggestionsData?.suggestions?.length ?? 0) > 0;
   const showResults = !isFocused && debouncedQuery.length >= 2;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
         <Text style={styles.headerTitle} accessibilityRole="header">
           {t('search.title')}
         </Text>
-        <View style={styles.searchBar}>
+
+        {/* Search bar */}
+        <View style={[styles.searchBar, isFocused && styles.searchBarFocused]}>
           <Ionicons name="search" size={18} color={Colors.textSecondary} style={styles.searchIcon} />
           <TextInput
             ref={inputRef}
@@ -101,7 +106,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
             autoCapitalize="none"
           />
           {query.length > 0 && (
-            <TouchableOpacity onPress={clearSearch} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <TouchableOpacity
+              onPress={clearSearch}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <Ionicons name="close-circle" size={18} color={Colors.textSecondary} />
             </TouchableOpacity>
           )}
@@ -111,24 +119,27 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
         </View>
       </View>
 
-      {/* Suggestions Dropdown */}
+      {/* ── Suggestions ────────────────────────────────────────────────────── */}
       {showSuggestions && (
         <View style={styles.suggestionsContainer}>
           {suggestionsData?.suggestions.map((s, i) => (
             <TouchableOpacity
               key={i}
-              style={styles.suggestionItem}
+              style={[
+                styles.suggestionItem,
+                i === (suggestionsData.suggestions.length - 1) && styles.suggestionItemLast,
+              ]}
               onPress={() => handleSuggestionPress(s)}
             >
               <Ionicons name="search-outline" size={16} color={Colors.textMuted} />
               <Text style={styles.suggestionText}>{s}</Text>
-              <Ionicons name="arrow-back" size={14} color={Colors.textMuted} />
+              <Ionicons name="arrow-up-back" size={14} color={Colors.textMuted} />
             </TouchableOpacity>
           ))}
         </View>
       )}
 
-      {/* Search Results */}
+      {/* ── Results ────────────────────────────────────────────────────────── */}
       {showResults && (
         <FlatList
           data={searchData?.results ?? []}
@@ -146,21 +157,26 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
           ListEmptyComponent={
             !searchLoading ? (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyIcon}>🎵</Text>
+                <Ionicons name="musical-notes-outline" size={48} color={Colors.textMuted} />
                 <Text style={styles.emptyTitle}>{t('common.noResults')}</Text>
                 <Text style={styles.emptySubtitle}>{t('common.noResultsHint')}</Text>
               </View>
             ) : null
           }
           renderItem={({ item, index }) => (
-            <TrackCard
-              track={item}
-              queue={searchData?.results}
-              showIndex={index}
-            />
+            <TrackCard track={item} queue={searchData?.results} showIndex={index} />
           )}
           ListFooterComponent={<View style={{ height: 160 }} />}
         />
+      )}
+
+      {/* ── Empty / idle state ─────────────────────────────────────────────── */}
+      {!showResults && !showSuggestions && query.length === 0 && (
+        <View style={styles.idleState}>
+          <Ionicons name="search-outline" size={52} color={Colors.textMuted} />
+          <Text style={styles.idleTitle}>Find your next favourite</Text>
+          <Text style={styles.idleSubtitle}>Search songs, artists, albums</Text>
+        </View>
       )}
     </SafeAreaView>
   );
@@ -172,27 +188,29 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg,
   },
   header: {
-    paddingTop: 60,
     paddingHorizontal: 16,
+    paddingTop: 16,
     paddingBottom: 12,
-    backgroundColor: Colors.bg,
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.text,
-    marginBottom: 14,
-    letterSpacing: -0.5,
+    marginBottom: 16,
+    letterSpacing: -0.3,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
+    backgroundColor: Colors.surface2,
+    borderRadius: 8,
     paddingHorizontal: 14,
     height: 48,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'transparent',
+  },
+  searchBarFocused: {
+    borderColor: Colors.text,
   },
   searchIcon: {
     marginRight: 10,
@@ -204,15 +222,14 @@ const styles = StyleSheet.create({
     height: '100%',
   },
 
-  // Suggestions
+  // ── Suggestions ────────────────────────────────────────────────────────────
   suggestionsContainer: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surface2,
     marginHorizontal: 16,
-    borderRadius: 14,
+    borderRadius: 8,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.border,
-    overflow: 'hidden',
-    zIndex: 100,
   },
   suggestionItem: {
     flexDirection: 'row',
@@ -223,25 +240,25 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     gap: 12,
   },
+  suggestionItemLast: {
+    borderBottomWidth: 0,
+  },
   suggestionText: {
     flex: 1,
     fontSize: 14,
     color: Colors.text,
   },
 
-  // Results
+  // ── Results ────────────────────────────────────────────────────────────────
   resultsContainer: {
     paddingBottom: 160,
   },
 
-  // Empty
+  // ── Empty ──────────────────────────────────────────────────────────────────
   emptyState: {
     alignItems: 'center',
     paddingTop: 60,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
+    gap: 8,
   },
   emptyTitle: {
     fontSize: 18,
@@ -251,6 +268,24 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     fontSize: 14,
     color: Colors.textSecondary,
-    marginTop: 6,
+  },
+
+  // ── Idle ───────────────────────────────────────────────────────────────────
+  idleState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingBottom: 80,
+  },
+  idleTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+    marginTop: 8,
+  },
+  idleSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
   },
 });

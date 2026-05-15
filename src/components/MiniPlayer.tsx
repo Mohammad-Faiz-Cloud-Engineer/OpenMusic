@@ -7,19 +7,16 @@ import {
   StyleSheet,
   Animated,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { usePlayerStore } from '../store/playerStore';
 import { Colors } from '../theme/colors';
 import { a11yButton } from '../utils/a11y';
 import { useTranslation } from 'react-i18next';
 
-export const MINI_PLAYER_HEIGHT = 72;
+export const MINI_PLAYER_HEIGHT = 64;
 
 interface MiniPlayerProps {
   onPress: () => void;
-  /** Height of the tab bar — MiniPlayer sits directly on top of it */
   bottomOffset?: number;
 }
 
@@ -28,83 +25,46 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
   const { currentTrack, isPlaying, isLoading, togglePlay, next, position, duration } =
     usePlayerStore();
 
-  const slideAnim = useRef(new Animated.Value(MINI_PLAYER_HEIGHT)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(MINI_PLAYER_HEIGHT + 16)).current;
 
   useEffect(() => {
-    if (currentTrack) {
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 80,
-        friction: 10,
-      }).start();
-    } else {
-      Animated.timing(slideAnim, {
-        toValue: MINI_PLAYER_HEIGHT,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [currentTrack]);
-
-  useEffect(() => {
-    if (!isPlaying) {
-      pulseAnim.stopAnimation();
-      pulseAnim.setValue(1);
-      return;
-    }
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.05, duration: 800, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [isPlaying, pulseAnim]);
+    Animated.spring(slideAnim, {
+      toValue: currentTrack ? 0 : MINI_PLAYER_HEIGHT + 16,
+      useNativeDriver: true,
+      tension: 100,
+      friction: 12,
+    }).start();
+  }, [!!currentTrack]);
 
   if (!currentTrack) return null;
 
   const progress = duration > 0 ? position / duration : 0;
   const placeholder = require('../../assets/placeholder.png');
-  const imageSource = currentTrack.thumbnail
-    ? { uri: currentTrack.thumbnail }
-    : placeholder;
+  const imageSource = currentTrack.thumbnail ? { uri: currentTrack.thumbnail } : placeholder;
 
   return (
     <Animated.View
       style={[
         styles.container,
         {
-          bottom: bottomOffset + 8, // 8px gap above the tab bar
+          bottom: bottomOffset + 8,
           transform: [{ translateY: slideAnim }],
         },
       ]}
     >
-      <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
-      <LinearGradient
-        colors={['rgba(168,85,247,0.15)', 'rgba(0,0,0,0.4)']}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
-
-      {/* Progress bar at top edge */}
-      <View style={styles.progressBar}>
+      {/* Thin progress line at top */}
+      <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
       </View>
 
       <TouchableOpacity
-        style={styles.content}
+        style={styles.inner}
         onPress={onPress}
-        activeOpacity={0.9}
+        activeOpacity={0.95}
         {...a11yButton(`${currentTrack.title} — ${t('player.nowPlaying')}`)}
       >
         {/* Artwork */}
-        <Animated.View style={[styles.artContainer, { transform: [{ scale: pulseAnim }] }]}>
-          <Image source={imageSource} style={styles.art} />
-        </Animated.View>
+        <Image source={imageSource} style={styles.art} />
 
         {/* Info */}
         <View style={styles.info}>
@@ -117,31 +77,26 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
         </View>
 
         {/* Controls */}
-        <View style={styles.controls}>
-          <TouchableOpacity
-            style={styles.controlBtn}
-            onPress={(e) => { e.stopPropagation(); togglePlay(); }}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            {...a11yButton(isPlaying ? t('common.pause') : t('common.play'))}
-          >
-            {isLoading ? (
-              <Ionicons name="hourglass-outline" size={22} color={Colors.accent} />
-            ) : (
-              <Ionicons
-                name={isPlaying ? 'pause' : 'play'}
-                size={22}
-                color={Colors.text}
-              />
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.controlBtn}
-            onPress={(e) => { e.stopPropagation(); next(); }}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="play-skip-forward" size={20} color={Colors.text} />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.controlBtn}
+          onPress={(e) => { e.stopPropagation(); togglePlay(); }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          {...a11yButton(isPlaying ? t('common.pause') : t('common.play'))}
+        >
+          {isLoading ? (
+            <Ionicons name="hourglass-outline" size={24} color={Colors.text} />
+          ) : (
+            <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color={Colors.text} />
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.controlBtn}
+          onPress={(e) => { e.stopPropagation(); next(); }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="play-skip-forward" size={22} color={Colors.text} />
+        </TouchableOpacity>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -153,17 +108,16 @@ const styles = StyleSheet.create({
     left: 8,
     right: 8,
     height: MINI_PLAYER_HEIGHT,
-    borderRadius: 16,
+    borderRadius: 8,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: Colors.surface2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 16,
   },
-  progressBar: {
+  progressTrack: {
     height: 2,
     backgroundColor: Colors.surface3,
     position: 'absolute',
@@ -174,46 +128,33 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     backgroundColor: Colors.accent,
-    borderRadius: 1,
   },
-  content: {
+  inner: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingTop: 2,
   },
-  artContainer: {
-    shadowColor: Colors.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
-  },
   art: {
-    width: 46,
-    height: 46,
-    borderRadius: 8,
-    backgroundColor: Colors.surface2,
+    width: 44,
+    height: 44,
+    borderRadius: 2,
+    backgroundColor: Colors.surface3,
   },
   info: {
     flex: 1,
     marginHorizontal: 12,
   },
   title: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: Colors.text,
   },
   artist: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.textSecondary,
     marginTop: 2,
-  },
-  controls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
   },
   controlBtn: {
     width: 40,

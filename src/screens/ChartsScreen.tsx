@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -24,14 +31,17 @@ export const ChartsScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
           onPress={() => navigation.goBack()}
           {...a11yButton(t('common.goBack'))}
         >
-          <Ionicons name="chevron-back" size={24} color={Colors.text} />
+          <Ionicons name="chevron-back" size={22} color={Colors.text} />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t('charts.title')}</Text>
+        <View style={{ width: 36 }} />
       </View>
 
       {isLoading ? (
@@ -68,18 +78,28 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingBottom: 12,
+    paddingTop: 8,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.surface,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surface2,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+    textAlign: 'center',
+    marginHorizontal: 8,
+    letterSpacing: -0.2,
   },
   loader: {
     marginTop: 48,
@@ -90,6 +110,6 @@ const styles = StyleSheet.create({
   },
   row: {
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 16,
   },
 });
