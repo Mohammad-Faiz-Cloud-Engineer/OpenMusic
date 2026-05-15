@@ -6,7 +6,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020?logo=expo&logoColor=white)](https://expo.dev/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react&logoColor=black)](https://reactnative.dev/)
-[![Coverage](https://img.shields.io/badge/coverage-npm%20run%20test%3Acoverage-lightgrey)](./package.json)
+[![Coverage](https://img.shields.io/badge/coverage-npm_run_test:coverage-lightgrey)](./package.json)
 
 OpenMusic is a mobile music app built with React Native and Expo. Browse charts, search for songs, build a queue, and listen with a full-screen player and a mini player that stays above the tab bar while you explore. The UI is dark-first, purple-accented, and meant to feel closer to a streaming app than a demo.
 
