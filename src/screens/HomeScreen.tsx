@@ -31,6 +31,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+// Resolved once at module load — avoids repeated require() calls inside render
+const placeholder = require('../../assets/placeholder.png');
+
 type HomeScreenProps = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Home'>,
   StackScreenProps<RootStackParamList>
@@ -56,13 +59,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const isRefreshing = chartsFetching || trendingFetching;
   const onRefresh = useCallback(() => { refetchCharts(); refetchTrending(); }, [refetchCharts, refetchTrending]);
 
-  const getGreeting = () => {
+  const getGreeting = useCallback(() => {
     const h = new Date().getHours();
     if (h < 12) return t('home.greetingMorning');
     if (h < 17) return t('home.greetingAfternoon');
     if (h < 21) return t('home.greetingEvening');
     return t('home.greetingNight');
-  };
+  }, [t]);
 
   const renderFeaturedBanner = () => {
     const tracks = trendingData?.results?.slice(0, 5) ?? [];
@@ -71,7 +74,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return (
       <TouchableOpacity style={styles.featuredBanner} onPress={() => playQueue(tracks, 0)} activeOpacity={0.88}>
         <Image
-          source={featured.thumbnail ? { uri: featured.thumbnail } : require('../../assets/placeholder.png')}
+          source={featured.thumbnail ? { uri: featured.thumbnail } : placeholder}
           style={StyleSheet.absoluteFill}
         />
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.95)']} style={StyleSheet.absoluteFill} />
@@ -89,7 +92,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.featuredShuffleBtn}
-              onPress={() => { const s = [...tracks].sort(() => Math.random() - 0.5); playQueue(s, 0); }}
+              onPress={() => {
+                const shuffled = [...tracks];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                playQueue(shuffled, 0);
+              }}
             >
               <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
               <Ionicons name="shuffle" size={16} color={Colors.text} />
@@ -111,7 +121,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
             <View style={styles.quickPickGlass} />
             <Image
-              source={track.thumbnail ? { uri: track.thumbnail } : require('../../assets/placeholder.png')}
+              source={track.thumbnail ? { uri: track.thumbnail } : placeholder}
               style={styles.quickPickImage}
             />
             <Text style={styles.quickPickTitle} numberOfLines={1}>{track.title}</Text>
@@ -166,7 +176,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <SectionHeader title={t('home.topCharts')} onSeeAll={() => navigation.navigate('Charts')} />
           {chartsLoading
             ? <FlatList horizontal data={[1,2,3,4]} keyExtractor={i => String(i)} renderItem={() => <View style={{ marginRight: 12 }}><SkeletonCard width={160} height={160} borderRadius={20} /></View>} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList} />
-            : <FlatList horizontal data={chartsData?.charts ?? []} keyExtractor={c => c.id} renderItem={({ item, index }) => <ChartCard chart={item} index={index} onPress={() => navigation.navigate('Playlist', { id: item.id, title: item.title })} />} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList} />
+            : <FlatList horizontal data={chartsData?.charts ?? []} keyExtractor={c => c.id} renderItem={({ item }) => <ChartCard chart={item} onPress={() => navigation.navigate('Playlist', { id: item.id, title: item.title })} />} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList} />
           }
         </View>
 

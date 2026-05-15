@@ -16,6 +16,9 @@ import { useTranslation } from 'react-i18next';
 
 export const MINI_PLAYER_HEIGHT = 68;
 
+// Resolved once at module load — avoids repeated require() calls inside render
+const placeholder = require('../../assets/placeholder.png');
+
 interface MiniPlayerProps {
   onPress: () => void;
   bottomOffset?: number;
@@ -35,12 +38,11 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
       tension: 90,
       friction: 12,
     }).start();
-  }, [!!currentTrack]);
+  }, [currentTrack, slideAnim]);
 
   if (!currentTrack) return null;
 
   const progress = duration > 0 ? position / duration : 0;
-  const placeholder = require('../../assets/placeholder.png');
   const imageSource = currentTrack.thumbnail ? { uri: currentTrack.thumbnail } : placeholder;
 
   return (
@@ -94,6 +96,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
           style={styles.controlBtn}
           onPress={(e) => { e.stopPropagation(); next(); }}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          {...a11yButton(t('player.controls.next'))}
         >
           <Ionicons name="play-skip-forward" size={22} color={Colors.text} />
         </TouchableOpacity>

@@ -24,6 +24,9 @@ import type { RootStackParamList, TabParamList } from '../navigation/types';
 import { a11yButton } from '../utils/a11y';
 import { TrackCard } from '../components/TrackCard';
 
+// Resolved once at module load — avoids repeated require() calls inside render
+const placeholder = require('../../assets/placeholder.png');
+
 type LibraryTab = 'queue' | 'recent';
 
 type LibraryScreenProps = CompositeScreenProps<
@@ -37,7 +40,6 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
   const { queue, currentIndex, currentTrack, playTrack, removeFromQueue, clearQueue } =
     usePlayerStore();
   const recentTracks = useRecentStore((s) => s.tracks);
-  const placeholder = require('../../assets/placeholder.png');
 
   const renderQueueItem = ({ item, index }: { item: Track; index: number }) => {
     const isActive = index === currentIndex;

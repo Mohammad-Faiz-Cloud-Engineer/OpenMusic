@@ -277,6 +277,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       isLoading: false,
       position: 0,
       duration: 0,
+      streamCache: {},
+      playGeneration: 0,
     });
   },
 }));

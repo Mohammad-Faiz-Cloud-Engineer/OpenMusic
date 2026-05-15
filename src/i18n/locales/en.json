@@ -42,7 +42,9 @@
   "search": {
     "title": "Search",
     "placeholder": "Songs, artists, albums...",
-    "resultsFor": "Results for \"{{query}}\""
+    "resultsFor": "Results for \"{{query}}\"",
+    "idleTitle": "Find your next favourite",
+    "idleSubtitle": "Search songs, artists, albums"
   },
   "library": {
     "title": "Library",
@@ -73,7 +75,7 @@
       "shuffle": "Shuffle",
       "shuffleDesc": "Plays songs in random order.",
       "prev": "Previous",
-      "prevDesc": "Go back to the previous song. Tap twice fast to restart the current one.",
+      "prevDesc": "Go back to the previous song. If you're more than 3 seconds in, it restarts the current song instead.",
       "playPause": "Play / Pause",
       "playPauseDesc": "Start or pause the song.",
       "next": "Next",

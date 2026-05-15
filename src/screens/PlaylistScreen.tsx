@@ -13,8 +13,12 @@ import { usePlayerStore } from '../store/playerStore';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
+import { pickShuffleIndex } from '../utils/playerUtils';
 
 type PlaylistScreenProps = StackScreenProps<RootStackParamList, 'Playlist'>;
+
+// Resolved once at module load — avoids repeated require() calls inside render
+const placeholder = require('../../assets/placeholder.png');
 
 export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -27,7 +31,6 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
     staleTime: 10 * 60 * 1000,
   });
 
-  const placeholder = require('../../assets/placeholder.png');
   const totalDuration = data?.tracks?.reduce((sum, t) => sum + t.duration_seconds, 0) ?? 0;
   const hours = Math.floor(totalDuration / 3600);
   const minutes = Math.floor((totalDuration % 3600) / 60);
@@ -95,7 +98,14 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
               <View style={styles.heroActions}>
                 <TouchableOpacity
                   style={styles.shuffleBtn}
-                  onPress={() => { const s = [...data.tracks].sort(() => Math.random() - 0.5); playQueue(s, 0); }}
+                  onPress={() => {
+                    const shuffled = [...data.tracks];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                      const j = Math.floor(Math.random() * (i + 1));
+                      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    playQueue(shuffled, 0);
+                  }}
                 >
                   <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
                   <View style={styles.shuffleBtnGlass} />

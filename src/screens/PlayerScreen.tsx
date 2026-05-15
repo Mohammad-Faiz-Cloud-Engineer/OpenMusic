@@ -25,6 +25,9 @@ import { a11yButton } from '../utils/a11y';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ARTWORK_SIZE = SCREEN_WIDTH - 56;
 
+// Resolved once at module load — avoids repeated require() calls inside render
+const placeholder = require('../../assets/placeholder.png');
+
 type PlayerScreenProps = StackScreenProps<RootStackParamList, 'Player'>;
 
 export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
@@ -79,7 +82,6 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
   }
 
   const progress = duration > 0 ? position / duration : 0;
-  const placeholder = require('../../assets/placeholder.png');
   const imageSource = currentTrack.thumbnail ? { uri: currentTrack.thumbnail } : placeholder;
 
   return (

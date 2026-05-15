@@ -52,10 +52,9 @@ export const ChartsScreen: React.FC<Props> = ({ navigation }) => {
           contentContainerStyle={styles.list}
           refreshing={isFetching && !isLoading}
           onRefresh={refetch}
-          renderItem={({ item, index }) => (
+          renderItem={({ item }) => (
             <ChartCard
               chart={item}
-              index={index}
               onPress={() => navigation.navigate('Playlist', { id: item.id, title: item.title })}
             />
           )}

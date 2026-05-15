@@ -8,7 +8,6 @@ import { a11yButton } from '../utils/a11y';
 interface ChartCardProps {
   chart: Chart;
   onPress: () => void;
-  index?: number;
 }
 
 export const ChartCard: React.FC<ChartCardProps> = ({ chart, onPress }) => {

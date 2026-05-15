@@ -178,8 +178,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
       {!showResults && !showSuggestions && query.length === 0 && (
         <View style={styles.idleState}>
           <Ionicons name="search-outline" size={52} color={Colors.textMuted} />
-          <Text style={styles.idleTitle}>Find your next favourite</Text>
-          <Text style={styles.idleSubtitle}>Search songs, artists, albums</Text>
+          <Text style={styles.idleTitle}>{t('search.idleTitle')}</Text>
+          <Text style={styles.idleSubtitle}>{t('search.idleSubtitle')}</Text>
         </View>
       )}
     </SafeAreaView>

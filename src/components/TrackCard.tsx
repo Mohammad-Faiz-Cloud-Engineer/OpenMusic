@@ -17,6 +17,9 @@ import { a11yButton } from '../utils/a11y';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
 
+// Resolved once at module load — avoids repeated require() calls inside render
+const placeholder = require('../../assets/placeholder.png');
+
 interface TrackCardProps {
   track: Track;
   queue?: Track[];
@@ -36,7 +39,6 @@ export const TrackCard: React.FC<TrackCardProps> = ({
     else playTrack(track, queue);
   };
 
-  const placeholder = require('../../assets/placeholder.png');
   const imageSource = track.thumbnail ? { uri: track.thumbnail } : placeholder;
 
   // ── Grid ──────────────────────────────────────────────────────────────────
