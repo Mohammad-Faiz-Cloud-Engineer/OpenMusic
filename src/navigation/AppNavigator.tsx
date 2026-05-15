@@ -97,7 +97,7 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
 export function AppNavigator() {
   return (
     <NavigationContainer linking={linking}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: Colors.bg } }}>
         <Stack.Screen name="Tabs" component={TabNavigator} />
         <Stack.Screen
           name="Player"
@@ -105,8 +105,11 @@ export function AppNavigator() {
           options={{
             presentation: 'modal',
             gestureEnabled: true,
+            cardOverlayEnabled: false,
+            cardStyle: { backgroundColor: Colors.bg },
             cardStyleInterpolator: ({ current, layouts }) => ({
               cardStyle: {
+                backgroundColor: Colors.bg,
                 transform: [{
                   translateY: current.progress.interpolate({
                     inputRange: [0, 1],
