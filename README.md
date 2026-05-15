@@ -1,5 +1,15 @@
 # OpenMusic
 
+[![CI](https://github.com/faiz2/OpenMusic/actions/workflows/ci.yml/badge.svg)](https://github.com/faiz2/OpenMusic/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-Jest-2e93ff?logo=jest)](https://github.com/faiz2/OpenMusic/actions/workflows/ci.yml)
+[![Build Check](https://img.shields.io/badge/build%20check-passing-brightgreen)](https://github.com/faiz2/OpenMusic/blob/main/scripts/build-check.js)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020?logo=expo&logoColor=white)](https://expo.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react&logoColor=black)](https://reactnative.dev/)
+[![Coverage](https://img.shields.io/badge/coverage-npm%20run%20test%3Acoverage-lightgrey)](./package.json)
+
+> Replace `faiz2/OpenMusic` in badge URLs with your GitHub `owner/repo` after you fork or publish.
+
 OpenMusic is a mobile music app built with React Native and Expo. Browse charts, search for songs, build a queue, and listen with a full-screen player and a mini player that stays above the tab bar while you explore. The UI is dark-first, purple-accented, and meant to feel closer to a streaming app than a demo.
 
 Audio is powered by a backend that wraps JioSaavn-style metadata and stream URLs. The app does not ship its own music library—it talks to an API you configure.
@@ -81,10 +91,13 @@ If it’s empty, the app still runs—errors are only reported in development lo
 | `npm run android` | Open on Android |
 | `npm run ios` | Open on iOS |
 | `npm run web` | Run in the browser (limited audio behavior) |
-| `npm test` | Run unit tests |
+| `npm test` | Run all unit tests (Jest) |
 | `npm run test:watch` | Tests in watch mode |
-| `npm run test:coverage` | Tests with coverage |
+| `npm run test:coverage` | Tests with coverage report |
+| `npm run test:build` | Run only build-check tests |
 | `npm run typecheck` | TypeScript check without emitting files |
+| `npm run build:check` | Validate project structure + `tsc` (CI build gate) |
+| `npm run ci` | Full pipeline: typecheck → tests → build check |
 
 ## Project layout
 
@@ -130,11 +143,46 @@ Only `EXPO_PUBLIC_*` variables are embedded in the client bundle—never put sec
 
 ## Testing
 
+![Test suites](https://img.shields.io/badge/tests-45%20passing-brightgreen)
+![Test suites](https://img.shields.io/badge/suites-12-blue)
+![Build gate](https://img.shields.io/badge/build%20gate-tsc%20%2B%20structure-success)
+
+Run everything locally (same as CI):
+
 ```bash
-npm test
+npm run ci
 ```
 
-Tests cover API input validation, player utilities (cache expiry, shuffle), recent-play persistence, and a few UI components. They run in Node with mocks for Expo AV and AsyncStorage, so you don’t need a simulator for CI.
+Or run steps individually:
+
+```bash
+npm test                 # All Jest tests
+npm run test:build       # Build-check tests only
+npm run build:check      # Structure + TypeScript (no Jest)
+npm run test:coverage    # Tests with coverage table
+```
+
+### What is covered
+
+| Suite | What it checks |
+|--------|----------------|
+| `__tests__/build/` | **Build check** — required files, `app.json` / `package.json`, strict TS, `tsc --noEmit` |
+| `__tests__/api/` | API validation, HTTP success paths, proxy URL, error mapping |
+| `__tests__/store/` | Player store actions, recent-play persistence |
+| `__tests__/utils/` | Stream cache expiry, shuffle index, a11y helpers |
+| `__tests__/config/` | Environment URL / Sentry DSN parsing |
+| `__tests__/navigation/` | Deep-link prefixes and screen paths |
+| `__tests__/components/` | `SectionHeader`, `QueryErrorView`, `TrackCard` |
+
+Tests use mocks for Expo AV, AsyncStorage, NetInfo, and native UI modules so they run in Node without a simulator—suitable for GitHub Actions and pre-push checks.
+
+### CI
+
+On every push/PR to `main` or `master`, [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs:
+
+1. `npm run typecheck`
+2. `npm test -- --ci --coverage`
+3. `npm run build:check`
 
 ## Building for stores
 
@@ -153,7 +201,7 @@ Streaming depends on the configured backend (default: Hugging Face Space in `.en
 
 ## Contributing
 
-Issues and pull requests are welcome. Run `npm run typecheck` and `npm test` before opening a PR. Keep changes focused; this codebase was audited for production hygiene and prefers small, clear diffs over drive-by refactors.
+Issues and pull requests are welcome. Run `npm run ci` before opening a PR. Keep changes focused; this codebase was audited for production hygiene and prefers small, clear diffs over drive-by refactors.
 
 ## License
 

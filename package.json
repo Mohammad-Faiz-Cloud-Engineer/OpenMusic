@@ -9,8 +9,11 @@
     "web": "expo start --web",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "typecheck": "tsc --noEmit"
+    "test:coverage": "jest --coverage --ci",
+    "test:build": "jest __tests__/build --ci",
+    "typecheck": "tsc --noEmit",
+    "build:check": "node scripts/build-check.js",
+    "ci": "npm run typecheck && npm test -- --ci && npm run build:check"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
