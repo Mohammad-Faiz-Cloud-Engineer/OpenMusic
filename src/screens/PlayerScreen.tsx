@@ -16,7 +16,7 @@ import { Colors } from '../theme/colors';
 import { formatDuration } from '../api/jiosaavn';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const ARTWORK_SIZE = SCREEN_WIDTH - 64;
+const ARTWORK_SIZE = SCREEN_WIDTH - 80;
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -378,8 +378,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
+    paddingTop: 52,
+    paddingBottom: 12,
   },
   topBtn: {
     width: 40,
@@ -405,9 +405,9 @@ const styles = StyleSheet.create({
   // Artwork
   artworkContainer: {
     alignItems: 'center',
-    paddingHorizontal: 32,
-    marginTop: 16,
-    marginBottom: 32,
+    paddingHorizontal: 40,
+    marginTop: 12,
+    marginBottom: 24,
   },
   artworkWrapper: {
     width: ARTWORK_SIZE,
@@ -431,19 +431,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 32,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   trackInfoLeft: {
     flex: 1,
   },
   trackTitle: {
-    fontSize: 24,
+    fontSize: 23,
     fontWeight: '800',
     color: Colors.text,
     letterSpacing: -0.5,
   },
   trackArtist: {
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.textSecondary,
     marginTop: 4,
     fontWeight: '500',
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   // Seek Bar
   seekSection: {
     paddingHorizontal: 32,
-    marginBottom: 32,
+    marginBottom: 26,
   },
   seekBarContainer: {
     height: 20,
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 32,
-    marginBottom: 32,
+    marginBottom: 26,
   },
   sideControl: {
     width: 44,
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 40,
-    marginBottom: 32,
+    marginBottom: 26,
   },
   extraBtn: {
     alignItems: 'center',
