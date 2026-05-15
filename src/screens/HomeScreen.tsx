@@ -74,7 +74,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     const h = new Date().getHours();
     if (h < 12) return t('home.greetingMorning');
     if (h < 17) return t('home.greetingAfternoon');
-    return t('home.greetingEvening');
+    if (h < 21) return t('home.greetingEvening');
+    return t('home.greetingNight');
   };
 
   const renderFeaturedBanner = () => {
