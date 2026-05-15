@@ -52,6 +52,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
   const artworkScale = useRef(new Animated.Value(isPlaying ? 1 : 0.85)).current;
   const seekBarWidth = useRef(0);
   const [showGuide, setShowGuide] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   // Animate artwork on play/pause
   React.useEffect(() => {
@@ -80,10 +81,6 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     const modes: RepeatMode[] = ['off', 'all', 'one'];
     const current = modes.indexOf(repeatMode);
     setRepeat(modes[(current + 1) % modes.length]);
-  };
-
-  const repeatIcon = (): keyof typeof Ionicons.glyphMap => {
-    return 'repeat';
   };
 
   const repeatColor = repeatMode !== 'off' ? Colors.accent : Colors.textSecondary;
@@ -141,21 +138,13 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
               {currentIndex + 1} / {queue.length}
             </Text>
           </View>
-          <View style={styles.topRightBtns}>
-            <TouchableOpacity
-              style={styles.topBtn}
-              onPress={() => setShowGuide(true)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="information-circle-outline" size={26} color={Colors.text} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.topBtn}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="ellipsis-vertical" size={22} color={Colors.text} />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.topBtn}
+            onPress={() => setShowMenu(true)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="ellipsis-vertical" size={22} color={Colors.text} />
+          </TouchableOpacity>
         </View>
 
         {/* Artwork */}
@@ -287,7 +276,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             onPress={cycleRepeat}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name={repeatIcon()} size={22} color={repeatColor} />
+            <Ionicons name="repeat" size={22} color={repeatColor} />
             {repeatMode === 'one' && (
               <Text style={styles.repeatOneLabel}>1</Text>
             )}
@@ -311,7 +300,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         {queue.length > 1 && (
           <View style={styles.upNext}>
             <Text style={styles.upNextTitle}>{t('player.upNext')}</Text>
-            {queue.slice(currentIndex + 1, currentIndex + 4).map((track, i) => (
+            {queue.slice(currentIndex + 1, currentIndex + 4).map((track) => (
               <View key={track.id} style={styles.upNextItem}>
                 <Image
                   source={track.thumbnail ? { uri: track.thumbnail } : placeholder}
@@ -335,6 +324,40 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* 3-dot Dropdown Menu */}
+      <Modal
+        visible={showMenu}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={() => setShowMenu(false)}
+      >
+        <Pressable style={styles.menuOverlay} onPress={() => setShowMenu(false)}>
+          <Pressable style={styles.menuSheet} onPress={() => {}}>
+            <View style={styles.guideHandle} />
+            <Text style={styles.menuTitle}>{t('player.menu')}</Text>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setShowMenu(false);
+                setTimeout(() => setShowGuide(true), 250);
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.menuIconWrap}>
+                <Ionicons name="information-circle-outline" size={22} color={Colors.accent} />
+              </View>
+              <View style={styles.menuItemText}>
+                <Text style={styles.menuItemLabel}>{t('player.controlsGuide')}</Text>
+                <Text style={styles.menuItemSub}>{t('player.controlsGuideSubtitle')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Controls Guide Modal */}
       <Modal
@@ -464,11 +487,6 @@ const styles = StyleSheet.create({
   },
   topCenter: {
     alignItems: 'center',
-  },
-  topRightBtns: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
   },
   topLabel: {
     fontSize: 11,
@@ -697,7 +715,60 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
 
-  // Controls Guide Modal
+  // Menu Bottom Sheet
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'flex-end',
+  },
+  menuSheet: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 40,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderBottomWidth: 0,
+  },
+  menuTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.text,
+    marginBottom: 20,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  menuIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: Colors.surface2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  menuItemText: {
+    flex: 1,
+  },
+  menuItemLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  menuItemSub: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+
   guideOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.85)',
@@ -728,7 +799,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.text,
     marginBottom: 4,
-    letterSpacing: -0.3,
   },
   guideSubtitle: {
     fontSize: 13,

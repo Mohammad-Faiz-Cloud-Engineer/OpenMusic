@@ -67,6 +67,7 @@
     "controlsGuide": "Controls Guide",
     "controlsGuideSubtitle": "What each button does",
     "gotIt": "Got it",
+    "menu": "More Options",
     "controls": {
       "shuffle": "Shuffle",
       "shuffleDesc": "Plays songs in random order.",
