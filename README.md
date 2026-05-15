@@ -8,8 +8,6 @@
 [![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react&logoColor=black)](https://reactnative.dev/)
 [![Coverage](https://img.shields.io/badge/coverage-npm%20run%20test%3Acoverage-lightgrey)](./package.json)
 
-> Replace `Mohammad-Faiz-Cloud-Engineer/OpenMusic` in badge URLs with your GitHub `owner/repo` after you fork or publish.
-
 OpenMusic is a mobile music app built with React Native and Expo. Browse charts, search for songs, build a queue, and listen with a full-screen player and a mini player that stays above the tab bar while you explore. The UI is dark-first, purple-accented, and meant to feel closer to a streaming app than a demo.
 
 Audio is powered by a backend that wraps JioSaavn-style metadata and stream URLs. The app does not ship its own music library—it talks to an API you configure.
@@ -50,7 +48,7 @@ TypeScript is used throughout. Navigation routes and params are typed so refacto
 Clone the repo and install dependencies:
 
 ```bash
-git clone https://github.com/your-username/OpenMusic.git
+git clone https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic.git
 cd OpenMusic
 npm install --legacy-peer-deps
 ```
@@ -205,4 +203,12 @@ Issues and pull requests are welcome. Run `npm run ci` before opening a PR. Keep
 
 ## License
 
-See [LICENSE](LICENSE) in the repository root.
+This project is licensed under the **BSD 2-Clause License**. See [LICENSE](LICENSE) for the full text.
+
+Copyright © 2026 [Mohammad Faiz](https://github.com/Mohammad-Faiz-Cloud-Engineer). All rights reserved.
+
+Redistribution and use, with or without modification, are permitted provided the copyright notice and disclaimer are retained. See the LICENSE file for the exact conditions.
+
+## Credits
+
+Created and maintained by **Mohammad Faiz** ([@Mohammad-Faiz-Cloud-Engineer](https://github.com/Mohammad-Faiz-Cloud-Engineer)).
