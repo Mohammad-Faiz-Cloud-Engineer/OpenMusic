@@ -24,8 +24,7 @@
     "android": {
       "package": "com.openmusic.app",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#0A0A0F"
+        "foregroundImage": "./assets/icon.png"
       },
       "permissions": [
         "android.permission.FOREGROUND_SERVICE",
