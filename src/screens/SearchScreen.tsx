@@ -8,30 +8,14 @@ import {
   StyleSheet,
   Keyboard,
   ActivityIndicator,
-  Dimensions,
-  Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { searchSongs, getSuggestions, Track } from '../api/jiosaavn';
+import { searchSongs, getSuggestions } from '../api/jiosaavn';
 import { Colors } from '../theme/colors';
 import { TrackCard } from '../components/TrackCard';
 import { SectionHeader } from '../components/SectionHeader';
 import { useTranslation } from 'react-i18next';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const GENRE_KEYS = [
-  { key: 'bollywood', query: 'bollywood hits 2025', color: ['#A855F7', '#7C3AED'] as const, icon: '🎬' },
-  { key: 'punjabi', query: 'punjabi hits', color: ['#EC4899', '#BE185D'] as const, icon: '🎵' },
-  { key: 'romantic', query: 'romantic hindi songs', color: ['#EF4444', '#DC2626'] as const, icon: '❤️' },
-  { key: 'party', query: 'party songs hindi', color: ['#F59E0B', '#D97706'] as const, icon: '🎉' },
-  { key: 'arijit', query: 'arijit singh', color: ['#3B82F6', '#1D4ED8'] as const, icon: '🎤' },
-  { key: 'devotional', query: 'devotional songs hindi', color: ['#10B981', '#059669'] as const, icon: '🙏' },
-  { key: 'retro', query: 'old hindi songs classic', color: ['#8B5CF6', '#6D28D9'] as const, icon: '📻' },
-  { key: 'english', query: 'english pop hits 2025', color: ['#06B6D4', '#0891B2'] as const, icon: '🌍' },
-] as const;
 
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { TabParamList } from '../navigation/types';
@@ -82,18 +66,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
     Keyboard.dismiss();
   };
 
-  const genreCategories = GENRE_KEYS.map((g) => ({
-    ...g,
-    label: t(`categories.${g.key}`),
-  }));
-
-  const handleCategoryPress = (cat: (typeof genreCategories)[0]) => {
-    setQuery(cat.label);
-    setDebouncedQuery(cat.query);
-    setIsFocused(false);
-    Keyboard.dismiss();
-  };
-
   const clearSearch = () => {
     setQuery('');
     setDebouncedQuery('');
@@ -102,7 +74,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
 
   const showSuggestions = isFocused && debouncedQuery.length >= 2 && (suggestionsData?.suggestions?.length ?? 0) > 0;
   const showResults = !isFocused && debouncedQuery.length >= 2;
-  const showCategories = !debouncedQuery;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -155,37 +126,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
             </TouchableOpacity>
           ))}
         </View>
-      )}
-
-      {/* Categories */}
-      {showCategories && (
-        <FlatList
-          data={genreCategories}
-          keyExtractor={(c) => c.key}
-          numColumns={2}
-          contentContainerStyle={styles.categoriesContainer}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            <Text style={styles.categoriesTitle}>{t('search.browseCategories')}</Text>
-          }
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.categoryCard}
-              onPress={() => handleCategoryPress(item)}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={item.color}
-                style={styles.categoryGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Text style={styles.categoryIcon}>{item.icon}</Text>
-                <Text style={styles.categoryLabel}>{item.label}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          )}
-        />
       )}
 
       {/* Search Results */}
@@ -287,39 +227,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: Colors.text,
-  },
-
-  // Categories
-  categoriesContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 160,
-  },
-  categoriesTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 14,
-    marginTop: 8,
-  },
-  categoryCard: {
-    flex: 1,
-    margin: 5,
-    borderRadius: 14,
-    overflow: 'hidden',
-    height: 90,
-  },
-  categoryGradient: {
-    flex: 1,
-    padding: 16,
-    justifyContent: 'space-between',
-  },
-  categoryIcon: {
-    fontSize: 28,
-  },
-  categoryLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#fff',
   },
 
   // Results

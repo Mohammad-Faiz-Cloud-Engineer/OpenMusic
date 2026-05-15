@@ -41,7 +41,6 @@
   "search": {
     "title": "Search",
     "placeholder": "Songs, artists, albums...",
-    "browseCategories": "Browse Categories",
     "resultsFor": "Results for \"{{query}}\""
   },
   "library": {
@@ -73,16 +72,6 @@
     "loading": "Loading playlist...",
     "error": "Failed to load playlist",
     "by": "by {{owner}}"
-  },
-  "categories": {
-    "bollywood": "Bollywood",
-    "punjabi": "Punjabi",
-    "romantic": "Romantic",
-    "party": "Party",
-    "arijit": "Arijit Singh",
-    "devotional": "Devotional",
-    "retro": "Retro",
-    "english": "English"
   },
   "errorBoundary": {
     "title": "Something went wrong",
