@@ -51,7 +51,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
       ]}
     >
       {/* Glass blur layer */}
-      <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFill} />
+      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
 
       {/* Glass tint overlay */}
       <View style={styles.glassTint} />
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   glassTint: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.glass,
+    backgroundColor: 'rgba(15,15,25,0.72)',
   },
   progressTrack: {
     height: 2,
