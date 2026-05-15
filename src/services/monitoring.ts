@@ -1,6 +1,12 @@
-import { ErrorUtils } from 'react-native';
 import { SENTRY_DSN } from '../config/env';
 import { devError } from '../utils/devLog';
+
+// ErrorUtils is a RN runtime global, not a named export from 'react-native'.
+// Access it via the global object so it degrades gracefully if unavailable.
+const RNErrorUtils: typeof ErrorUtils | undefined =
+  typeof global !== 'undefined'
+    ? (global as unknown as { ErrorUtils?: typeof ErrorUtils }).ErrorUtils
+    : undefined;
 
 let sentryReady = false;
 
@@ -19,11 +25,13 @@ export const initMonitoring = (): void => {
     }
   }
 
-  const defaultHandler = ErrorUtils.getGlobalHandler();
-  ErrorUtils.setGlobalHandler((error, isFatal) => {
-    captureException(error, { isFatal: String(isFatal) });
-    defaultHandler?.(error, isFatal);
-  });
+  if (RNErrorUtils) {
+    const defaultHandler = RNErrorUtils.getGlobalHandler();
+    RNErrorUtils.setGlobalHandler((error, isFatal) => {
+      captureException(error, { isFatal: String(isFatal) });
+      defaultHandler?.(error, isFatal);
+    });
+  }
 };
 
 export const captureException = (error: unknown, context?: Record<string, string>): void => {
