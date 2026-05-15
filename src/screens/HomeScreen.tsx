@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { getCharts, getPlaylist, searchSongs, Track } from '../api/jiosaavn';
+import { getCharts, searchSongs } from '../api/jiosaavn';
 import { Colors, Gradients } from '../theme/colors';
 import { SectionHeader } from '../components/SectionHeader';
 import { TrackCard } from '../components/TrackCard';
@@ -22,13 +22,6 @@ import { SkeletonCard } from '../components/LoadingScreen';
 import { usePlayerStore } from '../store/playerStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const FEATURED_QUERIES = [
-  'arijit singh hits',
-  'bollywood 2025',
-  'punjabi hits',
-  'romantic songs',
-];
 
 interface HomeScreenProps {
   navigation: any;
@@ -66,7 +59,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const onRefresh = useCallback(() => {
     refetchCharts();
     refetchTrending();
-  }, []);
+  }, [refetchCharts, refetchTrending]);
 
   const getGreeting = () => {
     const h = new Date().getHours();
@@ -222,10 +215,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         {/* Charts */}
         <View style={styles.section}>
-          <SectionHeader
-            title="Top Charts"
-            onSeeAll={() => navigation.navigate('Charts')}
-          />
+          <SectionHeader title="Top Charts" />
           {chartsLoading ? (
             <FlatList
               horizontal

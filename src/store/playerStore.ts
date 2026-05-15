@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Audio, AVPlaybackStatus } from 'expo-av';
 import { Track, getStreamUrl, getProxyPlayUrl } from '../api/jiosaavn';
+import { devError, devWarn } from '../utils/devLog';
 
 export type RepeatMode = 'off' | 'all' | 'one';
 
@@ -29,6 +30,8 @@ interface PlayerState {
 
   // Stream URL cache — avoids re-fetching signed CDN URLs that are still valid
   streamCache: Record<string, CachedStream>;
+  /** Bumped on each playTrack to ignore stale async completions */
+  playGeneration: number;
 
   // Actions
   playTrack: (track: Track, queue?: Track[]) => Promise<void>;
@@ -67,25 +70,36 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   repeatMode: 'off',
   isShuffle: false,
   streamCache: {},
+  playGeneration: 0,
 
   setIsSeeking: (v) => set({ isSeeking: v }),
   setPosition: (v) => set({ position: v }),
 
   playTrack: async (track, queue) => {
     const state = get();
+    const generation = state.playGeneration + 1;
+    const isStale = () => get().playGeneration !== generation;
 
     const newQueue = queue ?? state.queue;
     const idx = newQueue.findIndex((t) => t.id === track.id);
     const finalQueue = newQueue;
     const finalIndex = idx >= 0 ? idx : 0;
 
-    set({ isLoading: true, currentTrack: track, queue: finalQueue, currentIndex: finalIndex });
+    set({
+      isLoading: true,
+      currentTrack: track,
+      queue: finalQueue,
+      currentIndex: finalIndex,
+      playGeneration: generation,
+    });
+
+    const previousSound = state.sound;
 
     try {
-      // Unload previous sound
-      if (state.sound) {
-        await state.sound.unloadAsync();
+      if (previousSound) {
+        await previousSound.unloadAsync();
       }
+      if (isStale()) return;
 
       // Step 1: resolve the signed CDN URL.
       // Use the client-side cache if the URL is still valid — avoids a round
@@ -101,10 +115,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         // Cache miss or expired — fetch a fresh signed URL from the backend
         try {
           const streamData = await getStreamUrl(track.id);
-          // The backend may return web.saavncdn.com URLs which require
-          // Referer/User-Agent headers that expo-av doesn't send (→ 403).
-          // aac.saavncdn.com is the same CDN but accepts headerless requests.
+          if (!streamData.stream_url) {
+            throw new Error('No stream URL returned');
+          }
+          // web.saavncdn.com needs Referer headers expo-av does not send (403).
           streamUrl = streamData.stream_url.replace('web.saavncdn.com', 'aac.saavncdn.com');
+          if (isStale()) return;
           // Cache it for the duration of its validity
           set((s) => ({
             streamCache: {
@@ -113,11 +129,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             },
           }));
         } catch (fetchErr) {
-          // Backend unreachable or returned an error — fall back to proxy
-          console.warn('[player] stream URL fetch failed, falling back to proxy:', fetchErr);
+          devWarn('[player] stream URL fetch failed, falling back to proxy:', fetchErr);
           streamUrl = getProxyPlayUrl(track.id);
         }
       }
+
+      if (isStale()) return;
 
       // Step 2: configure audio session
       await Audio.setAudioModeAsync({
@@ -134,10 +151,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         { uri: streamUrl },
         { shouldPlay: true, progressUpdateIntervalMillis: 1000 },
         (status: AVPlaybackStatus) => {
+          if (get().playGeneration !== generation) return;
           if (!status.isLoaded) {
-            // Log unload errors (e.g. network drop mid-stream)
-            if ((status as any).error) {
-              console.error('[player] playback error:', (status as any).error);
+            if ('error' in status && status.error) {
+              devError('[player] playback error:', status.error);
             }
             return;
           }
@@ -151,10 +168,17 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         }
       );
 
+      if (isStale()) {
+        await sound.unloadAsync();
+        return;
+      }
+
       set({ sound, isPlaying: true, isLoading: false, position: 0 });
     } catch (err) {
-      console.error('[player] playTrack error:', err);
-      set({ isLoading: false, isPlaying: false });
+      if (!isStale()) {
+        devError('[player] playTrack error:', err);
+        set({ isLoading: false, isPlaying: false });
+      }
     }
   },
 
@@ -189,7 +213,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     let nextIndex: number;
     if (isShuffle) {
-      nextIndex = Math.floor(Math.random() * queue.length);
+      if (queue.length === 1) {
+        nextIndex = 0;
+      } else {
+        do {
+          nextIndex = Math.floor(Math.random() * queue.length);
+        } while (nextIndex === currentIndex);
+      }
     } else {
       nextIndex = currentIndex + 1;
       if (nextIndex >= queue.length) {
@@ -250,5 +280,20 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       return { queue: newQueue, currentIndex: newIndex };
     }),
 
-  clearQueue: () => set({ queue: [], currentIndex: -1 }),
+  clearQueue: () => {
+    const { sound } = get();
+    if (sound) {
+      sound.unloadAsync().catch(() => undefined);
+    }
+    set({
+      queue: [],
+      currentIndex: -1,
+      currentTrack: null,
+      sound: null,
+      isPlaying: false,
+      isLoading: false,
+      position: 0,
+      duration: 0,
+    });
+  },
 }));

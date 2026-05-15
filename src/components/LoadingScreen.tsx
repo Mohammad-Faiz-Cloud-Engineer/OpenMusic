@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, StyleSheet } from 'react-native';
+import { View, Animated, StyleSheet, type DimensionValue } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../theme/colors';
 
@@ -29,7 +29,11 @@ export const LoadingScreen: React.FC = () => {
   );
 };
 
-export const SkeletonCard: React.FC<{ width?: number | string; height?: number; borderRadius?: number }> = ({
+export const SkeletonCard: React.FC<{
+  width?: DimensionValue;
+  height?: number;
+  borderRadius?: number;
+}> = ({
   width = '100%',
   height = 50,
   borderRadius = 8,

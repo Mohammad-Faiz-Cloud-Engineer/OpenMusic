@@ -51,6 +51,12 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     }, 400);
   }, []);
 
+  React.useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   const { data: suggestionsData, isLoading: suggestionsLoading } = useQuery({
     queryKey: ['suggestions', debouncedQuery],
     queryFn: () => getSuggestions(debouncedQuery),

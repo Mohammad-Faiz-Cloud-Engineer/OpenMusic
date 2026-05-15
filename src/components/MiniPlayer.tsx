@@ -46,18 +46,20 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
   }, [currentTrack]);
 
   useEffect(() => {
-    if (isPlaying) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.05, duration: 800, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-        ])
-      ).start();
-    } else {
+    if (!isPlaying) {
       pulseAnim.stopAnimation();
       pulseAnim.setValue(1);
+      return;
     }
-  }, [isPlaying]);
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.05, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [isPlaying, pulseAnim]);
 
   if (!currentTrack) return null;
 

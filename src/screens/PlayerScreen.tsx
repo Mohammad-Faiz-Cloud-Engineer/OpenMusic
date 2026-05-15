@@ -6,12 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  PanResponder,
   Animated,
   ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { usePlayerStore, RepeatMode } from '../store/playerStore';
 import { Colors } from '../theme/colors';

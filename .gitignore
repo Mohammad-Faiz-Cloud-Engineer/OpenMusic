@@ -31,7 +31,33 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+!.env.example
+
+# test / coverage
+coverage/
+.nyc_output/
+
+# caches
+.cache/
+.metropolistmp/
+
+# logs
+*.log
+*.tmp
+*.pid
+
+# OS / IDE
+Thumbs.db
+.idea/
+.vscode/settings.json
+*.iml
+*.swp
+*.bak
+*.orig
+*_old.*
+*_copy.*
 
 # typescript
 *.tsbuildinfo
