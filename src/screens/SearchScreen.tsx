@@ -133,7 +133,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
             >
               <Ionicons name="search-outline" size={16} color={Colors.textMuted} />
               <Text style={styles.suggestionText}>{s}</Text>
-              <Ionicons name="arrow-up-back" size={14} color={Colors.textMuted} />
+              <Ionicons name="arrow-back" size={14} color={Colors.textMuted} />
             </TouchableOpacity>
           ))}
         </View>
