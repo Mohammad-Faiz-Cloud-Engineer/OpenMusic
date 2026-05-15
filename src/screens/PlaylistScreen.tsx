@@ -13,7 +13,6 @@ import { usePlayerStore } from '../store/playerStore';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
-import { pickShuffleIndex } from '../utils/playerUtils';
 
 type PlaylistScreenProps = StackScreenProps<RootStackParamList, 'Playlist'>;
 
