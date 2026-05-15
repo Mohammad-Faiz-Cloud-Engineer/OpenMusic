@@ -225,7 +225,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
       <Modal visible={showMenu} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setShowMenu(false)}>
         <Pressable style={styles.sheetOverlay} onPress={() => setShowMenu(false)}>
           <Pressable style={styles.sheet} onPress={() => {}}>
-            <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
             <View style={styles.sheetGlass} />
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>{t('player.menu')}</Text>
@@ -253,7 +253,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
       <Modal visible={showGuide} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setShowGuide(false)}>
         <Pressable style={styles.sheetOverlay} onPress={() => setShowGuide(false)}>
           <Pressable style={styles.sheet} onPress={() => {}}>
-            <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
             <View style={styles.sheetGlass} />
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>{t('player.controlsGuide')}</Text>
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     paddingBottom: 44, maxHeight: '82%',
     borderWidth: 1, borderColor: Colors.glassBorder, borderBottomWidth: 0,
   },
-  sheetGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.glassMid },
+  sheetGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,15,25,0.72)' },
   sheetHandle: {
     width: 36, height: 4, borderRadius: 2,
     backgroundColor: Colors.glassBorderStrong, alignSelf: 'center', marginBottom: 20,
