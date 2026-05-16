@@ -30,6 +30,15 @@ describe('recentStore', () => {
     expect(tracks.map((t) => t.id)).toEqual(['1', '2']);
   });
 
+  it('strips stream_url before persisting and in memory', async () => {
+    const withUrl: Track = { ...mockTrack('u'), stream_url: 'https://secret-cdn.example/signed' };
+    await useRecentStore.getState().addRecent(withUrl);
+    const { tracks } = useRecentStore.getState();
+    expect(tracks[0]?.stream_url).toBeNull();
+    const raw = await AsyncStorage.getItem('@openmusic/recent');
+    expect(raw).not.toContain('secret-cdn.example');
+  });
+
   it('hydrates from storage', async () => {
     await useRecentStore.getState().addRecent(mockTrack('a'));
     useRecentStore.setState({ tracks: [], hydrated: false });

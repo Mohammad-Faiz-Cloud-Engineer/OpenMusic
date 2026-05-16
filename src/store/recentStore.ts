@@ -5,6 +5,12 @@ import { Track } from '../api/jiosaavn';
 const STORAGE_KEY = '@openmusic/recent';
 const MAX_RECENT = 50;
 
+/** Strip ephemeral CDN URLs — recent list is UI metadata only */
+const sanitizeTrackForStorage = (track: Track): Track => ({
+  ...track,
+  stream_url: null,
+});
+
 interface RecentState {
   tracks: Track[];
   hydrated: boolean;
@@ -20,16 +26,20 @@ export const useRecentStore = create<RecentState>((set, get) => ({
   hydrate: async () => {
     try {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const tracks = raw ? (JSON.parse(raw) as Track[]) : [];
-      set({ tracks: Array.isArray(tracks) ? tracks : [], hydrated: true });
+      const parsed = raw ? (JSON.parse(raw) as Track[]) : [];
+      const tracks = Array.isArray(parsed)
+        ? parsed.map(sanitizeTrackForStorage)
+        : [];
+      set({ tracks, hydrated: true });
     } catch {
       set({ tracks: [], hydrated: true });
     }
   },
 
   addRecent: async (track) => {
-    const withoutDup = get().tracks.filter((t) => t.id !== track.id);
-    const tracks = [track, ...withoutDup].slice(0, MAX_RECENT);
+    const persisted = sanitizeTrackForStorage(track);
+    const withoutDup = get().tracks.filter((t) => t.id !== persisted.id);
+    const tracks = [persisted, ...withoutDup].slice(0, MAX_RECENT);
     set({ tracks });
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tracks));

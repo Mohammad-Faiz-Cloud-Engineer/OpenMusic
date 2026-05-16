@@ -158,7 +158,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             set({ position: status.positionMillis, duration: status.durationMillis ?? 0 });
           }
           if (status.didJustFinish) {
-            get().next();
+            void get().next().catch((err) => devError('[player] auto-advance:', err));
           }
         }
       );

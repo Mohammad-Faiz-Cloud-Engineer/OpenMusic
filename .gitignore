@@ -65,3 +65,16 @@ Thumbs.db
 # generated native folders
 /ios
 /android
+
+# Xcode / Gradle caches (when native dirs exist locally)
+**/DerivedData/
+android/.gradle/
+
+# Packaging artifacts (if extracted outside ignored native dirs)
+*.aab
+*.apk
+*.ipa
+
+# Miscellaneous tool output
+__pycache__/
+target/

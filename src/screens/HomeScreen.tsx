@@ -48,13 +48,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     queryKey: ['charts'], queryFn: getCharts, staleTime: 10 * 60 * 1000,
   });
   const { data: trendingData, isLoading: trendingLoading, isFetching: trendingFetching, refetch: refetchTrending } = useQuery({
-    queryKey: ['trending'], queryFn: () => searchSongs('trending bollywood 2025'), staleTime: 10 * 60 * 1000,
+    queryKey: ['trending'], queryFn: () => searchSongs('trending bollywood 2026'), staleTime: 10 * 60 * 1000,
   });
   const { data: romanticData, isLoading: romanticLoading } = useQuery({
     queryKey: ['romantic'], queryFn: () => searchSongs('best romantic hindi songs'), staleTime: 15 * 60 * 1000,
   });
   const { data: punjabData, isLoading: punjabLoading } = useQuery({
-    queryKey: ['punjabi'], queryFn: () => searchSongs('punjabi hits 2025'), staleTime: 15 * 60 * 1000,
+    queryKey: ['punjabi'], queryFn: () => searchSongs('punjabi hits 2026'), staleTime: 15 * 60 * 1000,
   });
 
   const isRefreshing = chartsFetching || trendingFetching;
