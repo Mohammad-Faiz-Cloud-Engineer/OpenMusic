@@ -8,8 +8,6 @@ import {
   Dimensions,
   Animated,
   ScrollView,
-  Modal,
-  Pressable,
   Alert,
   FlatList,
   Share,
@@ -32,6 +30,7 @@ import { formatDuration } from '../api/jiosaavn';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { a11yButton } from '../utils/a11y';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -200,7 +199,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     [playTrack, queue]
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.spring(artworkScale, {
       toValue: isPlaying ? 1 : 0.88,
       useNativeDriver: true,
@@ -219,6 +218,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
   }, []);
 
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  // Ensure sheet content clears the device navigation bar
+  const sheetBottomPad = Math.max(insets.bottom + 16, 44);
 
   const styles = useMemo(
     () =>
@@ -315,16 +317,26 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         upNextTrackTitle: { fontSize: 13, fontWeight: '400', color: colors.text },
         upNextArtist: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
         upNextDuration: { fontSize: 12, color: colors.textMuted },
-        sheetOverlay: { flex: 1, backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+        sheetOverlay: {
+          ...StyleSheet.absoluteFillObject,
+          justifyContent: 'flex-end',
+          zIndex: 100,
+        },
+        sheetOverlayBlur: { ...StyleSheet.absoluteFillObject },
+        sheetOverlayDim: {
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: isDark ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.22)',
+        },
+        sheetOverlayTap: { ...StyleSheet.absoluteFillObject },
         sheet: {
           borderTopLeftRadius: 28, borderTopRightRadius: 28,
           overflow: 'hidden', paddingHorizontal: 20, paddingTop: 12,
-          paddingBottom: 44, maxHeight: '82%',
+          paddingBottom: sheetBottomPad, maxHeight: '82%',
           borderWidth: 1, borderColor: colors.glassBorder, borderBottomWidth: 0,
         },
         sheetGlass: {
           ...StyleSheet.absoluteFillObject,
-          backgroundColor: isDark ? 'rgba(15,15,25,0.72)' : 'rgba(255,255,255,0.94)',
+          backgroundColor: isDark ? 'rgba(15,15,25,0.82)' : 'rgba(255,255,255,0.96)',
         },
         sheetHandle: {
           width: 36, height: 4, borderRadius: 2,
@@ -356,9 +368,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           textAlign: 'center',
         },
         newPlOverlay: {
-          flex: 1,
+          ...StyleSheet.absoluteFillObject,
           justifyContent: 'center',
-          backgroundColor: isDark ? 'rgba(0,0,0,0.65)' : 'rgba(0,0,0,0.4)',
+          zIndex: 200,
           padding: 28,
         },
         newPlCard: {
@@ -434,7 +446,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         queueArtist: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
         queueMeta: { fontSize: 12, color: colors.textMuted },
       }),
-    [colors, isDark]
+    [colors, isDark, sheetBottomPad]
   );
 
   const seekStyles = useMemo(
@@ -619,10 +631,13 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
       </ScrollView>
 
       {/* Queue sheet */}
-      <Modal visible={showQueue} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setShowQueue(false)}>
-        <Pressable style={styles.sheetOverlay} onPress={() => setShowQueue(false)}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+      {showQueue && (
+        <View style={styles.sheetOverlay}>
+          <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={styles.sheetOverlayBlur} />
+          <View style={styles.sheetOverlayDim} />
+          <TouchableOpacity style={styles.sheetOverlayTap} onPress={() => setShowQueue(false)} activeOpacity={1} />
+          <View style={styles.sheet}>
+            <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.sheetGlass} />
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>{t('player.queue')}</Text>
@@ -653,15 +668,18 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
                 );
               }}
             />
-          </Pressable>
-        </Pressable>
-      </Modal>
+          </View>
+        </View>
+      )}
 
       {/* ── 3-dot menu sheet ─────────────────────────────────────────────────── */}
-      <Modal visible={showMenu} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setShowMenu(false)}>
-        <Pressable style={styles.sheetOverlay} onPress={() => setShowMenu(false)}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+      {showMenu && (
+        <View style={styles.sheetOverlay}>
+          <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={styles.sheetOverlayBlur} />
+          <View style={styles.sheetOverlayDim} />
+          <TouchableOpacity style={styles.sheetOverlayTap} onPress={() => setShowMenu(false)} activeOpacity={1} />
+          <View style={styles.sheet}>
+            <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.sheetGlass} />
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>{t('player.menu')}</Text>
@@ -703,21 +721,18 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
             </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
+          </View>
+        </View>
+      )}
 
       {/* ── Add to playlist ─────────────────────────────────────────────────── */}
-      <Modal
-        visible={showPlaylistPicker}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => setShowPlaylistPicker(false)}
-      >
-        <Pressable style={styles.sheetOverlay} onPress={() => setShowPlaylistPicker(false)}>
-          <Pressable style={[styles.sheet, styles.playlistPickSheet]} onPress={() => {}}>
-            <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+      {showPlaylistPicker && (
+        <View style={styles.sheetOverlay}>
+          <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={styles.sheetOverlayBlur} />
+          <View style={styles.sheetOverlayDim} />
+          <TouchableOpacity style={styles.sheetOverlayTap} onPress={() => setShowPlaylistPicker(false)} activeOpacity={1} />
+          <View style={[styles.sheet, styles.playlistPickSheet]}>
+            <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.sheetGlass} />
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>{t('player.choosePlaylist')}</Text>
@@ -770,34 +785,28 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
                 <Text style={styles.playlistPickEmpty}>{t('library.playlistsEmptyHint')}</Text>
               }
             />
-          </Pressable>
-        </Pressable>
-      </Modal>
+          </View>
+        </View>
+      )}
 
       {/* ── New playlist name ───────────────────────────────────────────────── */}
-      <Modal
-        visible={showNewPlaylistPrompt}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={() => {
-          setShowNewPlaylistPrompt(false);
-          setNewPlaylistNameInput('');
-        }}
-      >
+      {showNewPlaylistPrompt && (
         <KeyboardAvoidingView
           style={styles.newPlOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <Pressable
-            style={StyleSheet.absoluteFill}
+          <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={styles.sheetOverlayBlur} />
+          <View style={[styles.sheetOverlayDim, { backgroundColor: isDark ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.3)' }]} />
+          <TouchableOpacity
+            style={StyleSheet.absoluteFillObject}
             onPress={() => {
               setShowNewPlaylistPrompt(false);
               setNewPlaylistNameInput('');
             }}
+            activeOpacity={1}
           />
           <View style={styles.newPlCard}>
-            <BlurView intensity={44} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+            <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.newPlGlass} />
             <Text style={styles.newPlTitle}>{t('library.createPlaylist')}</Text>
             <TextInput
@@ -830,13 +839,16 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             </View>
           </View>
         </KeyboardAvoidingView>
-      </Modal>
+      )}
 
       {/* ── Controls guide sheet ─────────────────────────────────────────────── */}
-      <Modal visible={showGuide} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setShowGuide(false)}>
-        <Pressable style={styles.sheetOverlay} onPress={() => setShowGuide(false)}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+      {showGuide && (
+        <View style={styles.sheetOverlay}>
+          <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={styles.sheetOverlayBlur} />
+          <View style={styles.sheetOverlayDim} />
+          <TouchableOpacity style={styles.sheetOverlayTap} onPress={() => setShowGuide(false)} activeOpacity={1} />
+          <View style={styles.sheet}>
+            <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.sheetGlass} />
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>{t('player.controlsGuide')}</Text>
@@ -870,9 +882,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             <TouchableOpacity style={styles.guideDoneBtn} onPress={() => setShowGuide(false)} activeOpacity={0.85}>
               <Text style={styles.guideDoneBtnText}>{t('player.gotIt')}</Text>
             </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
