@@ -9,8 +9,12 @@ const RNErrorUtils: typeof ErrorUtils | undefined =
     : undefined;
 
 let sentryReady = false;
+let monitoringReady = false;
 
 export const initMonitoring = (): void => {
+  if (monitoringReady) return;
+  monitoringReady = true;
+
   if (SENTRY_DSN) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -40,8 +44,8 @@ export const captureException = (error: unknown, context?: Record<string, string
       const Sentry = require('@sentry/react-native') as typeof import('@sentry/react-native');
       Sentry.captureException(error, { extra: context });
       return;
-    } catch {
-      // fall through
+    } catch (err) {
+      devError('[monitoring] Sentry capture failed:', err);
     }
   }
   if (__DEV__) {

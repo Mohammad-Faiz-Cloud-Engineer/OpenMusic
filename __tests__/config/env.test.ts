@@ -27,4 +27,9 @@ describe('env config', () => {
     const { SENTRY_DSN } = require('../../src/config/env');
     expect(SENTRY_DSN).toBe('');
   });
+
+  it('rejects invalid API URLs', () => {
+    process.env.EXPO_PUBLIC_API_BASE_URL = 'not-a-url';
+    expect(() => require('../../src/config/env')).toThrow('valid http(s) URL');
+  });
 });

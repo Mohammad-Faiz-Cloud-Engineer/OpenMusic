@@ -8,7 +8,7 @@ import {
   StyleSheet,
   RefreshControl,
   Image,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -30,8 +30,6 @@ import { a11yButton } from '../utils/a11y';
 import { shuffleArray } from '../utils/playerUtils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 const placeholder = require('../../assets/placeholder.png');
 
 type HomeScreenProps = CompositeScreenProps<
@@ -41,6 +39,8 @@ type HomeScreenProps = CompositeScreenProps<
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
+  const quickPickWidth = Math.max(140, (width - 48) / 2);
   const playQueue = usePlayerStore((s) => s.playQueue);
   const { colors, gradients, isDark } = useTheme();
 
@@ -157,7 +157,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           alignItems: 'center',
           overflow: 'hidden',
           borderRadius: 16,
-          width: (SCREEN_WIDTH - 48) / 2,
+          width: quickPickWidth,
           height: 56,
           borderWidth: 1,
           borderColor: colors.glassBorder,
@@ -166,7 +166,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         quickPickImage: { width: 56, height: 56, borderRadius: 0 },
         quickPickTitle: { flex: 1, fontSize: 12, fontWeight: '600', color: colors.text, paddingHorizontal: 10 },
       }),
-    [colors]
+    [colors, quickPickWidth]
   );
 
   const featuredOverlayColors = isDark
@@ -261,7 +261,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <View style={styles.section}>
           <SectionHeader title={t('home.quickPicks')} subtitle={t('home.quickPicksSub')} />
           {trendingLoading
-            ? <View style={styles.quickPicksGrid}>{[...Array(6)].map((_, i) => <SkeletonCard key={i} width={(SCREEN_WIDTH - 48) / 2} height={56} borderRadius={16} />)}</View>
+            ? <View style={styles.quickPicksGrid}>{[...Array(6)].map((_, i) => <SkeletonCard key={i} width={quickPickWidth} height={56} borderRadius={16} />)}</View>
             : renderQuickPicks()
           }
         </View>

@@ -12,10 +12,11 @@ import {
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { searchSongs, getSuggestions } from '../api/jiosaavn';
+import { searchSongs, getSuggestions, MAX_QUERY_LENGTH } from '../api/jiosaavn';
 import { useTheme } from '../theme';
 import { TrackCard } from '../components/TrackCard';
 import { SectionHeader } from '../components/SectionHeader';
+import { QueryErrorView } from '../components/QueryErrorView';
 import { useTranslation } from 'react-i18next';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { TabParamList } from '../navigation/types';
@@ -55,7 +56,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: searchData, isLoading: searchLoading } = useQuery({
+  const { data: searchData, isLoading: searchLoading, isError: searchError, refetch } = useQuery({
     queryKey: ['search', debouncedQuery],
     queryFn: () => searchSongs(debouncedQuery),
     enabled: debouncedQuery.length >= 2,
@@ -202,6 +203,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
             placeholder={t('search.placeholder')}
             placeholderTextColor={colors.textMuted}
             value={query}
+            maxLength={MAX_QUERY_LENGTH}
             onChangeText={handleQueryChange}
             onFocus={() => setIsFocused(true)}
             onBlur={() => {
@@ -250,33 +252,37 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
       )}
 
       {showResults && (
-        <FlatList
-          data={searchData?.results ?? []}
-          keyExtractor={(track) => track.id}
-          contentContainerStyle={styles.resultsContainer}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            searchData?.results?.length ? (
-              <SectionHeader
-                title={t('search.resultsFor', { query: debouncedQuery })}
-                subtitle={t('common.songsFound', { count: searchData.results.length })}
-              />
-            ) : null
-          }
-          ListEmptyComponent={
-            !searchLoading ? (
-              <View style={styles.emptyState}>
-                <Ionicons name="musical-notes-outline" size={48} color={colors.textMuted} />
-                <Text style={styles.emptyTitle}>{t('common.noResults')}</Text>
-                <Text style={styles.emptySubtitle}>{t('common.noResultsHint')}</Text>
-              </View>
-            ) : null
-          }
-          renderItem={({ item, index }) => (
-            <TrackCard track={item} queue={searchData?.results} showIndex={index} />
-          )}
-          ListFooterComponent={<View style={{ height: 160 }} />}
-        />
+        searchError ? (
+          <QueryErrorView onRetry={() => void refetch()} />
+        ) : (
+          <FlatList
+            data={searchData?.results ?? []}
+            keyExtractor={(track) => track.id}
+            contentContainerStyle={styles.resultsContainer}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={
+              searchData?.results?.length ? (
+                <SectionHeader
+                  title={t('search.resultsFor', { query: debouncedQuery })}
+                  subtitle={t('common.songsFound', { count: searchData.results.length })}
+                />
+              ) : null
+            }
+            ListEmptyComponent={
+              !searchLoading ? (
+                <View style={styles.emptyState}>
+                  <Ionicons name="musical-notes-outline" size={48} color={colors.textMuted} />
+                  <Text style={styles.emptyTitle}>{t('common.noResults')}</Text>
+                  <Text style={styles.emptySubtitle}>{t('common.noResultsHint')}</Text>
+                </View>
+              ) : null
+            }
+            renderItem={({ item, index }) => (
+              <TrackCard track={item} queue={searchData?.results} showIndex={index} />
+            )}
+            ListFooterComponent={<View style={{ height: 160 }} />}
+          />
+        )
       )}
 
       {!showResults && !showSuggestions && query.length === 0 && (

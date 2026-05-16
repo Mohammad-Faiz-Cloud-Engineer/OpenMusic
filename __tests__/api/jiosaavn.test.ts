@@ -14,6 +14,7 @@ describe('jiosaavn API', () => {
   it('formatDuration formats seconds', () => {
     expect(formatDuration(125)).toBe('2:05');
     expect(formatDuration(0)).toBe('0:00');
+    expect(formatDuration(Number.POSITIVE_INFINITY)).toBe('0:00');
   });
 
   it('searchSongs rejects empty query', async () => {

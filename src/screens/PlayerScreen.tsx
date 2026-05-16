@@ -5,7 +5,7 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   Animated,
   ScrollView,
   Alert,
@@ -32,11 +32,9 @@ import type { RootStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { a11yButton } from '../utils/a11y';
+import { devWarn } from '../utils/devLog';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const ARTWORK_SIZE = SCREEN_WIDTH - 56;
-
-// Resolved once at module load — avoids repeated require() calls inside render
+// Resolved once at module load to avoid repeated require() calls inside render.
 const placeholder = require('../../assets/placeholder.png');
 
 type PlayerSeekStyles = {
@@ -74,7 +72,7 @@ const PlayerSeekSection = memo(function PlayerSeekSection({
     [duration, seekTo, setIsSeeking, setPosition]
   );
 
-  const progress = duration > 0 ? position / duration : 0;
+  const progress = duration > 0 ? Math.max(0, Math.min(1, position / duration)) : 0;
 
   return (
     <View style={seekStyles.seekSection}>
@@ -103,6 +101,8 @@ type PlayerScreenProps = StackScreenProps<RootStackParamList, 'Player'>;
 
 export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const artworkSize = Math.max(240, screenWidth - 56);
   const {
     currentTrack, isPlaying, isLoading,
     repeatMode, isShuffle, queue, currentIndex,
@@ -184,7 +184,8 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         message: `${currentTrack.title} - ${currentTrack.artist}`,
         title: currentTrack.title,
       });
-    } catch {
+    } catch (err) {
+      devWarn('[player] share failed', err);
       Alert.alert('', t('player.shareFailed'));
     }
   }, [currentTrack, t]);
@@ -219,7 +220,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  // Ensure sheet content clears the device navigation bar
+  // Ensure sheet content clears the device navigation bar.
   const sheetBottomPad = Math.max(insets.bottom + 16, 44);
 
   const styles = useMemo(
@@ -230,7 +231,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         scrollContent: { paddingBottom: 40 },
         bgArtwork: {
           position: 'absolute', top: 0, left: 0, right: 0,
-          height: SCREEN_HEIGHT, opacity: 0.45,
+          height: screenHeight, opacity: 0.45,
         },
         emptyContainer: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', gap: 16 },
         emptyText: { fontSize: 16, color: colors.textSecondary },
@@ -254,7 +255,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         topLabel: { fontSize: 11, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5, textTransform: 'uppercase' },
         artworkContainer: { alignItems: 'center', paddingHorizontal: 28, marginTop: 8, marginBottom: 28 },
         artworkWrapper: {
-          width: ARTWORK_SIZE, height: ARTWORK_SIZE,
+          width: artworkSize, height: artworkSize,
           borderRadius: 24, overflow: 'hidden',
           shadowColor: '#000', shadowOffset: { width: 0, height: 28 },
           shadowOpacity: 0.75, shadowRadius: 36, elevation: 28,
@@ -362,7 +363,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         sheetItemLabel: { fontSize: 15, fontWeight: '600', color: colors.text },
         sheetItemSub: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
         playlistPickSheet: { maxHeight: '78%' },
-        playlistPickList: { maxHeight: SCREEN_HEIGHT * 0.52 },
+        playlistPickList: { maxHeight: screenHeight * 0.52 },
         playlistPickEmpty: {
           paddingVertical: 20,
           paddingHorizontal: 8,
@@ -434,7 +435,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           borderRadius: 28, paddingVertical: 15, alignItems: 'center',
         },
         guideDoneBtnText: { fontSize: 15, fontWeight: '700', color: colors.bg },
-        queueList: { maxHeight: SCREEN_HEIGHT * 0.55 },
+        queueList: { maxHeight: screenHeight * 0.55 },
         queueItem: {
           flexDirection: 'row',
           alignItems: 'center',
@@ -450,7 +451,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         queueArtist: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
         queueMeta: { fontSize: 12, color: colors.textMuted },
       }),
-    [colors, isDark, sheetBottomPad]
+    [artworkSize, colors, isDark, screenHeight, sheetBottomPad]
   );
 
   const seekStyles = useMemo(
@@ -506,7 +507,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
 
-        {/* ── Top bar ──────────────────────────────────────────────────────── */}
+        {/* Top bar */}
         <View style={styles.topBar}>
           <TouchableOpacity style={styles.topIconBtn} onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
@@ -525,7 +526,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* ── Artwork ──────────────────────────────────────────────────────── */}
+        {/* Artwork */}
         <View style={styles.artworkContainer}>
           <Animated.View style={[styles.artworkWrapper, { transform: [{ scale: artworkScale }] }]}>
             <Image source={imageSource} style={styles.artwork} />
@@ -537,7 +538,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           </Animated.View>
         </View>
 
-        {/* ── Track info ───────────────────────────────────────────────────── */}
+        {/* Track info */}
         <View style={styles.trackInfo}>
           <View style={styles.trackInfoLeft}>
             <Text style={styles.trackTitle} numberOfLines={1}>{currentTrack.title}</Text>
@@ -559,7 +560,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
         <PlayerSeekSection seekStyles={seekStyles} />
 
-        {/* ── Controls ─────────────────────────────────────────────────────── */}
+        {/* Controls */}
         <View style={styles.controls}>
           <TouchableOpacity style={styles.sideControl} onPress={toggleShuffle} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Ionicons name="shuffle" size={22} color={isShuffle ? colors.accent : colors.textSecondary} />
@@ -570,7 +571,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             <Ionicons name="play-skip-back" size={28} color={colors.text} />
           </TouchableOpacity>
 
-          {/* Play button — solid white circle */}
+          {/* Play button */}
           <TouchableOpacity style={styles.playBtn} onPress={() => void togglePlay()} activeOpacity={0.85}>
             {isLoading
               ? <Ionicons name="hourglass-outline" size={28} color={colors.bg} />
@@ -589,7 +590,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* ── Extra controls ───────────────────────────────────────────────── */}
+        {/* Extra controls */}
         <View style={styles.extraControls}>
           <TouchableOpacity
             style={styles.extraBtn}
@@ -609,7 +610,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* ── Up Next — glass card ─────────────────────────────────────────── */}
+        {/* Up Next */}
         {queue.length > 1 && (
           <View style={styles.upNext}>
             <BlurView intensity={50} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
@@ -682,7 +683,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         </View>
       )}
 
-      {/* ── 3-dot menu sheet ─────────────────────────────────────────────────── */}
+      {/* Menu sheet */}
       {showMenu && (
         <View style={styles.sheetOverlay}>
           <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={styles.sheetOverlayBlur} />
@@ -735,7 +736,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         </View>
       )}
 
-      {/* ── Add to playlist ─────────────────────────────────────────────────── */}
+      {/* Add to playlist */}
       {showPlaylistPicker && (
         <View style={styles.sheetOverlay}>
           <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={styles.sheetOverlayBlur} />
@@ -799,7 +800,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         </View>
       )}
 
-      {/* ── New playlist name ───────────────────────────────────────────────── */}
+      {/* New playlist name */}
       {showNewPlaylistPrompt && (
         <KeyboardAvoidingView
           style={styles.newPlOverlay}
@@ -851,7 +852,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         </KeyboardAvoidingView>
       )}
 
-      {/* ── Controls guide sheet ─────────────────────────────────────────────── */}
+      {/* Controls guide sheet */}
       {showGuide && (
         <View style={styles.sheetOverlay}>
           <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={styles.sheetOverlayBlur} />

@@ -11,7 +11,7 @@ export type RepeatMode = 'off' | 'all' | 'one';
 
 export type PlayTrackOptions = {
   /**
-   * When true (default), opens the stack Player modal — user tapped a song to play.
+   * When true (default), opens the stack Player modal after a user taps a song.
    * When false, skips navigation (next/prev/auto-advance).
    */
   openFullPlayer?: boolean;
@@ -35,7 +35,7 @@ interface PlayerState {
   repeatMode: RepeatMode;
   isShuffle: boolean;
 
-  // Stream URL cache — avoids re-fetching signed CDN URLs that are still valid
+  // Stream URL cache avoids re-fetching signed CDN URLs that are still valid.
   streamCache: Record<string, CachedStream>;
   /** Bumped on each playTrack to ignore stale async completions */
   playGeneration: number;
@@ -112,17 +112,17 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       if (isStale()) return;
 
       // Step 1: resolve the signed CDN URL.
-      // Use the client-side cache if the URL is still valid — avoids a round
+      // Use the client-side cache if the URL is still valid. This avoids a round
       // trip to the API for every track play and prevents hammering the HF
       // rate limiter (120 req/60s).
       let streamUrl: string;
       const cached = state.streamCache[track.id];
 
       if (cached && !isCacheExpired(cached)) {
-        // Cache hit — use the existing signed URL directly
+        // Cache hit: use the existing signed URL directly.
         streamUrl = cached.url;
       } else {
-        // Cache miss or expired — fetch a fresh signed URL from the backend
+        // Cache miss or expired: fetch a fresh signed URL from the backend.
         try {
           const streamData = await getStreamUrl(track.id);
           if (!streamData.stream_url) {
@@ -155,7 +155,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         playThroughEarpieceAndroid: false,
       });
 
-      // Step 3: load and play — expo-av uses range requests against the
+      // Step 3: load and play. expo-av uses range requests against the
       // signed CDN URL directly, no proxy in the hot path.
       const { sound } = await Audio.Sound.createAsync(
         { uri: streamUrl },
@@ -302,7 +302,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   clearQueue: () => {
     const { sound, playGeneration } = get();
     if (sound) {
-      sound.unloadAsync().catch(() => undefined);
+      sound.unloadAsync().catch((err) => devWarn('[player] clearQueue unload failed:', err));
     }
     set({
       queue: [],

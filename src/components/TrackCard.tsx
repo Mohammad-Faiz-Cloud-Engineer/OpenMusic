@@ -5,7 +5,7 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useTheme } from '../theme';
 import type { Track } from '../api/jiosaavn';
@@ -14,9 +14,6 @@ import { usePlayerStore } from '../store/playerStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Ionicons } from '@expo/vector-icons';
 import { a11yButton } from '../utils/a11y';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const GRID_CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
 
 const placeholder = require('../../assets/placeholder.png');
 
@@ -59,6 +56,8 @@ const stylesStatic = StyleSheet.create({
 export const TrackCard: React.FC<TrackCardProps> = ({
   track, queue, variant = 'list', showIndex, onPress, trailing,
 }) => {
+  const { width } = useWindowDimensions();
+  const gridCardWidth = Math.max(120, (width - 48) / 2);
   const { playTrack, currentTrack, isPlaying } = usePlayerStore(
     useShallow((s) => ({
       playTrack: s.playTrack,
@@ -165,7 +164,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   if (variant === 'grid') {
     return (
       <TouchableOpacity
-        style={[styles.gridCard, { width: GRID_CARD_WIDTH }]}
+        style={[styles.gridCard, { width: gridCardWidth }]}
         onPress={handlePress}
         activeOpacity={0.75}
         {...a11yButton(`${track.title} by ${track.artist}`)}

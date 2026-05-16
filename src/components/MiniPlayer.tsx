@@ -28,7 +28,7 @@ const MiniPlayerProgress = memo(function MiniPlayerProgress({
 }) {
   const position = usePlayerStore((s) => s.position);
   const duration = usePlayerStore((s) => s.duration);
-  const progress = duration > 0 ? position / duration : 0;
+  const progress = duration > 0 ? Math.max(0, Math.min(1, position / duration)) : 0;
 
   return (
     <View style={trackStyle}>

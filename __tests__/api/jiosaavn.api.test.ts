@@ -10,6 +10,7 @@ jest.mock('axios', () => {
     __esModule: true,
     default: {
       create: jest.fn(() => ({ get: mockGet })),
+      isAxiosError: (error: unknown) => Boolean((error as { isAxiosError?: boolean }).isAxiosError),
     },
     AxiosError,
   };

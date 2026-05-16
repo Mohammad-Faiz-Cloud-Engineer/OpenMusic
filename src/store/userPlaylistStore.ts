@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import type { Track } from '../api/jiosaavn';
 import { normalizeStoredTrack, sanitizeTrackForStorage } from '../utils/storageTrack';
+import { devWarn } from '../utils/devLog';
 
 const STORAGE_KEY = '@openmusic/user-playlists';
 export const PLAYLIST_NAME_MAX = 72;
@@ -91,7 +92,8 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
       for (const p of inMemory) mergedById.set(p.id, p);
       const playlists = [...mergedById.values()].sort((a, b) => b.updatedAt - a.updatedAt);
       set({ playlists, hydrated: true });
-    } catch {
+    } catch (err) {
+      devWarn('[userPlaylistStore] hydrate failed', err);
       set((s) => ({ ...s, hydrated: true }));
     }
   },
@@ -108,8 +110,8 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
     set({ playlists: next });
     try {
       await persist(next);
-    } catch {
-      /* keep memory */
+    } catch (err) {
+      devWarn('[userPlaylistStore] create persist failed', err);
     }
     return pl.id;
   },
@@ -119,8 +121,8 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
     set({ playlists: next });
     try {
       await persist(next);
-    } catch {
-      /* */
+    } catch (err) {
+      devWarn('[userPlaylistStore] delete persist failed', err);
     }
   },
 
@@ -132,8 +134,8 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
     set({ playlists: next });
     try {
       await persist(next);
-    } catch {
-      /* */
+    } catch (err) {
+      devWarn('[userPlaylistStore] rename persist failed', err);
     }
   },
 
@@ -154,8 +156,8 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
     set({ playlists: nextPlaylists });
     try {
       await persist(nextPlaylists);
-    } catch {
-      /* */
+    } catch (err) {
+      devWarn('[userPlaylistStore] add track persist failed', err);
     }
     return 'added';
   },
@@ -173,8 +175,8 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
     set({ playlists: next });
     try {
       await persist(next);
-    } catch {
-      /* */
+    } catch (err) {
+      devWarn('[userPlaylistStore] remove track persist failed', err);
     }
   },
 

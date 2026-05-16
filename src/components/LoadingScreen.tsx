@@ -24,12 +24,14 @@ export const SkeletonCard: React.FC<{
   );
 
   useEffect(() => {
-    Animated.loop(
+    const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(anim, { toValue: 0.7, duration: 900, useNativeDriver: true }),
         Animated.timing(anim, { toValue: 0.3, duration: 900, useNativeDriver: true }),
       ])
-    ).start();
+    );
+    loop.start();
+    return () => loop.stop();
   }, [anim]);
 
   return (

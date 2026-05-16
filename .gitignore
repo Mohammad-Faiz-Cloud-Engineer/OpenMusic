@@ -6,6 +6,8 @@ node_modules/
 # Expo
 .expo/
 dist/
+build/
+.next/
 web-build/
 expo-env.d.ts
 
@@ -19,6 +21,10 @@ expo-env.d.ts
 *.p8
 *.p12
 *.key
+*credentials*.json
+*adminsdk*.json
+google-services.json
+GoogleService-Info.plist
 *.mobileprovision
 key.properties
 local.properties
@@ -36,8 +42,7 @@ yarn-error.*
 *.pem
 
 # local env files
-.env
-.env*.local
+.env*
 !.env.example
 
 # test / coverage
@@ -76,6 +81,7 @@ Thumbs.db
 android/.gradle/
 android/app/build/
 ios/build/
+ios/Pods/
 *.xcarchive
 
 # Packaging artifacts (if extracted outside ignored native dirs)

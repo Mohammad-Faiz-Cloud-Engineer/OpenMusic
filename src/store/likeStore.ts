@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import type { Track } from '../api/jiosaavn';
 import { normalizeStoredTrack, sanitizeTrackForStorage } from '../utils/storageTrack';
+import { devWarn } from '../utils/devLog';
 
 const STORAGE_KEY = '@openmusic/liked';
 const MAX_LIKED = 500;
@@ -38,7 +39,8 @@ export const useLikeStore = create<LikeState>((set, get) => ({
       const memIds = new Set(mem.map((t) => t.id));
       const merged = [...mem, ...fromDisk.filter((t) => !memIds.has(t.id))].slice(0, MAX_LIKED);
       set({ tracksByIdOrder: merged, likedIds: idsFromTracks(merged), hydrated: true });
-    } catch {
+    } catch (err) {
+      devWarn('[likeStore] hydrate failed', err);
       set((s) => ({ ...s, hydrated: true }));
     }
   },
@@ -58,8 +60,8 @@ export const useLikeStore = create<LikeState>((set, get) => ({
     set({ tracksByIdOrder: nextTracks, likedIds: idsFromTracks(nextTracks) });
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nextTracks));
-    } catch {
-      // keep in-memory state
+    } catch (err) {
+      devWarn('[likeStore] persist failed', err);
     }
   },
 

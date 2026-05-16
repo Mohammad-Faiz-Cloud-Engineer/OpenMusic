@@ -1,9 +1,9 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { API_BASE_URL } from '../config/env';
 
 export const BASE_URL = API_BASE_URL;
 
-const MAX_QUERY_LENGTH = 200;
+export const MAX_QUERY_LENGTH = 200;
 const ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
 
 const api = axios.create({
@@ -29,7 +29,7 @@ const assertId = (id: string, label: string): string => {
 };
 
 const handleApiError = (err: unknown): never => {
-  if (err instanceof AxiosError) {
+  if (axios.isAxiosError(err)) {
     if (err.code === 'ECONNABORTED') throw new Error('Request timed out');
     if (!err.response) throw new Error('Network unavailable');
     throw new Error(`API error (${err.response.status})`);
@@ -37,7 +37,7 @@ const handleApiError = (err: unknown): never => {
   throw err;
 };
 
-// ── Types ─────────────────────────────────────────────────────────────────
+// Types
 
 export interface Track {
   id: string;
@@ -110,7 +110,7 @@ export interface SuggestionsResult {
   suggestions: string[];
 }
 
-// ── API calls ─────────────────────────────────────────────────────────────
+// API calls
 
 export const searchSongs = async (q: string): Promise<SearchResult> => {
   const query = assertQuery(q);
@@ -183,7 +183,7 @@ export const getProxyPlayUrl = (id: string): string => {
 };
 
 export const formatDuration = (seconds: number): string => {
-  if (!seconds || seconds <= 0) return '0:00';
+  if (!Number.isFinite(seconds) || seconds <= 0) return '0:00';
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, '0')}`;

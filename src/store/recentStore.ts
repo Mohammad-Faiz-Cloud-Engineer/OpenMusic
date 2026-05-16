@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { Track } from '../api/jiosaavn';
 import { normalizeStoredTrack, sanitizeTrackForStorage } from '../utils/storageTrack';
+import { devWarn } from '../utils/devLog';
 
 const STORAGE_KEY = '@openmusic/recent';
 const MAX_RECENT = 50;
@@ -32,7 +33,8 @@ export const useRecentStore = create<RecentState>((set, get) => ({
       const memIds = new Set(mem.map((t) => t.id));
       const merged = [...mem, ...fromDisk.filter((t) => !memIds.has(t.id))].slice(0, MAX_RECENT);
       set({ tracks: merged, hydrated: true });
-    } catch {
+    } catch (err) {
+      devWarn('[recentStore] hydrate failed', err);
       set((s) => ({ ...s, hydrated: true }));
     }
   },
@@ -44,8 +46,8 @@ export const useRecentStore = create<RecentState>((set, get) => ({
     set({ tracks });
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tracks));
-    } catch {
-      // Non-fatal: in-memory recent still works this session
+    } catch (err) {
+      devWarn('[recentStore] persist failed', err);
     }
   },
 
@@ -53,8 +55,8 @@ export const useRecentStore = create<RecentState>((set, get) => ({
     set({ tracks: [] });
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore
+    } catch (err) {
+      devWarn('[recentStore] clear failed', err);
     }
   },
 }));
