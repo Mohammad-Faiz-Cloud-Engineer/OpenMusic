@@ -10,7 +10,7 @@
 
 A mobile music app built with React Native and Expo. Browse charts, search for songs, build a queue, and listen with a full-screen player and a mini player that stays above the tab bar. The UI is dark with purple accents.
 
-Audio is powered by a backend that wraps JioSaavn-style metadata and stream URLs. The app does not ship its own music library; it talks to an API you configure.
+Audio is powered by [OpenMusic-API](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic-API), a custom backend that scrapes JioSaavn for song metadata and stream URLs. The app does not ship its own music library; it talks to that API.
 
 ## Features
 
@@ -193,9 +193,13 @@ eas build --platform all
 
 You'll need your own Apple/Google credentials, bundle IDs (`com.openmusic.app` in `app.json`), and signing setup. Background audio and foreground service permissions are already declared.
 
-## API note
+## API
 
-Streaming depends on the configured backend (default: Hugging Face Space in `.env.example`). Rate limits, URL expiry, and regional availability are controlled by that service. The player caches signed stream URLs briefly and falls back to a proxy play URL when direct fetches fail.
+This app is powered by [OpenMusic-API](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic-API), a custom backend that scrapes JioSaavn for song metadata, search results, charts, playlists, and stream URLs.
+
+The default `EXPO_PUBLIC_API_BASE_URL` in `.env.example` points at a hosted instance of that API. Rate limits, URL expiry, and regional availability are controlled by the backend. The player caches signed stream URLs briefly and falls back to a proxy play URL when direct fetches fail.
+
+If you want to self-host, clone and run OpenMusic-API and update `EXPO_PUBLIC_API_BASE_URL` in your `.env`.
 
 ## Contributing
 
