@@ -195,7 +195,7 @@ You'll need your own Apple/Google credentials, bundle IDs (`com.openmusic.app` i
 
 ## API
 
-This app is powered by [OpenMusic-API](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic-API), a custom backend that scrapes JioSaavn for song metadata, search results, charts, playlists, and stream URLs.
+This app uses our own [OpenMusic-API](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic-API), a custom backend that scrapes JioSaavn for song metadata, search results, charts, playlists, and stream URLs.
 
 The default `EXPO_PUBLIC_API_BASE_URL` in `.env.example` points at a hosted instance of that API. Rate limits, URL expiry, and regional availability are controlled by the backend. The player caches signed stream URLs briefly and falls back to a proxy play URL when direct fetches fail.
 
