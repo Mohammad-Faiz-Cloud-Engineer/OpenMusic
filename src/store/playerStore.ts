@@ -69,10 +69,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const generation = state.playGeneration + 1;
     const isStale = () => get().playGeneration !== generation;
 
-    const newQueue = queue ?? state.queue;
-    const idx = newQueue.findIndex((t) => t.id === track.id);
-    const finalQueue = newQueue;
-    const finalIndex = idx >= 0 ? idx : 0;
+    const explicitQueue = queue;
+    const baseQueue = explicitQueue ?? state.queue;
+    const foundIndex = baseQueue.findIndex((t) => t.id === track.id);
+    const finalQueue =
+      foundIndex >= 0
+        ? baseQueue
+        : explicitQueue !== undefined
+          ? [track, ...baseQueue]
+          : [track];
+    const finalIndex = foundIndex >= 0 ? foundIndex : 0;
 
     set({
       isLoading: true,
