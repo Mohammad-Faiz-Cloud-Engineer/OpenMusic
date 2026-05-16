@@ -1,4 +1,4 @@
-import '@testing-library/jest-native/extend-expect';
+import '@testing-library/react-native/matchers';
 
 jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({
   __esModule: true,
