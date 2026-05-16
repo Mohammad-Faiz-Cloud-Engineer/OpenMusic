@@ -202,12 +202,17 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   togglePlay: async () => {
     const { sound, isPlaying } = get();
     if (!sound) return;
-    if (isPlaying) {
-      await sound.pauseAsync();
-      set({ isPlaying: false });
-    } else {
-      await sound.playAsync();
-      set({ isPlaying: true });
+    const wasPlaying = isPlaying;
+    set({ isPlaying: !wasPlaying });
+    try {
+      if (wasPlaying) {
+        await sound.pauseAsync();
+      } else {
+        await sound.playAsync();
+      }
+    } catch (err) {
+      devError('[player] togglePlay:', err);
+      set({ isPlaying: wasPlaying });
     }
   },
 

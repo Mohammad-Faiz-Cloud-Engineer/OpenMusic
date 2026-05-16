@@ -11,6 +11,7 @@ import { useTheme } from '../theme';
 import type { Track } from '../api/jiosaavn';
 import { formatDuration } from '../api/jiosaavn';
 import { usePlayerStore } from '../store/playerStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Ionicons } from '@expo/vector-icons';
 import { a11yButton } from '../utils/a11y';
 
@@ -58,7 +59,13 @@ const stylesStatic = StyleSheet.create({
 export const TrackCard: React.FC<TrackCardProps> = ({
   track, queue, variant = 'list', showIndex, onPress, trailing,
 }) => {
-  const { playTrack, currentTrack, isPlaying } = usePlayerStore();
+  const { playTrack, currentTrack, isPlaying } = usePlayerStore(
+    useShallow((s) => ({
+      playTrack: s.playTrack,
+      currentTrack: s.currentTrack,
+      isPlaying: s.isPlaying,
+    }))
+  );
   const { colors } = useTheme();
   const isActive = currentTrack?.id === track.id;
 

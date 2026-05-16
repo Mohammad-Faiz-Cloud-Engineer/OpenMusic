@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, memo } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
+  type ViewStyle,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +19,24 @@ export const MINI_PLAYER_HEIGHT = 68;
 
 const placeholder = require('../../assets/placeholder.png');
 
+const MiniPlayerProgress = memo(function MiniPlayerProgress({
+  trackStyle,
+  fillStyle,
+}: {
+  trackStyle: ViewStyle;
+  fillStyle: ViewStyle;
+}) {
+  const position = usePlayerStore((s) => s.position);
+  const duration = usePlayerStore((s) => s.duration);
+  const progress = duration > 0 ? position / duration : 0;
+
+  return (
+    <View style={trackStyle}>
+      <View style={[fillStyle, { width: `${progress * 100}%` }]} />
+    </View>
+  );
+});
+
 interface MiniPlayerProps {
   onPress: () => void;
   bottomOffset?: number;
@@ -26,8 +45,11 @@ interface MiniPlayerProps {
 export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 0 }) => {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
-  const { currentTrack, isPlaying, isLoading, togglePlay, next, position, duration } =
-    usePlayerStore();
+  const currentTrack = usePlayerStore((s) => s.currentTrack);
+  const isPlaying = usePlayerStore((s) => s.isPlaying);
+  const isLoading = usePlayerStore((s) => s.isLoading);
+  const togglePlay = usePlayerStore((s) => s.togglePlay);
+  const next = usePlayerStore((s) => s.next);
 
   const slideAnim = useRef(new Animated.Value(MINI_PLAYER_HEIGHT + 24)).current;
 
@@ -114,7 +136,6 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
 
   if (!currentTrack) return null;
 
-  const progress = duration > 0 ? position / duration : 0;
   const imageSource = currentTrack.thumbnail ? { uri: currentTrack.thumbnail } : placeholder;
 
   return (
@@ -126,9 +147,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
     >
       <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
       <View style={styles.glassTint} />
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-      </View>
+      <MiniPlayerProgress trackStyle={styles.progressTrack} fillStyle={styles.progressFill} />
 
       <TouchableOpacity
         style={styles.inner}
@@ -143,7 +162,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
         </View>
         <TouchableOpacity
           style={styles.controlBtn}
-          onPress={(e) => { e.stopPropagation(); togglePlay(); }}
+          onPress={(e) => { e.stopPropagation(); void togglePlay(); }}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           {...a11yButton(isPlaying ? t('common.pause') : t('common.play'))}
         >
@@ -154,7 +173,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.controlBtn}
-          onPress={(e) => { e.stopPropagation(); next(); }}
+          onPress={(e) => { e.stopPropagation(); void next(); }}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           {...a11yButton(t('player.controls.next'))}
         >

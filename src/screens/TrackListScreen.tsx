@@ -17,7 +17,7 @@ type TrackListScreenProps = StackScreenProps<RootStackParamList, 'TrackList'>;
 export const TrackListScreen: React.FC<TrackListScreenProps> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { title, tracks } = route.params;
-  const { playQueue } = usePlayerStore();
+  const playQueue = usePlayerStore((s) => s.playQueue);
   const { colors, gradients, isDark } = useTheme();
 
   const styles = useMemo(

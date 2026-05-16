@@ -22,7 +22,7 @@ const placeholder = require('../../assets/placeholder.png');
 export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { id } = route.params;
-  const { playQueue } = usePlayerStore();
+  const playQueue = usePlayerStore((s) => s.playQueue);
   const { colors, isDark } = useTheme();
 
   const { data, isLoading, isError, refetch } = useQuery({

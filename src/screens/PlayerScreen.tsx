@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useCallback, useState, useEffect, useMemo, memo } from 'react';
 import {
   View,
   Text,
@@ -16,11 +16,14 @@ import {
   Platform,
   KeyboardAvoidingView,
   type GestureResponderEvent,
+  type TextStyle,
+  type ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { usePlayerStore, RepeatMode } from '../store/playerStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useLikeStore } from '../store/likeStore';
 import { useUserPlaylistStore, PLAYLIST_NAME_MAX } from '../store/userPlaylistStore';
 import { useTheme } from '../theme';
@@ -36,19 +39,92 @@ const ARTWORK_SIZE = SCREEN_WIDTH - 56;
 // Resolved once at module load — avoids repeated require() calls inside render
 const placeholder = require('../../assets/placeholder.png');
 
+type PlayerSeekStyles = {
+  seekSection: ViewStyle;
+  seekBarHitArea: ViewStyle;
+  seekBarTrack: ViewStyle;
+  seekBarFill: ViewStyle;
+  seekBarThumb: ViewStyle;
+  seekTimes: ViewStyle;
+  seekTime: TextStyle;
+};
+
+/** Subscribes only to position/duration so the rest of PlayerScreen does not re-render every tick. */
+const PlayerSeekSection = memo(function PlayerSeekSection({
+  seekStyles,
+}: {
+  seekStyles: PlayerSeekStyles;
+}) {
+  const position = usePlayerStore((s) => s.position);
+  const duration = usePlayerStore((s) => s.duration);
+  const seekTo = usePlayerStore((s) => s.seekTo);
+  const setIsSeeking = usePlayerStore((s) => s.setIsSeeking);
+  const setPosition = usePlayerStore((s) => s.setPosition);
+  const seekBarWidth = useRef(0);
+
+  const handleSeekBarPress = useCallback(
+    (evt: GestureResponderEvent) => {
+      if (seekBarWidth.current <= 0 || duration <= 0) return;
+      const ratio = Math.max(0, Math.min(1, evt.nativeEvent.locationX / seekBarWidth.current));
+      const newPos = ratio * duration;
+      setIsSeeking(true);
+      setPosition(newPos);
+      void seekTo(newPos);
+    },
+    [duration, seekTo, setIsSeeking, setPosition]
+  );
+
+  const progress = duration > 0 ? position / duration : 0;
+
+  return (
+    <View style={seekStyles.seekSection}>
+      <TouchableOpacity
+        style={seekStyles.seekBarHitArea}
+        onPress={handleSeekBarPress}
+        activeOpacity={1}
+        onLayout={(e) => {
+          seekBarWidth.current = e.nativeEvent.layout.width;
+        }}
+      >
+        <View style={seekStyles.seekBarTrack}>
+          <View style={[seekStyles.seekBarFill, { width: `${progress * 100}%` }]} />
+          <View style={[seekStyles.seekBarThumb, { left: `${progress * 100}%` }]} />
+        </View>
+      </TouchableOpacity>
+      <View style={seekStyles.seekTimes}>
+        <Text style={seekStyles.seekTime}>{formatDuration(position / 1000)}</Text>
+        <Text style={seekStyles.seekTime}>{formatDuration(duration / 1000)}</Text>
+      </View>
+    </View>
+  );
+});
+
 type PlayerScreenProps = StackScreenProps<RootStackParamList, 'Player'>;
 
 export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const {
-    currentTrack, isPlaying, isLoading, position, duration,
+    currentTrack, isPlaying, isLoading,
     repeatMode, isShuffle, queue, currentIndex,
-    togglePlay, next, prev, seekTo, setRepeat, toggleShuffle,
-    setIsSeeking, setPosition,
-  } = usePlayerStore();
+    togglePlay, next, prev, setRepeat, toggleShuffle,
+  } = usePlayerStore(
+    useShallow((s) => ({
+      currentTrack: s.currentTrack,
+      isPlaying: s.isPlaying,
+      isLoading: s.isLoading,
+      repeatMode: s.repeatMode,
+      isShuffle: s.isShuffle,
+      queue: s.queue,
+      currentIndex: s.currentIndex,
+      togglePlay: s.togglePlay,
+      next: s.next,
+      prev: s.prev,
+      setRepeat: s.setRepeat,
+      toggleShuffle: s.toggleShuffle,
+    }))
+  );
 
   const artworkScale = useRef(new Animated.Value(isPlaying ? 1 : 0.88)).current;
-  const seekBarWidth = useRef(0);
   const [showGuide, setShowGuide] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showPlaylistPicker, setShowPlaylistPicker] = useState(false);
@@ -116,15 +192,6 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
       if (guideTimerRef.current) clearTimeout(guideTimerRef.current);
     };
   }, []);
-
-  const handleSeekBarPress = useCallback((evt: GestureResponderEvent) => {
-    if (seekBarWidth.current <= 0 || duration <= 0) return;
-    const ratio = Math.max(0, Math.min(1, evt.nativeEvent.locationX / seekBarWidth.current));
-    const newPos = ratio * duration;
-    setIsSeeking(true);
-    setPosition(newPos);
-    seekTo(newPos);
-  }, [duration, seekTo, setIsSeeking, setPosition]);
 
   const { colors, isDark } = useTheme();
 
@@ -330,6 +397,19 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     [colors, isDark]
   );
 
+  const seekStyles = useMemo(
+    (): PlayerSeekStyles => ({
+      seekSection: styles.seekSection,
+      seekBarHitArea: styles.seekBarHitArea,
+      seekBarTrack: styles.seekBarTrack,
+      seekBarFill: styles.seekBarFill,
+      seekBarThumb: styles.seekBarThumb,
+      seekTimes: styles.seekTimes,
+      seekTime: styles.seekTime,
+    }),
+    [styles]
+  );
+
   const cycleRepeat = () => {
     const modes: RepeatMode[] = ['off', 'all', 'one'];
     setRepeat(modes[(modes.indexOf(repeatMode) + 1) % modes.length]);
@@ -357,7 +437,6 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     );
   }
 
-  const progress = duration > 0 ? position / duration : 0;
   const imageSource = currentTrack.thumbnail ? { uri: currentTrack.thumbnail } : placeholder;
 
   return (
@@ -422,24 +501,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* ── Seek bar ─────────────────────────────────────────────────────── */}
-        <View style={styles.seekSection}>
-          <TouchableOpacity
-            style={styles.seekBarHitArea}
-            onPress={handleSeekBarPress}
-            activeOpacity={1}
-            onLayout={(e) => { seekBarWidth.current = e.nativeEvent.layout.width; }}
-          >
-            <View style={styles.seekBarTrack}>
-              <View style={[styles.seekBarFill, { width: `${progress * 100}%` }]} />
-              <View style={[styles.seekBarThumb, { left: `${progress * 100}%` }]} />
-            </View>
-          </TouchableOpacity>
-          <View style={styles.seekTimes}>
-            <Text style={styles.seekTime}>{formatDuration(position / 1000)}</Text>
-            <Text style={styles.seekTime}>{formatDuration(duration / 1000)}</Text>
-          </View>
-        </View>
+        <PlayerSeekSection seekStyles={seekStyles} />
 
         {/* ── Controls ─────────────────────────────────────────────────────── */}
         <View style={styles.controls}>
@@ -453,7 +515,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
 
           {/* Play button — solid white circle */}
-          <TouchableOpacity style={styles.playBtn} onPress={togglePlay} activeOpacity={0.85}>
+          <TouchableOpacity style={styles.playBtn} onPress={() => void togglePlay()} activeOpacity={0.85}>
             {isLoading
               ? <Ionicons name="hourglass-outline" size={28} color={colors.bg} />
               : <Ionicons name={isPlaying ? 'pause' : 'play'} size={28} color={colors.bg} style={!isPlaying ? { marginLeft: 3 } : undefined} />

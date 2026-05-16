@@ -35,7 +35,7 @@ type TabNavigatorProps = StackScreenProps<RootStackParamList, 'Tabs'>;
 
 function TabNavigator({ navigation }: TabNavigatorProps) {
   const { t } = useTranslation();
-  const { currentTrack } = usePlayerStore();
+  const currentTrack = usePlayerStore((s) => s.currentTrack);
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
 

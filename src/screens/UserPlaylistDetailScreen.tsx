@@ -27,7 +27,7 @@ export const UserPlaylistDetailScreen: React.FC<Props> = ({ navigation, route })
     () => playlists.find((p) => p.id === playlistId),
     [playlists, playlistId]
   );
-  const { playQueue } = usePlayerStore();
+  const playQueue = usePlayerStore((s) => s.playQueue);
   const tracks = playlist?.tracks ?? [];
 
   const styles = useMemo(

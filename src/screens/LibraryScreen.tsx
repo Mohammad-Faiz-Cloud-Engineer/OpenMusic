@@ -17,6 +17,7 @@ import type { StackScreenProps } from '@react-navigation/stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { usePlayerStore } from '../store/playerStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useRecentStore } from '../store/recentStore';
 import { formatDuration } from '../api/jiosaavn';
 import type { Track } from '../api/jiosaavn';
@@ -38,7 +39,16 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
   const { colors, gradients, isDark } = useTheme();
   const [activeTab, setActiveTab] = useState<LibraryTab>('queue');
   const { queue, currentIndex, currentTrack, playTrack, removeFromQueue, clearQueue } =
-    usePlayerStore();
+    usePlayerStore(
+      useShallow((s) => ({
+        queue: s.queue,
+        currentIndex: s.currentIndex,
+        currentTrack: s.currentTrack,
+        playTrack: s.playTrack,
+        removeFromQueue: s.removeFromQueue,
+        clearQueue: s.clearQueue,
+      }))
+    );
   const recentTracks = useRecentStore((s) => s.tracks);
 
   const styles = useMemo(

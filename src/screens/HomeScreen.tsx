@@ -41,7 +41,7 @@ type HomeScreenProps = CompositeScreenProps<
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
-  const { playQueue } = usePlayerStore();
+  const playQueue = usePlayerStore((s) => s.playQueue);
   const { colors, gradients, isDark } = useTheme();
 
   const { data: chartsData, isLoading: chartsLoading, isFetching: chartsFetching, refetch: refetchCharts } = useQuery({
