@@ -197,7 +197,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
       </TouchableOpacity>
     );
-  }, [currentIndex, playTrack, queue, removeFromQueue, t, styles, colors.accent, colors.textMuted]);
+  }, [currentIndex, playTrack, queue, removeFromQueue, t, styles]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

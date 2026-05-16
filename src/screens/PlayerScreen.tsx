@@ -175,7 +175,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     t,
   ]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.spring(artworkScale, {
       toValue: isPlaying ? 1 : 0.88,
       useNativeDriver: true,
@@ -397,31 +397,36 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     [colors, isDark]
   );
 
-  const seekStyles = useMemo(
-    (): PlayerSeekStyles => ({
-      seekSection: styles.seekSection,
-      seekBarHitArea: styles.seekBarHitArea,
-      seekBarTrack: styles.seekBarTrack,
-      seekBarFill: styles.seekBarFill,
-      seekBarThumb: styles.seekBarThumb,
-      seekTimes: styles.seekTimes,
-      seekTime: styles.seekTime,
-    }),
-    [styles]
-  );
-
-  const cycleRepeat = () => {
-    const modes: RepeatMode[] = ['off', 'all', 'one'];
-    setRepeat(modes[(modes.indexOf(repeatMode) + 1) % modes.length]);
+  const seekStyles: PlayerSeekStyles = {
+    seekSection: styles.seekSection,
+    seekBarHitArea: styles.seekBarHitArea,
+    seekBarTrack: styles.seekBarTrack,
+    seekBarFill: styles.seekBarFill,
+    seekBarThumb: styles.seekBarThumb,
+    seekTimes: styles.seekTimes,
+    seekTime: styles.seekTime,
   };
 
-  const mainOverlayGradient = isDark
-    ? (['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.7)', colors.bg] as const)
-    : (['rgba(255,255,255,0.35)', 'rgba(245,245,247,0.92)', colors.bg] as const);
+  const cycleRepeat = useCallback(() => {
+    const modes: RepeatMode[] = ['off', 'all', 'one'];
+    setRepeat(modes[(modes.indexOf(repeatMode) + 1) % modes.length]);
+  }, [repeatMode, setRepeat]);
 
-  const artworkSheenGradient = isDark
-    ? (['rgba(255,255,255,0.06)', 'transparent', 'rgba(0,0,0,0.2)'] as const)
-    : (['rgba(255,255,255,0.45)', 'transparent', 'rgba(0,0,0,0.08)'] as const);
+  const mainOverlayGradient = useMemo(
+    () =>
+      isDark
+        ? (['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.7)', colors.bg] as const)
+        : (['rgba(255,255,255,0.35)', 'rgba(245,245,247,0.92)', colors.bg] as const),
+    [isDark, colors.bg]
+  );
+
+  const artworkSheenGradient = useMemo(
+    () =>
+      isDark
+        ? (['rgba(255,255,255,0.06)', 'transparent', 'rgba(0,0,0,0.2)'] as const)
+        : (['rgba(255,255,255,0.45)', 'transparent', 'rgba(0,0,0,0.08)'] as const),
+    [isDark]
+  );
 
   if (!currentTrack) {
     return (

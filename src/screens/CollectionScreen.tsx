@@ -91,9 +91,9 @@ export const CollectionScreen: React.FC<CollectionScreenProps> = ({ navigation }
         emptyPlaylistsGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         emptyPlaylistsText: { fontSize: 14, fontWeight: '600', color: colors.text },
         playlistCarousel: {
-          paddingHorizontal: 16,
-          paddingBottom: 4,
+          paddingLeft: 16,
           paddingRight: 8,
+          paddingBottom: 4,
           alignItems: 'stretch',
         },
         playlistChip: {
