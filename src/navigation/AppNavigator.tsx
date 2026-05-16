@@ -24,6 +24,7 @@ import { Colors } from '../theme/colors';
 import { usePlayerStore } from '../store/playerStore';
 import { linking } from './linking';
 import type { RootStackParamList, TabParamList } from './types';
+import { rootNavigationRef } from './rootNavigation';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createStackNavigator<RootStackParamList>();
@@ -102,7 +103,7 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
 
 export function AppNavigator() {
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer ref={rootNavigationRef} linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: Colors.bg } }}>
         <Stack.Screen name="Tabs" component={TabNavigator} />
         <Stack.Screen

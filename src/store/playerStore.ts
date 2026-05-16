@@ -5,7 +5,17 @@ import { useRecentStore } from './recentStore';
 import { devError, devWarn } from '../utils/devLog';
 import { isCacheExpired, pickShuffleIndex, type CachedStream } from '../utils/playerUtils';
 
+import { requestOpenFullPlayer } from '../navigation/rootNavigation';
+
 export type RepeatMode = 'off' | 'all' | 'one';
+
+export type PlayTrackOptions = {
+  /**
+   * When true (default), opens the stack Player modal — user tapped a song to play.
+   * When false, skips navigation (next/prev/auto-advance).
+   */
+  openFullPlayer?: boolean;
+};
 
 interface PlayerState {
   // Queue
@@ -31,8 +41,8 @@ interface PlayerState {
   playGeneration: number;
 
   // Actions
-  playTrack: (track: Track, queue?: Track[]) => Promise<void>;
-  playQueue: (tracks: Track[], startIndex?: number) => Promise<void>;
+  playTrack: (track: Track, queue?: Track[], options?: PlayTrackOptions) => Promise<void>;
+  playQueue: (tracks: Track[], startIndex?: number, options?: PlayTrackOptions) => Promise<void>;
   togglePlay: () => Promise<void>;
   next: () => Promise<void>;
   prev: () => Promise<void>;
@@ -64,7 +74,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setIsSeeking: (v) => set({ isSeeking: v }),
   setPosition: (v) => set({ position: v }),
 
-  playTrack: async (track, queue) => {
+  playTrack: async (track, queue, options) => {
+    const openFullPlayer = options?.openFullPlayer !== false;
     const state = get();
     const generation = state.playGeneration + 1;
     const isStale = () => get().playGeneration !== generation;
@@ -87,6 +98,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       currentIndex: finalIndex,
       playGeneration: generation,
     });
+
+    if (openFullPlayer) {
+      requestOpenFullPlayer();
+    }
 
     const previousSound = state.sound;
 
@@ -178,10 +193,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
-  playQueue: async (tracks, startIndex = 0) => {
+  playQueue: async (tracks, startIndex = 0, options) => {
     if (!tracks.length) return;
     const track = tracks[startIndex];
-    await get().playTrack(track, tracks);
+    await get().playTrack(track, tracks, options);
   },
 
   togglePlay: async () => {
@@ -202,7 +217,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     if (repeatMode === 'one') {
       const track = queue[currentIndex];
-      if (track) await get().playTrack(track, queue);
+      if (track) await get().playTrack(track, queue, { openFullPlayer: false });
       return;
     }
 
@@ -220,7 +235,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const nextTrack = queue[nextIndex];
     if (nextTrack) {
       set({ currentIndex: nextIndex });
-      await get().playTrack(nextTrack, queue);
+      await get().playTrack(nextTrack, queue, { openFullPlayer: false });
     }
   },
 
@@ -242,7 +257,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const prevTrack = queue[prevIndex];
     if (prevTrack) {
       set({ currentIndex: prevIndex });
-      await get().playTrack(prevTrack, queue);
+      await get().playTrack(prevTrack, queue, { openFullPlayer: false });
     }
   },
 
