@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 
@@ -9,6 +10,7 @@ export const OfflineBanner: React.FC = () => {
   const { t } = useTranslation();
   const { isOnline } = useNetworkStatus();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const styles = useMemo(
     () =>
@@ -19,7 +21,8 @@ export const OfflineBanner: React.FC = () => {
           gap: 10,
           backgroundColor: colors.surface2,
           paddingHorizontal: 16,
-          paddingVertical: 10,
+          paddingTop: insets.top + 10,
+          paddingBottom: 10,
         },
         textWrap: { flex: 1 },
         title: {
@@ -33,7 +36,7 @@ export const OfflineBanner: React.FC = () => {
           marginTop: 1,
         },
       }),
-    [colors]
+    [colors, insets.top]
   );
 
   if (isOnline) return null;
