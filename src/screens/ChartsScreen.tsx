@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +23,8 @@ export const ChartsScreen: React.FC<Props> = ({ navigation }) => {
     queryFn: getCharts,
     staleTime: 10 * 60 * 1000,
   });
+
+  const handleRefresh = useCallback(() => { void refetch(); }, [refetch]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -51,7 +53,7 @@ export const ChartsScreen: React.FC<Props> = ({ navigation }) => {
           columnWrapperStyle={styles.row}
           contentContainerStyle={styles.list}
           refreshing={isFetching && !isLoading}
-          onRefresh={refetch}
+          onRefresh={handleRefresh}
           renderItem={({ item }) => (
             <ChartCard
               chart={item}

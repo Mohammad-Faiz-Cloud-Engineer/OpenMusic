@@ -16,7 +16,7 @@ export const SkeletonCard: React.FC<{
         Animated.timing(anim, { toValue: 0.3, duration: 900, useNativeDriver: true }),
       ])
     ).start();
-  }, []);
+  }, [anim]);
 
   return (
     <Animated.View

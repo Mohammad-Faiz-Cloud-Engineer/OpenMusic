@@ -10,6 +10,7 @@ import { getPlaylist, formatDuration } from '../api/jiosaavn';
 import { Colors } from '../theme/colors';
 import { TrackCard } from '../components/TrackCard';
 import { usePlayerStore } from '../store/playerStore';
+import { shuffleArray } from '../utils/playerUtils';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
@@ -59,7 +60,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
     <View style={styles.container}>
       <FlatList
         data={data.tracks}
-        keyExtractor={(t, i) => `${t.id}-${i}`}
+        keyExtractor={(track, i) => `${track.id}-${i}`}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 160 }}
         ListHeaderComponent={
@@ -97,14 +98,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
               <View style={styles.heroActions}>
                 <TouchableOpacity
                   style={styles.shuffleBtn}
-                  onPress={() => {
-                    const shuffled = [...data.tracks];
-                    for (let i = shuffled.length - 1; i > 0; i--) {
-                      const j = Math.floor(Math.random() * (i + 1));
-                      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-                    }
-                    playQueue(shuffled, 0);
-                  }}
+                  onPress={() => playQueue(shuffleArray(data.tracks), 0)}
                 >
                   <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
                   <View style={styles.shuffleBtnGlass} />

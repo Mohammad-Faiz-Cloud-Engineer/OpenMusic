@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ScrollView,
   Modal,
   Pressable,
+  type GestureResponderEvent,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -53,7 +54,16 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     }).start();
   }, [isPlaying, artworkScale]);
 
-  const handleSeekBarPress = useCallback((evt: any) => {
+  // Clean up any pending setTimeout on unmount to avoid state updates on
+  // an unmounted component (the guide is opened via a delayed call from menu).
+  const guideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (guideTimerRef.current) clearTimeout(guideTimerRef.current);
+    };
+  }, []);
+
+  const handleSeekBarPress = useCallback((evt: GestureResponderEvent) => {
     if (seekBarWidth.current <= 0 || duration <= 0) return;
     const ratio = Math.max(0, Math.min(1, evt.nativeEvent.locationX / seekBarWidth.current));
     const newPos = ratio * duration;
@@ -132,7 +142,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             <Text style={styles.trackTitle} numberOfLines={1}>{currentTrack.title}</Text>
             <Text style={styles.trackArtist} numberOfLines={1}>{currentTrack.artist}</Text>
           </View>
-          <TouchableOpacity style={styles.likeBtn}>
+          <TouchableOpacity style={styles.likeBtn} {...a11yButton(t('player.controls.like'))}>
             <Ionicons name="heart-outline" size={24} color={Colors.textSecondary} />
           </TouchableOpacity>
         </View>
@@ -188,11 +198,11 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
         {/* ── Extra controls ───────────────────────────────────────────────── */}
         <View style={styles.extraControls}>
-          <TouchableOpacity style={styles.extraBtn}>
+          <TouchableOpacity style={styles.extraBtn} {...a11yButton(t('player.controls.queue'))}>
             <Ionicons name="list-outline" size={20} color={Colors.textSecondary} />
             <Text style={styles.extraBtnText}>{t('player.queue')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.extraBtn}>
+          <TouchableOpacity style={styles.extraBtn} {...a11yButton(t('player.controls.share'))}>
             <Ionicons name="share-outline" size={20} color={Colors.textSecondary} />
             <Text style={styles.extraBtnText}>{t('player.share')}</Text>
           </TouchableOpacity>
@@ -233,7 +243,10 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             <Text style={styles.sheetTitle}>{t('player.menu')}</Text>
             <TouchableOpacity
               style={styles.sheetItem}
-              onPress={() => { setShowMenu(false); setTimeout(() => setShowGuide(true), 250); }}
+              onPress={() => {
+                setShowMenu(false);
+                guideTimerRef.current = setTimeout(() => setShowGuide(true), 250);
+              }}
               activeOpacity={0.7}
             >
               <View style={styles.sheetIconWrap}>

@@ -53,7 +53,7 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
           },
           tabBarBackground: () => (
             <View style={StyleSheet.absoluteFill}>
-              <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+              <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
               <View style={styles.tabBarGlass} />
               <View style={styles.tabBarTopBorder} />
             </View>
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   tabRoot: { flex: 1 },
   tabBarGlass: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15,15,25,0.72)',
+    backgroundColor: 'rgba(15,15,25,0.82)',
   },
   tabBarTopBorder: {
     position: 'absolute',

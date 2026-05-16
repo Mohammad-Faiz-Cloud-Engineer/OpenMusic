@@ -3,9 +3,11 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '../theme/colors';
 import { TrackCard } from '../components/TrackCard';
 import { usePlayerStore } from '../store/playerStore';
+import { shuffleArray } from '../utils/playerUtils';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +20,7 @@ export const TrackListScreen: React.FC<TrackListScreenProps> = ({ navigation, ro
   const { playQueue } = usePlayerStore();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <LinearGradient colors={Gradients.ambientBg} style={StyleSheet.absoluteFill} />
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
@@ -38,14 +40,7 @@ export const TrackListScreen: React.FC<TrackListScreenProps> = ({ navigation, ro
         <View style={styles.actionBtns}>
           <TouchableOpacity
             style={styles.shuffleBtn}
-            onPress={() => {
-              const shuffled = [...tracks];
-              for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-              }
-              playQueue(shuffled, 0);
-            }}
+            onPress={() => playQueue(shuffleArray(tracks), 0)}
           >
             <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
             <View style={styles.shuffleBtnGlass} />
@@ -59,14 +54,14 @@ export const TrackListScreen: React.FC<TrackListScreenProps> = ({ navigation, ro
 
       <FlatList
         data={tracks}
-        keyExtractor={(t, i) => `${t.id}-${i}`}
+        keyExtractor={(track, i) => `${track.id}-${i}`}
         renderItem={({ item, index }) => (
           <TrackCard track={item} queue={tracks} showIndex={index} />
         )}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 160 }}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -75,7 +70,7 @@ const styles = StyleSheet.create({
 
   header: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 56, paddingBottom: 12,
+    paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12,
   },
   backBtn: {
     width: 38, height: 38, borderRadius: 19, overflow: 'hidden',

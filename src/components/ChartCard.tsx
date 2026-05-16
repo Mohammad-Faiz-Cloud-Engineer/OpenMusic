@@ -5,13 +5,15 @@ import { Colors } from '../theme/colors';
 import { Chart } from '../api/jiosaavn';
 import { a11yButton } from '../utils/a11y';
 
+// Resolved once at module load — avoids repeated require() calls inside render
+const placeholder = require('../../assets/placeholder.png');
+
 interface ChartCardProps {
   chart: Chart;
   onPress: () => void;
 }
 
 export const ChartCard: React.FC<ChartCardProps> = ({ chart, onPress }) => {
-  const placeholder = require('../../assets/placeholder.png');
   const imageSource = chart.thumbnail ? { uri: chart.thumbnail } : placeholder;
 
   return (

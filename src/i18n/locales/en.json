@@ -96,7 +96,6 @@
     "title": "Top Charts"
   },
   "playlist": {
-    "loading": "Loading playlist...",
     "error": "Failed to load playlist",
     "by": "by {{owner}}"
   },

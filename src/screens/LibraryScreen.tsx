@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -41,7 +41,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
     usePlayerStore();
   const recentTracks = useRecentStore((s) => s.tracks);
 
-  const renderQueueItem = ({ item, index }: { item: Track; index: number }) => {
+  const renderQueueItem = useCallback(({ item, index }: { item: Track; index: number }) => {
     const isActive = index === currentIndex;
     return (
       <TouchableOpacity
@@ -78,7 +78,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
       </TouchableOpacity>
     );
-  };
+  }, [currentIndex, playTrack, queue, removeFromQueue, t]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

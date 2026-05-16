@@ -27,6 +27,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList, TabParamList } from '../navigation/types';
 import { a11yButton } from '../utils/a11y';
+import { shuffleArray } from '../utils/playerUtils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -92,14 +93,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.featuredShuffleBtn}
-              onPress={() => {
-                const shuffled = [...tracks];
-                for (let i = shuffled.length - 1; i > 0; i--) {
-                  const j = Math.floor(Math.random() * (i + 1));
-                  [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-                }
-                playQueue(shuffled, 0);
-              }}
+              onPress={() => playQueue(shuffleArray(tracks), 0)}
             >
               <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
               <Ionicons name="shuffle" size={16} color={Colors.text} />
