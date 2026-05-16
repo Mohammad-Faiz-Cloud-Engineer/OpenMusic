@@ -311,7 +311,11 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           fontSize: 11, fontWeight: '700', color: colors.textSecondary,
           letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 14,
         },
-        upNextItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
+        upNextItem: {
+          flexDirection: 'row', alignItems: 'center', marginBottom: 14,
+          borderRadius: 14, paddingVertical: 4, paddingHorizontal: 4,
+          marginHorizontal: -4,
+        },
         upNextImage: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.surface2 },
         upNextInfo: { flex: 1, marginHorizontal: 12 },
         upNextTrackTitle: { fontSize: 13, fontWeight: '400', color: colors.text },
@@ -611,18 +615,24 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             <BlurView intensity={50} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.upNextGlass} />
             <Text style={styles.upNextTitle}>{t('player.upNext')}</Text>
-            {queue.slice(currentIndex + 1, currentIndex + 4).map((track) => (
-              <View key={track.id} style={styles.upNextItem}>
-                <Image
-                  source={track.thumbnail ? { uri: track.thumbnail } : placeholder}
-                  style={styles.upNextImage}
-                />
-                <View style={styles.upNextInfo}>
-                  <Text style={styles.upNextTrackTitle} numberOfLines={1}>{track.title}</Text>
-                  <Text style={styles.upNextArtist} numberOfLines={1}>{track.artist}</Text>
-                </View>
-                <Text style={styles.upNextDuration}>{formatDuration(track.duration_seconds)}</Text>
-              </View>
+            {queue.slice(currentIndex + 1, currentIndex + 4).map((track, i) => (
+                <TouchableOpacity
+                  key={track.id}
+                  style={styles.upNextItem}
+                  onPress={() => void playTrack(track, queue, { openFullPlayer: false })}
+                  activeOpacity={0.7}
+                  {...a11yButton(`${track.title} by ${track.artist}`)}
+                >
+                  <Image
+                    source={track.thumbnail ? { uri: track.thumbnail } : placeholder}
+                    style={styles.upNextImage}
+                  />
+                  <View style={styles.upNextInfo}>
+                    <Text style={styles.upNextTrackTitle} numberOfLines={1}>{track.title}</Text>
+                    <Text style={styles.upNextArtist} numberOfLines={1}>{track.artist}</Text>
+                  </View>
+                  <Text style={styles.upNextDuration}>{formatDuration(track.duration_seconds)}</Text>
+                </TouchableOpacity>
             ))}
           </View>
         )}
