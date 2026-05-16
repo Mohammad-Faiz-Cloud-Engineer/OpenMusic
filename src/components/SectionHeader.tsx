@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Colors } from '../theme/colors';
+import { useTheme } from '../theme';
 import { a11yButton, a11yHeader } from '../utils/a11y';
 
 interface SectionHeaderProps {
@@ -12,6 +12,42 @@ interface SectionHeaderProps {
 
 export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, onSeeAll, subtitle }) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flexDirection: 'row',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          paddingHorizontal: 16,
+          marginBottom: 12,
+          marginTop: 24,
+        },
+        left: { flex: 1 },
+        title: {
+          fontSize: 20,
+          fontWeight: '700',
+          color: colors.text,
+          letterSpacing: -0.2,
+        },
+        subtitle: {
+          fontSize: 12,
+          color: colors.textSecondary,
+          marginTop: 2,
+        },
+        seeAll: {
+          fontSize: 12,
+          fontWeight: '700',
+          color: colors.textSecondary,
+          textTransform: 'uppercase',
+          letterSpacing: 0.8,
+        },
+      }),
+    [colors]
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.left}>
@@ -32,33 +68,3 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, onSeeAll, s
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    marginTop: 24,
-  },
-  left: { flex: 1 },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.text,
-    letterSpacing: -0.2,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  seeAll: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-});

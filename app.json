@@ -26,6 +26,15 @@
       },
       "associatedDomains": ["applinks:openmusic.app"]
     },
+    "androidStatusBar": {
+      "backgroundColor": "#0A0A0F",
+      "barStyle": "light-content",
+      "translucent": false
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#0A0A0F",
+      "barStyle": "light-content"
+    },
     "android": {
       "package": "com.openmusic.app",
       "adaptiveIcon": {

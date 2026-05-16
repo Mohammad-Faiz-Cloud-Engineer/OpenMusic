@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,19 +13,19 @@ import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { searchSongs, getSuggestions } from '../api/jiosaavn';
-import { Colors } from '../theme/colors';
+import { useTheme } from '../theme';
 import { TrackCard } from '../components/TrackCard';
 import { SectionHeader } from '../components/SectionHeader';
 import { useTranslation } from 'react-i18next';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { TabParamList } from '../navigation/types';
-import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type SearchScreenProps = BottomTabScreenProps<TabParamList, 'Search'>;
 
 export const SearchScreen: React.FC<SearchScreenProps> = () => {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -79,24 +79,125 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
     (suggestionsData?.suggestions?.length ?? 0) > 0;
   const showResults = !isFocused && debouncedQuery.length >= 2;
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.bg,
+        },
+        header: {
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: 12,
+        },
+        headerTitle: {
+          fontSize: 28,
+          fontWeight: '700',
+          color: colors.text,
+          marginBottom: 16,
+          letterSpacing: -0.3,
+        },
+        searchBar: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          overflow: 'hidden',
+          borderRadius: 20,
+          paddingHorizontal: 14,
+          height: 50,
+          borderWidth: 1,
+          borderColor: colors.glassBorder,
+        },
+        searchBarFocused: {
+          borderColor: colors.glassBorderStrong,
+        },
+        searchIcon: { marginRight: 10 },
+        searchBarGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        searchInput: {
+          flex: 1,
+          fontSize: 15,
+          color: colors.text,
+          height: '100%',
+        },
+        suggestionsContainer: {
+          overflow: 'hidden',
+          marginHorizontal: 16,
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: colors.glassBorder,
+          backgroundColor: colors.glass,
+        },
+        suggestionItem: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 16,
+          paddingVertical: 13,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+          gap: 12,
+        },
+        suggestionItemLast: {
+          borderBottomWidth: 0,
+        },
+        suggestionText: {
+          flex: 1,
+          fontSize: 14,
+          color: colors.text,
+        },
+        resultsContainer: {
+          paddingBottom: 160,
+        },
+        emptyState: {
+          alignItems: 'center',
+          paddingTop: 60,
+          gap: 8,
+        },
+        emptyTitle: {
+          fontSize: 18,
+          fontWeight: '700',
+          color: colors.text,
+        },
+        emptySubtitle: {
+          fontSize: 14,
+          color: colors.textSecondary,
+        },
+        idleState: {
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          paddingBottom: 80,
+        },
+        idleTitle: {
+          fontSize: 18,
+          fontWeight: '700',
+          color: colors.text,
+          marginTop: 8,
+        },
+        idleSubtitle: {
+          fontSize: 14,
+          color: colors.textSecondary,
+        },
+      }),
+    [colors]
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
         <Text style={styles.headerTitle} accessibilityRole="header">
           {t('search.title')}
         </Text>
 
-        {/* Search bar */}
         <View style={[styles.searchBar, isFocused && styles.searchBarFocused]}>
-          <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill} />
+          <BlurView intensity={50} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           <View style={styles.searchBarGlass} />
-          <Ionicons name="search" size={18} color={Colors.textSecondary} style={styles.searchIcon} />
+          <Ionicons name="search" size={18} color={colors.textSecondary} style={styles.searchIcon} />
           <TextInput
             ref={inputRef}
             style={styles.searchInput}
             placeholder={t('search.placeholder')}
-            placeholderTextColor={Colors.textMuted}
+            placeholderTextColor={colors.textMuted}
             value={query}
             onChangeText={handleQueryChange}
             onFocus={() => setIsFocused(true)}
@@ -114,16 +215,15 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
               onPress={clearSearch}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="close-circle" size={18} color={Colors.textSecondary} />
+              <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
           {searchLoading && debouncedQuery.length >= 2 && (
-            <ActivityIndicator size="small" color={Colors.accent} style={{ marginLeft: 8 }} />
+            <ActivityIndicator size="small" color={colors.accent} style={{ marginLeft: 8 }} />
           )}
         </View>
       </View>
 
-      {/* ── Suggestions ────────────────────────────────────────────────────── */}
       {showSuggestions && (
         <View style={styles.suggestionsContainer}>
           {suggestionsData?.suggestions.map((s, i) => (
@@ -135,15 +235,14 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
               ]}
               onPress={() => handleSuggestionPress(s)}
             >
-              <Ionicons name="search-outline" size={16} color={Colors.textMuted} />
+              <Ionicons name="search-outline" size={16} color={colors.textMuted} />
               <Text style={styles.suggestionText}>{s}</Text>
-              <Ionicons name="arrow-back" size={14} color={Colors.textMuted} />
+              <Ionicons name="arrow-back" size={14} color={colors.textMuted} />
             </TouchableOpacity>
           ))}
         </View>
       )}
 
-      {/* ── Results ────────────────────────────────────────────────────────── */}
       {showResults && (
         <FlatList
           data={searchData?.results ?? []}
@@ -161,7 +260,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
           ListEmptyComponent={
             !searchLoading ? (
               <View style={styles.emptyState}>
-                <Ionicons name="musical-notes-outline" size={48} color={Colors.textMuted} />
+                <Ionicons name="musical-notes-outline" size={48} color={colors.textMuted} />
                 <Text style={styles.emptyTitle}>{t('common.noResults')}</Text>
                 <Text style={styles.emptySubtitle}>{t('common.noResultsHint')}</Text>
               </View>
@@ -174,10 +273,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
         />
       )}
 
-      {/* ── Empty / idle state ─────────────────────────────────────────────── */}
       {!showResults && !showSuggestions && query.length === 0 && (
         <View style={styles.idleState}>
-          <Ionicons name="search-outline" size={52} color={Colors.textMuted} />
+          <Ionicons name="search-outline" size={52} color={colors.textMuted} />
           <Text style={styles.idleTitle}>{t('search.idleTitle')}</Text>
           <Text style={styles.idleSubtitle}>{t('search.idleSubtitle')}</Text>
         </View>
@@ -185,110 +283,3 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.bg,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 16,
-    letterSpacing: -0.3,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    height: 50,
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-  },
-  searchBarFocused: {
-    borderColor: Colors.glassBorderStrong,
-  },
-  searchIcon: { marginRight: 10 },
-  searchBarGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.glass },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: Colors.text,
-    height: '100%',
-  },
-
-  // ── Suggestions ────────────────────────────────────────────────────────────
-  suggestionsContainer: {
-    overflow: 'hidden',
-    marginHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-    backgroundColor: Colors.glass,
-  },
-  suggestionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 13,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    gap: 12,
-  },
-  suggestionItemLast: {
-    borderBottomWidth: 0,
-  },
-  suggestionText: {
-    flex: 1,
-    fontSize: 14,
-    color: Colors.text,
-  },
-
-  // ── Results ────────────────────────────────────────────────────────────────
-  resultsContainer: {
-    paddingBottom: 160,
-  },
-
-  // ── Empty ──────────────────────────────────────────────────────────────────
-  emptyState: {
-    alignItems: 'center',
-    paddingTop: 60,
-    gap: 8,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-
-  // ── Idle ───────────────────────────────────────────────────────────────────
-  idleState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingBottom: 80,
-  },
-  idleTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.text,
-    marginTop: 8,
-  },
-  idleSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-});

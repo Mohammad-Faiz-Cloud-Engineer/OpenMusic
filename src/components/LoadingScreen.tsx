@@ -1,13 +1,27 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, type DimensionValue } from 'react-native';
-import { Colors } from '../theme/colors';
+import React, { useEffect, useRef, useMemo } from 'react';
+import { Animated, type DimensionValue, StyleSheet } from 'react-native';
+import { useTheme } from '../theme';
 
 export const SkeletonCard: React.FC<{
   width?: DimensionValue;
   height?: number;
   borderRadius?: number;
 }> = ({ width = '100%', height = 50, borderRadius = 4 }) => {
+  const { colors } = useTheme();
   const anim = useRef(new Animated.Value(0.3)).current;
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        base: {
+          width,
+          height,
+          borderRadius,
+          backgroundColor: colors.surface2,
+        },
+      }),
+    [colors.surface2, width, height, borderRadius]
+  );
 
   useEffect(() => {
     Animated.loop(
@@ -20,13 +34,7 @@ export const SkeletonCard: React.FC<{
 
   return (
     <Animated.View
-      style={{
-        width,
-        height,
-        borderRadius,
-        backgroundColor: Colors.surface2,
-        opacity: anim,
-      }}
+      style={[styles.base, { opacity: anim }]}
     />
   );
 };

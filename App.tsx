@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, onlineManager, QueryClientProvider } from '@tanstack/react-query';
@@ -11,6 +11,7 @@ import { OfflineBanner } from './src/components/OfflineBanner';
 import { useRecentStore } from './src/store/recentStore';
 import { useLikeStore } from './src/store/likeStore';
 import { useUserPlaylistStore } from './src/store/userPlaylistStore';
+import { useTheme } from './src/theme';
 
 onlineManager.setEventListener((setOnline) =>
   NetInfo.addEventListener((state) => {
@@ -33,7 +34,8 @@ const queryClient = new QueryClient({
   },
 });
 
-export default function App() {
+function ThemedShell() {
+  const { colors, isDark } = useTheme();
   const hydrateRecent = useRecentStore((s) => s.hydrate);
   const hydrateLikes = useLikeStore((s) => s.hydrate);
   const hydratePlaylists = useUserPlaylistStore((s) => s.hydrate);
@@ -45,13 +47,24 @@ export default function App() {
   }, [hydrateRecent, hydrateLikes, hydratePlaylists]);
 
   return (
-    <GestureHandlerRootView style={styles.root}>
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={colors.bg} translucent={false} />
+      <OfflineBanner />
+      <AppNavigator />
+    </>
+  );
+}
+
+export default function App() {
+  const scheme = useColorScheme();
+  const fallbackBg = scheme === 'light' ? '#F5F5F7' : '#0A0A0F';
+
+  return (
+    <GestureHandlerRootView style={[styles.root, { backgroundColor: fallbackBg }]}>
       <SafeAreaProvider>
         <ErrorBoundary>
           <QueryClientProvider client={queryClient}>
-            <StatusBar style="light" />
-            <OfflineBanner />
-            <AppNavigator />
+            <ThemedShell />
           </QueryClientProvider>
         </ErrorBoundary>
       </SafeAreaProvider>
@@ -60,5 +73,5 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0A0A0F' },
+  root: { flex: 1 },
 });

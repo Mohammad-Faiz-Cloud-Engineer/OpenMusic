@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors, Gradients } from '../theme/colors';
+import { useTheme } from '../theme';
 import { usePlayerStore } from '../store/playerStore';
 import { useRecentStore } from '../store/recentStore';
 import { formatDuration } from '../api/jiosaavn';
@@ -35,10 +35,120 @@ type LibraryScreenProps = CompositeScreenProps<
 
 export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
+  const { colors, gradients, isDark } = useTheme();
   const [activeTab, setActiveTab] = useState<LibraryTab>('queue');
   const { queue, currentIndex, currentTrack, playTrack, removeFromQueue, clearQueue } =
     usePlayerStore();
   const recentTracks = useRecentStore((s) => s.tracks);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.bg },
+        header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
+        headerTitle: { fontSize: 28, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
+        tabs: {
+          flexDirection: 'row',
+          paddingHorizontal: 16,
+          gap: 8,
+          marginBottom: 12,
+          marginTop: 8,
+        },
+        tab: {
+          paddingHorizontal: 20,
+          paddingVertical: 9,
+          borderRadius: 24,
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: colors.glassBorder,
+        },
+        tabActive: {
+          backgroundColor: colors.text,
+          borderColor: colors.text,
+        },
+        tabText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
+        tabTextActive: { color: colors.bg },
+        nowPlayingCard: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginHorizontal: 16,
+          marginBottom: 8,
+          borderRadius: 20,
+          overflow: 'hidden',
+          padding: 14,
+          gap: 12,
+          borderWidth: 1,
+          borderColor: colors.glassBorder,
+        },
+        nowPlayingGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        nowPlayingArt: { width: 52, height: 52, borderRadius: 12, backgroundColor: colors.surface3 },
+        nowPlayingInfo: { flex: 1 },
+        nowPlayingLabel: {
+          fontSize: 10, fontWeight: '700', color: colors.accent,
+          letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2,
+        },
+        nowPlayingTitle: { fontSize: 14, fontWeight: '600', color: colors.text },
+        nowPlayingArtist: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+        queueHeader: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+        },
+        queueHeaderTitle: { fontSize: 13, fontWeight: '400', color: colors.textSecondary },
+        clearBtn: {
+          fontSize: 12, fontWeight: '700', color: colors.textSecondary,
+          textTransform: 'uppercase', letterSpacing: 0.8,
+        },
+        queueItem: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingVertical: 10,
+          paddingHorizontal: 12,
+          borderRadius: 16,
+          gap: 12,
+        },
+        queueItemActive: {
+          backgroundColor: colors.accentOverlay,
+          borderWidth: 1,
+          borderColor: 'rgba(29,185,84,0.2)',
+        },
+        queueImageWrap: { position: 'relative' },
+        queueImage: { width: 48, height: 48, borderRadius: 12, backgroundColor: colors.surface2 },
+        queueActiveOverlay: {
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          borderRadius: 12,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        queueInfo: { flex: 1 },
+        queueTitle: { fontSize: 14, fontWeight: '400', color: colors.text },
+        queueArtist: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+        queueDuration: { fontSize: 12, color: colors.textMuted },
+        removeBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
+        activeText: { color: colors.accent },
+        emptyState: {
+          flex: 1, alignItems: 'center', justifyContent: 'center',
+          paddingHorizontal: 32, gap: 10,
+        },
+        emptyTitle: { fontSize: 20, fontWeight: '700', color: colors.text, textAlign: 'center', marginTop: 8 },
+        emptySubtitle: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
+        emptyAction: {
+          marginTop: 12,
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: colors.glassBorder,
+          paddingHorizontal: 28,
+          paddingVertical: 12,
+          borderRadius: 24,
+        },
+        emptyActionGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        emptyActionText: { fontSize: 14, fontWeight: '700', color: colors.text },
+      }),
+    [colors]
+  );
 
   const renderQueueItem = useCallback(({ item, index }: { item: Track; index: number }) => {
     const isActive = index === currentIndex;
@@ -56,7 +166,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           />
           {isActive && (
             <View style={styles.queueActiveOverlay}>
-              <Ionicons name="musical-note" size={12} color={Colors.accent} />
+              <Ionicons name="musical-note" size={12} color={colors.accent} />
             </View>
           )}
         </View>
@@ -73,15 +183,15 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           style={styles.removeBtn}
           {...a11yButton(`${t('library.removeTrack')} ${item.title}`)}
         >
-          <Ionicons name="close" size={16} color={Colors.textMuted} />
+          <Ionicons name="close" size={16} color={colors.textMuted} />
         </TouchableOpacity>
       </TouchableOpacity>
     );
-  }, [currentIndex, playTrack, queue, removeFromQueue, t]);
+  }, [currentIndex, playTrack, queue, removeFromQueue, t, styles, colors.accent, colors.textMuted]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <LinearGradient colors={Gradients.ambientBg} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={gradients.ambientBg} style={StyleSheet.absoluteFill} />
 
       <View style={styles.header}>
         <Text style={styles.headerTitle} accessibilityRole="header">
@@ -98,7 +208,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             {...a11yButton(tab === 'queue' ? t('library.queue') : t('library.recent'))}
           >
             {activeTab !== tab && (
-              <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+              <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             )}
             <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
               {tab === 'queue' ? t('library.queue') : t('library.recent')}
@@ -118,7 +228,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
                   activeOpacity={0.85}
                   {...a11yButton(`${t('library.nowPlaying')}: ${currentTrack.title}`)}
                 >
-                  <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
+                  <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                   <View style={styles.nowPlayingGlass} />
                   <Image
                     source={currentTrack.thumbnail ? { uri: currentTrack.thumbnail } : placeholder}
@@ -133,7 +243,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
                       {currentTrack.artist}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+                  <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
                 </TouchableOpacity>
               )}
 
@@ -156,7 +266,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             </>
           ) : (
             <View style={styles.emptyState}>
-              <Ionicons name="list-outline" size={52} color={Colors.textMuted} />
+              <Ionicons name="list-outline" size={52} color={colors.textMuted} />
               <Text style={styles.emptyTitle}>{t('library.queueEmpty')}</Text>
               <Text style={styles.emptySubtitle}>{t('library.queueEmptyHint')}</Text>
               <TouchableOpacity
@@ -164,7 +274,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
                 onPress={() => navigation.navigate('Search')}
                 {...a11yButton(t('library.findMusic'))}
               >
-                <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+                <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                 <View style={styles.emptyActionGlass} />
                 <Text style={styles.emptyActionText}>{t('library.findMusic')}</Text>
               </TouchableOpacity>
@@ -186,7 +296,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           />
         ) : (
           <View style={styles.emptyState}>
-            <Ionicons name="time-outline" size={52} color={Colors.textMuted} />
+            <Ionicons name="time-outline" size={52} color={colors.textMuted} />
             <Text style={styles.emptyTitle}>{t('library.recentEmpty')}</Text>
             <Text style={styles.emptySubtitle}>{t('library.recentEmptyHint')}</Text>
           </View>
@@ -194,113 +304,3 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
-
-  header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
-  headerTitle: { fontSize: 28, fontWeight: '700', color: Colors.text, letterSpacing: -0.3 },
-
-  tabs: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 8,
-    marginBottom: 12,
-    marginTop: 8,
-  },
-  tab: {
-    paddingHorizontal: 20,
-    paddingVertical: 9,
-    borderRadius: 24,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-  },
-  tabActive: {
-    backgroundColor: Colors.text,
-    borderColor: Colors.text,
-  },
-  tabText: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
-  tabTextActive: { color: '#000' },
-
-  nowPlayingCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 16,
-    marginBottom: 8,
-    borderRadius: 20,
-    overflow: 'hidden',
-    padding: 14,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-  },
-  nowPlayingGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.glass },
-  nowPlayingArt: { width: 52, height: 52, borderRadius: 12, backgroundColor: Colors.surface3 },
-  nowPlayingInfo: { flex: 1 },
-  nowPlayingLabel: {
-    fontSize: 10, fontWeight: '700', color: Colors.accent,
-    letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2,
-  },
-  nowPlayingTitle: { fontSize: 14, fontWeight: '600', color: Colors.text },
-  nowPlayingArtist: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-
-  queueHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  queueHeaderTitle: { fontSize: 13, fontWeight: '400', color: Colors.textSecondary },
-  clearBtn: {
-    fontSize: 12, fontWeight: '700', color: Colors.textSecondary,
-    textTransform: 'uppercase', letterSpacing: 0.8,
-  },
-  queueItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    gap: 12,
-  },
-  queueItemActive: {
-    backgroundColor: Colors.accentOverlay,
-    borderWidth: 1,
-    borderColor: 'rgba(29,185,84,0.2)',
-  },
-  queueImageWrap: { position: 'relative' },
-  queueImage: { width: 48, height: 48, borderRadius: 12, backgroundColor: Colors.surface2 },
-  queueActiveOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  queueInfo: { flex: 1 },
-  queueTitle: { fontSize: 14, fontWeight: '400', color: Colors.text },
-  queueArtist: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-  queueDuration: { fontSize: 12, color: Colors.textMuted },
-  removeBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-  activeText: { color: Colors.accent },
-
-  emptyState: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 32, gap: 10,
-  },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: Colors.text, textAlign: 'center', marginTop: 8 },
-  emptySubtitle: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center', lineHeight: 20 },
-  emptyAction: {
-    marginTop: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 24,
-  },
-  emptyActionGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.glass },
-  emptyActionText: { fontSize: 14, fontWeight: '700', color: Colors.text },
-});

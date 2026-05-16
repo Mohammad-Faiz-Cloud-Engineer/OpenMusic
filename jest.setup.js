@@ -1,5 +1,10 @@
 import '@testing-library/jest-native/extend-expect';
 
+jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({
+  __esModule: true,
+  default: jest.fn(() => 'light'),
+}));
+
 jest.mock('@expo/vector-icons', () => {
   const React = require('react');
   const { Text } = require('react-native');

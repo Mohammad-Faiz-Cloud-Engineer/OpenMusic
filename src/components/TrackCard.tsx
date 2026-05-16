@@ -1,4 +1,4 @@
-import React, { type ReactNode } from 'react';
+import React, { type ReactNode, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { Colors } from '../theme/colors';
+import { useTheme } from '../theme';
 import type { Track } from '../api/jiosaavn';
 import { formatDuration } from '../api/jiosaavn';
 import { usePlayerStore } from '../store/playerStore';
@@ -17,7 +17,6 @@ import { a11yButton } from '../utils/a11y';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
 
-// Resolved once at module load — avoids repeated require() calls inside render
 const placeholder = require('../../assets/placeholder.png');
 
 interface TrackCardProps {
@@ -26,15 +25,128 @@ interface TrackCardProps {
   variant?: 'grid' | 'list' | 'horizontal';
   showIndex?: number;
   onPress?: () => void;
-  /** Shown beside list rows (e.g. remove from playlist) */
   trailing?: ReactNode;
 }
+
+const EqualizerBars: React.FC<{ small?: boolean }> = ({ small }) => {
+  const { colors } = useTheme();
+  const w = small ? 2 : 3;
+  const heights = [10, 16, 8, 14, 6];
+  return (
+    <View style={[stylesStatic.equalizer, small && stylesStatic.equalizerSmall]}>
+      {heights.map((h, i) => (
+        <View
+          key={i}
+          style={{
+            height: h * (small ? 0.65 : 1),
+            width: w,
+            marginHorizontal: 1,
+            backgroundColor: colors.accent,
+            borderRadius: 1,
+          }}
+        />
+      ))}
+    </View>
+  );
+};
+
+const stylesStatic = StyleSheet.create({
+  equalizer: { flexDirection: 'row', alignItems: 'flex-end', height: 20 },
+  equalizerSmall: { height: 14 },
+});
 
 export const TrackCard: React.FC<TrackCardProps> = ({
   track, queue, variant = 'list', showIndex, onPress, trailing,
 }) => {
   const { playTrack, currentTrack, isPlaying } = usePlayerStore();
+  const { colors } = useTheme();
   const isActive = currentTrack?.id === track.id;
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        gridCard: { marginBottom: 16 },
+        gridImageWrap: {
+          borderRadius: 16,
+          overflow: 'hidden',
+          aspectRatio: 1,
+          backgroundColor: colors.surface2,
+        },
+        gridImage: { width: '100%', height: '100%' },
+        gridActiveOverlay: {
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        gridTitle: { fontSize: 13, fontWeight: '600', color: colors.text, marginTop: 8 },
+        gridArtist: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+        horizontalCard: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: colors.glass,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: colors.glassBorder,
+          padding: 10,
+          marginRight: 12,
+          width: 220,
+        },
+        horizontalImage: { width: 48, height: 48, borderRadius: 12, backgroundColor: colors.surface2 },
+        horizontalInfo: { flex: 1, marginLeft: 10 },
+        horizontalTitle: { fontSize: 13, fontWeight: '600', color: colors.text },
+        horizontalArtist: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+        listWithTrailing: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginHorizontal: 8,
+          marginVertical: 2,
+        },
+        listCardFlex: { flex: 1, marginHorizontal: 0, marginVertical: 0 },
+        trailingSlot: { paddingLeft: 4, paddingRight: 4, justifyContent: 'center' },
+        listCard: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingVertical: 8,
+          paddingHorizontal: 12,
+          marginHorizontal: 8,
+          marginVertical: 2,
+          borderRadius: 16,
+        },
+        listCardActive: {
+          backgroundColor: colors.accentOverlay,
+          borderWidth: 1,
+          borderColor: 'rgba(29,185,84,0.2)',
+        },
+        indexWrap: { width: 28, alignItems: 'center', justifyContent: 'center', marginRight: 4 },
+        indexText: { fontSize: 14, color: colors.textSecondary, fontWeight: '400' },
+        listImageWrap: { position: 'relative', marginRight: 12 },
+        listImage: { width: 48, height: 48, borderRadius: 12, backgroundColor: colors.surface2 },
+        listActiveOverlay: {
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: 'rgba(0,0,0,0.55)',
+          borderRadius: 12,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        listInfo: { flex: 1 },
+        listTitle: { fontSize: 14, fontWeight: '400', color: colors.text },
+        listMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 3 },
+        explicitBadge: {
+          backgroundColor: colors.surface3,
+          borderRadius: 4,
+          paddingHorizontal: 4,
+          paddingVertical: 1,
+          marginRight: 5,
+        },
+        explicitText: { fontSize: 9, fontWeight: '700', color: colors.textMuted },
+        listArtist: { fontSize: 12, color: colors.textSecondary, flex: 1 },
+        listRight: { flexDirection: 'row', alignItems: 'center', marginLeft: 8 },
+        listDuration: { fontSize: 12, color: colors.textMuted },
+        activeText: { color: colors.accent },
+      }),
+    [colors]
+  );
 
   const handlePress = () => {
     if (onPress) onPress();
@@ -43,7 +155,6 @@ export const TrackCard: React.FC<TrackCardProps> = ({
 
   const imageSource = track.thumbnail ? { uri: track.thumbnail } : placeholder;
 
-  // ── Grid ──────────────────────────────────────────────────────────────────
   if (variant === 'grid') {
     return (
       <TouchableOpacity
@@ -68,7 +179,6 @@ export const TrackCard: React.FC<TrackCardProps> = ({
     );
   }
 
-  // ── Horizontal ────────────────────────────────────────────────────────────
   if (variant === 'horizontal') {
     return (
       <TouchableOpacity
@@ -89,7 +199,6 @@ export const TrackCard: React.FC<TrackCardProps> = ({
     );
   }
 
-  // ── List (default) ────────────────────────────────────────────────────────
   const listCard = (
     <TouchableOpacity
       style={[
@@ -135,7 +244,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
 
       <View style={styles.listRight}>
         <Text style={styles.listDuration}>{formatDuration(track.duration_seconds)}</Text>
-        <Ionicons name="ellipsis-horizontal" size={16} color={Colors.textMuted} style={{ marginLeft: 6 }} />
+        <Ionicons name="ellipsis-horizontal" size={16} color={colors.textMuted} style={{ marginLeft: 6 }} />
       </View>
     </TouchableOpacity>
   );
@@ -151,106 +260,3 @@ export const TrackCard: React.FC<TrackCardProps> = ({
 
   return listCard;
 };
-
-const EqualizerBars: React.FC<{ small?: boolean }> = ({ small }) => {
-  const w = small ? 2 : 3;
-  const heights = [10, 16, 8, 14, 6];
-  return (
-    <View style={[styles.equalizer, small && styles.equalizerSmall]}>
-      {heights.map((h, i) => (
-        <View key={i} style={{ height: h * (small ? 0.65 : 1), width: w, marginHorizontal: 1, backgroundColor: Colors.accent, borderRadius: 1 }} />
-      ))}
-    </View>
-  );
-};
-
-const styles = StyleSheet.create({
-  // ── Grid ──────────────────────────────────────────────────────────────────
-  gridCard: { marginBottom: 16 },
-  gridImageWrap: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    aspectRatio: 1,
-    backgroundColor: Colors.surface2,
-  },
-  gridImage: { width: '100%', height: '100%' },
-  gridActiveOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  gridTitle: { fontSize: 13, fontWeight: '600', color: Colors.text, marginTop: 8 },
-  gridArtist: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
-
-  // ── Horizontal ────────────────────────────────────────────────────────────
-  horizontalCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.glass,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-    padding: 10,
-    marginRight: 12,
-    width: 220,
-  },
-  horizontalImage: { width: 48, height: 48, borderRadius: 12, backgroundColor: Colors.surface2 },
-  horizontalInfo: { flex: 1, marginLeft: 10 },
-  horizontalTitle: { fontSize: 13, fontWeight: '600', color: Colors.text },
-  horizontalArtist: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
-
-  // ── List ──────────────────────────────────────────────────────────────────
-  listWithTrailing: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 8,
-    marginVertical: 2,
-  },
-  listCardFlex: { flex: 1, marginHorizontal: 0, marginVertical: 0 },
-  trailingSlot: { paddingLeft: 4, paddingRight: 4, justifyContent: 'center' },
-  listCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginHorizontal: 8,
-    marginVertical: 2,
-    borderRadius: 16,
-  },
-  listCardActive: {
-    backgroundColor: Colors.accentOverlay,
-    borderWidth: 1,
-    borderColor: 'rgba(29,185,84,0.2)',
-  },
-  indexWrap: { width: 28, alignItems: 'center', justifyContent: 'center', marginRight: 4 },
-  indexText: { fontSize: 14, color: Colors.textSecondary, fontWeight: '400' },
-  listImageWrap: { position: 'relative', marginRight: 12 },
-  listImage: { width: 48, height: 48, borderRadius: 12, backgroundColor: Colors.surface2 },
-  listActiveOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  listInfo: { flex: 1 },
-  listTitle: { fontSize: 14, fontWeight: '400', color: Colors.text },
-  listMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 3 },
-  explicitBadge: {
-    backgroundColor: Colors.surface3,
-    borderRadius: 4,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    marginRight: 5,
-  },
-  explicitText: { fontSize: 9, fontWeight: '700', color: Colors.textMuted },
-  listArtist: { fontSize: 12, color: Colors.textSecondary, flex: 1 },
-  listRight: { flexDirection: 'row', alignItems: 'center', marginLeft: 8 },
-  listDuration: { fontSize: 12, color: Colors.textMuted },
-
-  // ── Shared ────────────────────────────────────────────────────────────────
-  activeText: { color: Colors.accent },
-  equalizer: { flexDirection: 'row', alignItems: 'flex-end', height: 20 },
-  equalizerSmall: { height: 14 },
-});

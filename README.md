@@ -8,7 +8,7 @@
 [![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react&logoColor=black)](https://reactnative.dev/)
 [![Coverage](https://img.shields.io/badge/coverage-npm_run_test:coverage-lightgrey)](./package.json)
 
-A mobile music app built with React Native and Expo. Browse charts, search for songs, build a queue, and listen with a full-screen player and a mini player that stays above the tab bar. The UI is dark with purple accents.
+A mobile music app built with React Native and Expo. Browse charts, search for songs, build a queue, and listen with a full-screen player and a mini player that stays above the tab bar. The UI follows the system light/dark appearance.
 
 Audio is powered by [OpenMusic-API](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic-API), a custom backend that scrapes JioSaavn for song metadata and stream URLs. The app does not ship its own music library; it talks to that API.
 

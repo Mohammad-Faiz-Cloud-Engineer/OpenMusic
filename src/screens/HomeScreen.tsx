@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { getCharts, searchSongs } from '../api/jiosaavn';
-import { Colors, Gradients } from '../theme/colors';
+import { useTheme } from '../theme';
 import { SectionHeader } from '../components/SectionHeader';
 import { TrackCard } from '../components/TrackCard';
 import { ChartCard } from '../components/ChartCard';
@@ -32,7 +32,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Resolved once at module load — avoids repeated require() calls inside render
 const placeholder = require('../../assets/placeholder.png');
 
 type HomeScreenProps = CompositeScreenProps<
@@ -43,6 +42,7 @@ type HomeScreenProps = CompositeScreenProps<
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const { playQueue } = usePlayerStore();
+  const { colors, gradients, isDark } = useTheme();
 
   const { data: chartsData, isLoading: chartsLoading, isFetching: chartsFetching, refetch: refetchCharts } = useQuery({
     queryKey: ['charts'], queryFn: getCharts, staleTime: 10 * 60 * 1000,
@@ -68,6 +68,111 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return t('home.greetingNight');
   }, [t]);
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.bg },
+        scroll: { flex: 1 },
+        section: { marginBottom: 4 },
+        horizontalList: { paddingHorizontal: 16, paddingBottom: 4 },
+        header: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: 20,
+        },
+        greeting: { fontSize: 12, color: colors.textSecondary, fontWeight: '400', marginBottom: 2 },
+        headerTitle: { fontSize: 24, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
+        searchBtn: {
+          width: 42,
+          height: 42,
+          borderRadius: 21,
+          overflow: 'hidden',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderWidth: 1,
+          borderColor: colors.glassBorder,
+        },
+        searchBtnGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        featuredBanner: {
+          marginHorizontal: 16,
+          height: 210,
+          borderRadius: 24,
+          overflow: 'hidden',
+          backgroundColor: colors.surface2,
+        },
+        featuredContent: {
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: 18,
+        },
+        featuredBadgeWrap: {
+          overflow: 'hidden',
+          borderRadius: 20,
+          alignSelf: 'flex-start',
+          paddingHorizontal: 12,
+          paddingVertical: 5,
+          marginBottom: 8,
+          borderWidth: 1,
+          borderColor: colors.glassBorder,
+        },
+        featuredBadgeText: { fontSize: 10, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1, textTransform: 'uppercase' },
+        featuredTitle: { fontSize: 20, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
+        featuredArtist: { fontSize: 13, color: colors.textSecondary, marginTop: 3, marginBottom: 14 },
+        featuredActions: { flexDirection: 'row', gap: 10 },
+        featuredPlayBtn: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: colors.accent,
+          borderRadius: 24,
+          paddingHorizontal: 20,
+          paddingVertical: 10,
+          gap: 6,
+        },
+        featuredPlayText: { fontSize: 13, fontWeight: '700', color: '#000' },
+        featuredShuffleBtn: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          overflow: 'hidden',
+          borderRadius: 24,
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          gap: 6,
+          borderWidth: 1,
+          borderColor: colors.glassBorder,
+        },
+        featuredShuffleText: { fontSize: 13, fontWeight: '600', color: colors.text },
+        quickPicksGrid: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          paddingHorizontal: 16,
+          gap: 8,
+        },
+        quickPickItem: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          overflow: 'hidden',
+          borderRadius: 16,
+          width: (SCREEN_WIDTH - 48) / 2,
+          height: 56,
+          borderWidth: 1,
+          borderColor: colors.glassBorder,
+        },
+        quickPickGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        quickPickImage: { width: 56, height: 56, borderRadius: 0 },
+        quickPickTitle: { flex: 1, fontSize: 12, fontWeight: '600', color: colors.text, paddingHorizontal: 10 },
+      }),
+    [colors]
+  );
+
+  const featuredOverlayColors = isDark
+    ? (['transparent', 'rgba(0,0,0,0.95)'] as const)
+    : (['transparent', 'rgba(255,255,255,0.94)'] as const);
+
   const renderFeaturedBanner = () => {
     const tracks = trendingData?.results?.slice(0, 5) ?? [];
     if (!tracks.length) return null;
@@ -78,10 +183,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           source={featured.thumbnail ? { uri: featured.thumbnail } : placeholder}
           style={StyleSheet.absoluteFill}
         />
-        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.95)']} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={featuredOverlayColors} style={StyleSheet.absoluteFill} />
         <View style={styles.featuredContent}>
           <View style={styles.featuredBadgeWrap}>
-            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+            <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <Text style={styles.featuredBadgeText}>{t('home.trendingBadge')}</Text>
           </View>
           <Text style={styles.featuredTitle} numberOfLines={2}>{featured.title}</Text>
@@ -95,8 +200,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               style={styles.featuredShuffleBtn}
               onPress={() => playQueue(shuffleArray(tracks), 0)}
             >
-              <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-              <Ionicons name="shuffle" size={16} color={Colors.text} />
+              <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+              <Ionicons name="shuffle" size={16} color={colors.text} />
               <Text style={styles.featuredShuffleText}>{t('common.shuffle')}</Text>
             </TouchableOpacity>
           </View>
@@ -112,7 +217,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <View style={styles.quickPicksGrid}>
         {tracks.map((track, i) => (
           <TouchableOpacity key={track.id} style={styles.quickPickItem} onPress={() => playQueue(tracks, i)} activeOpacity={0.75}>
-            <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
+            <BlurView intensity={30} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.quickPickGlass} />
             <Image
               source={track.thumbnail ? { uri: track.thumbnail } : placeholder}
@@ -127,28 +232,25 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Ambient background gradient */}
-      <LinearGradient colors={Gradients.ambientBg} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={gradients.ambientBg} style={StyleSheet.absoluteFill} />
 
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={Colors.accent} colors={[Colors.accent]} />}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
       >
-        {/* ── Header ─────────────────────────────────────────────────────── */}
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>{getGreeting()}</Text>
             <Text style={styles.headerTitle}>{t('home.headline')}</Text>
           </View>
           <TouchableOpacity style={styles.searchBtn} onPress={() => navigation.navigate('Search')} {...a11yButton(t('tabs.search'))}>
-            <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill} />
+            <BlurView intensity={50} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.searchBtnGlass} />
-            <Ionicons name="search" size={20} color={Colors.text} />
+            <Ionicons name="search" size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
 
-        {/* ── Featured ───────────────────────────────────────────────────── */}
         <View style={styles.section}>
           {trendingLoading
             ? <View style={{ paddingHorizontal: 16 }}><SkeletonCard height={210} borderRadius={24} /></View>
@@ -156,7 +258,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           }
         </View>
 
-        {/* ── Quick Picks ────────────────────────────────────────────────── */}
         <View style={styles.section}>
           <SectionHeader title={t('home.quickPicks')} subtitle={t('home.quickPicksSub')} />
           {trendingLoading
@@ -165,7 +266,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           }
         </View>
 
-        {/* ── Charts ─────────────────────────────────────────────────────── */}
         <View style={styles.section}>
           <SectionHeader title={t('home.topCharts')} onSeeAll={() => navigation.navigate('Charts')} />
           {chartsLoading
@@ -174,7 +274,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           }
         </View>
 
-        {/* ── Trending ───────────────────────────────────────────────────── */}
         <View style={styles.section}>
           <SectionHeader title={t('home.trendingNow')} onSeeAll={() => navigation.navigate('TrackList', { title: t('home.trendingNow'), tracks: trendingData?.results ?? [] })} />
           {trendingLoading
@@ -183,7 +282,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           }
         </View>
 
-        {/* ── Romantic ───────────────────────────────────────────────────── */}
         <View style={styles.section}>
           <SectionHeader title={t('home.loveSongs')} subtitle={t('home.loveSongsSub')} onSeeAll={() => navigation.navigate('TrackList', { title: t('home.loveSongs'), tracks: romanticData?.results ?? [] })} />
           {romanticLoading
@@ -192,7 +290,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           }
         </View>
 
-        {/* ── Punjabi ────────────────────────────────────────────────────── */}
         <View style={styles.section}>
           <SectionHeader title={t('home.punjabiHits')} onSeeAll={() => navigation.navigate('TrackList', { title: t('home.punjabiHits'), tracks: punjabData?.results ?? [] })} />
           {punjabLoading
@@ -206,105 +303,3 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
-  scroll: { flex: 1 },
-  section: { marginBottom: 4 },
-  horizontalList: { paddingHorizontal: 16, paddingBottom: 4 },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 20,
-  },
-  greeting: { fontSize: 12, color: Colors.textSecondary, fontWeight: '400', marginBottom: 2 },
-  headerTitle: { fontSize: 24, fontWeight: '700', color: Colors.text, letterSpacing: -0.3 },
-  searchBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-  },
-  searchBtnGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.glass },
-
-  // ── Featured ──────────────────────────────────────────────────────────────
-  featuredBanner: {
-    marginHorizontal: 16,
-    height: 210,
-    borderRadius: 24,
-    overflow: 'hidden',
-    backgroundColor: Colors.surface2,
-  },
-  featuredContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 18,
-  },
-  featuredBadgeWrap: {
-    overflow: 'hidden',
-    borderRadius: 20,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-  },
-  featuredBadgeText: { fontSize: 10, fontWeight: '700', color: Colors.textSecondary, letterSpacing: 1, textTransform: 'uppercase' },
-  featuredTitle: { fontSize: 20, fontWeight: '700', color: Colors.text, letterSpacing: -0.3 },
-  featuredArtist: { fontSize: 13, color: Colors.textSecondary, marginTop: 3, marginBottom: 14 },
-  featuredActions: { flexDirection: 'row', gap: 10 },
-  featuredPlayBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.accent,
-    borderRadius: 24,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    gap: 6,
-  },
-  featuredPlayText: { fontSize: 13, fontWeight: '700', color: '#000' },
-  featuredShuffleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-  },
-  featuredShuffleText: { fontSize: 13, fontWeight: '600', color: Colors.text },
-
-  // ── Quick Picks ───────────────────────────────────────────────────────────
-  quickPicksGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  quickPickItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
-    borderRadius: 16,
-    width: (SCREEN_WIDTH - 48) / 2,
-    height: 56,
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-  },
-  quickPickGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.glass },
-  quickPickImage: { width: 56, height: 56, borderRadius: 0 },
-  quickPickTitle: { flex: 1, fontSize: 12, fontWeight: '600', color: Colors.text, paddingHorizontal: 10 },
-});

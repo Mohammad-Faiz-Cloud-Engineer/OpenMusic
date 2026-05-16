@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -20,7 +20,7 @@ import { ChartsScreen } from '../screens/ChartsScreen';
 import { MyPlaylistsScreen } from '../screens/MyPlaylistsScreen';
 import { UserPlaylistDetailScreen } from '../screens/UserPlaylistDetailScreen';
 import { MiniPlayer } from '../components/MiniPlayer';
-import { Colors } from '../theme/colors';
+import { useTheme } from '../theme';
 import { usePlayerStore } from '../store/playerStore';
 import { linking } from './linking';
 import type { RootStackParamList, TabParamList } from './types';
@@ -37,8 +37,28 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
   const { t } = useTranslation();
   const { currentTrack } = usePlayerStore();
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
 
   const tabBarTotalHeight = TAB_BAR_HEIGHT + insets.bottom;
+
+  const tabStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        tabBarGlass: {
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: isDark ? 'rgba(15,15,25,0.82)' : 'rgba(252,252,254,0.92)',
+        },
+        tabBarTopBorder: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          backgroundColor: colors.glassBorder,
+        },
+      }),
+    [colors.glassBorder, isDark]
+  );
 
   return (
     <View style={styles.tabRoot}>
@@ -57,13 +77,13 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
           },
           tabBarBackground: () => (
             <View style={StyleSheet.absoluteFill}>
-              <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
-              <View style={styles.tabBarGlass} />
-              <View style={styles.tabBarTopBorder} />
+              <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+              <View style={tabStyles.tabBarGlass} />
+              <View style={tabStyles.tabBarTopBorder} />
             </View>
           ),
-          tabBarActiveTintColor: Colors.text,
-          tabBarInactiveTintColor: Colors.textMuted,
+          tabBarActiveTintColor: colors.text,
+          tabBarInactiveTintColor: colors.textMuted,
           tabBarLabelStyle: {
             fontSize: 10,
             fontWeight: '600',
@@ -102,9 +122,11 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
 }
 
 export function AppNavigator() {
+  const { colors } = useTheme();
+
   return (
     <NavigationContainer ref={rootNavigationRef} linking={linking}>
-      <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: Colors.bg } }}>
+      <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: colors.bg } }}>
         <Stack.Screen name="Tabs" component={TabNavigator} />
         <Stack.Screen
           name="Player"
@@ -113,10 +135,10 @@ export function AppNavigator() {
             presentation: 'modal',
             gestureEnabled: true,
             cardOverlayEnabled: false,
-            cardStyle: { backgroundColor: Colors.bg },
+            cardStyle: { backgroundColor: colors.bg },
             cardStyleInterpolator: ({ current, layouts }) => ({
               cardStyle: {
-                backgroundColor: Colors.bg,
+                backgroundColor: colors.bg,
                 transform: [{
                   translateY: current.progress.interpolate({
                     inputRange: [0, 1],
@@ -139,16 +161,4 @@ export function AppNavigator() {
 
 const styles = StyleSheet.create({
   tabRoot: { flex: 1 },
-  tabBarGlass: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15,15,25,0.82)',
-  },
-  tabBarTopBorder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: Colors.glassBorder,
-  },
 });
