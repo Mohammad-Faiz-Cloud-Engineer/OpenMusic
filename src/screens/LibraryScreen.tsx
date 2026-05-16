@@ -24,7 +24,6 @@ import type { RootStackParamList, TabParamList } from '../navigation/types';
 import { a11yButton } from '../utils/a11y';
 import { TrackCard } from '../components/TrackCard';
 
-// Resolved once at module load — avoids repeated require() calls inside render
 const placeholder = require('../../assets/placeholder.png');
 
 type LibraryTab = 'queue' | 'recent';
@@ -82,17 +81,14 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Ambient bg */}
       <LinearGradient colors={Gradients.ambientBg} style={StyleSheet.absoluteFill} />
 
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
         <Text style={styles.headerTitle} accessibilityRole="header">
           {t('library.title')}
         </Text>
       </View>
 
-      {/* ── Tabs ───────────────────────────────────────────────────────────── */}
       <View style={styles.tabs}>
         {(['queue', 'recent'] as LibraryTab[]).map((tab) => (
           <TouchableOpacity
@@ -111,12 +107,10 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
         ))}
       </View>
 
-      {/* ── Queue tab ──────────────────────────────────────────────────────── */}
       {activeTab === 'queue' && (
         <>
           {queue.length > 0 ? (
             <>
-              {/* Now playing — glass card */}
               {currentTrack && (
                 <TouchableOpacity
                   style={styles.nowPlayingCard}
@@ -143,7 +137,6 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
                 </TouchableOpacity>
               )}
 
-              {/* Queue header */}
               <View style={styles.queueHeader}>
                 <Text style={styles.queueHeaderTitle}>
                   {t('library.nextUp', { count: queue.length })}
@@ -180,7 +173,6 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
         </>
       )}
 
-      {/* ── Recent tab ─────────────────────────────────────────────────────── */}
       {activeTab === 'recent' &&
         (recentTracks.length > 0 ? (
           <FlatList
@@ -209,7 +201,6 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
   headerTitle: { fontSize: 28, fontWeight: '700', color: Colors.text, letterSpacing: -0.3 },
 
-  // ── Tabs ──────────────────────────────────────────────────────────────────
   tabs: {
     flexDirection: 'row',
     paddingHorizontal: 16,
@@ -232,7 +223,6 @@ const styles = StyleSheet.create({
   tabText: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
   tabTextActive: { color: '#000' },
 
-  // ── Now Playing ───────────────────────────────────────────────────────────
   nowPlayingCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -255,7 +245,6 @@ const styles = StyleSheet.create({
   nowPlayingTitle: { fontSize: 14, fontWeight: '600', color: Colors.text },
   nowPlayingArtist: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
 
-  // ── Queue ─────────────────────────────────────────────────────────────────
   queueHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -297,7 +286,6 @@ const styles = StyleSheet.create({
   removeBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   activeText: { color: Colors.accent },
 
-  // ── Empty ─────────────────────────────────────────────────────────────────
   emptyState: {
     flex: 1, alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 32, gap: 10,

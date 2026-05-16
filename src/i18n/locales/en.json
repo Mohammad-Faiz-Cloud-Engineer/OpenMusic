@@ -1,6 +1,8 @@
 {
   "common": {
     "seeAll": "See all",
+    "cancel": "Cancel",
+    "create": "Create",
     "retry": "Retry",
     "play": "Play",
     "pause": "Pause",
@@ -21,7 +23,11 @@
   "tabs": {
     "home": "Home",
     "search": "Search",
+    "collection": "Collection",
     "library": "Library"
+  },
+  "collection": {
+    "title": "Collection"
   },
   "home": {
     "greetingMorning": "Good morning",
@@ -48,6 +54,24 @@
   },
   "library": {
     "title": "Library",
+    "likedSongs": "Liked songs",
+    "likedSubtitle": "{{count}} saved songs",
+    "yourPlaylists": "Your playlists",
+    "playlistPreviewMore": "{{count}} more",
+    "playlistsEmpty": "No playlists yet",
+    "playlistsEmptyHint": "Create a playlist from the player menu or tap below.",
+    "createPlaylist": "New playlist",
+    "playlistNamePlaceholder": "Playlist name",
+    "defaultPlaylistName": "My playlist",
+    "deletePlaylistTitle": "Delete playlist?",
+    "deletePlaylistMessage": "Remove \"{{name}}\" and all songs in it?",
+    "deletePlaylistA11y": "Delete {{name}}",
+    "delete": "Delete",
+    "playlistMissing": "This playlist could not be found.",
+    "removeFromPlaylistTitle": "Remove song?",
+    "removeFromPlaylistMessage": "Remove \"{{title}}\" from this playlist?",
+    "removeFromPlaylistA11y": "Remove {{title}} from playlist",
+    "userPlaylistEmpty": "Add songs while playing — use the ••• menu on the player.",
     "queue": "Queue",
     "recent": "Recent",
     "nowPlaying": "NOW PLAYING",
@@ -70,7 +94,14 @@
     "controlsGuide": "Controls Guide",
     "controlsGuideSubtitle": "What each button does",
     "gotIt": "Got it",
+    "unlike": "Remove from liked songs",
     "menu": "More Options",
+    "addToPlaylist": "Add to playlist",
+    "addToPlaylistSubtitle": "Save this track to one of your playlists",
+    "newPlaylistDotMenu": "New playlist…",
+    "choosePlaylist": "Choose playlist",
+    "addedToPlaylist": "Added to \"{{name}}\".",
+    "alreadyInPlaylist": "That song is already in \"{{name}}\".",
     "controls": {
       "shuffle": "Shuffle",
       "shuffleDesc": "Plays songs in random order.",

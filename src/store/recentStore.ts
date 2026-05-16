@@ -1,15 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { Track } from '../api/jiosaavn';
+import { sanitizeTrackForStorage } from '../utils/storageTrack';
 
 const STORAGE_KEY = '@openmusic/recent';
 const MAX_RECENT = 50;
-
-/** Strip ephemeral CDN URLs — recent list is UI metadata only */
-const sanitizeTrackForStorage = (track: Track): Track => ({
-  ...track,
-  stream_url: null,
-});
 
 interface RecentState {
   tracks: Track[];

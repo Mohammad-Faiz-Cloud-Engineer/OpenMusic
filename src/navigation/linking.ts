@@ -9,6 +9,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
         screens: {
           Home: 'home',
           Search: 'search',
+          Collection: 'collection',
           Library: 'library',
         },
       },

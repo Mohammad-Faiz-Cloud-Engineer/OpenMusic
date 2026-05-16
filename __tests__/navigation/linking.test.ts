@@ -16,6 +16,7 @@ describe('deep linking config', () => {
     const tabs = screens.Tabs as { screens: Record<string, string> };
     expect(tabs.screens.Home).toBe('home');
     expect(tabs.screens.Search).toBe('search');
+    expect(tabs.screens.Collection).toBe('collection');
     expect(tabs.screens.Library).toBe('library');
   });
 });

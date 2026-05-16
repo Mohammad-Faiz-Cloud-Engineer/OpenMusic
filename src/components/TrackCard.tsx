@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import {
   View,
   Text,
@@ -26,10 +26,12 @@ interface TrackCardProps {
   variant?: 'grid' | 'list' | 'horizontal';
   showIndex?: number;
   onPress?: () => void;
+  /** Shown beside list rows (e.g. remove from playlist) */
+  trailing?: ReactNode;
 }
 
 export const TrackCard: React.FC<TrackCardProps> = ({
-  track, queue, variant = 'list', showIndex, onPress,
+  track, queue, variant = 'list', showIndex, onPress, trailing,
 }) => {
   const { playTrack, currentTrack, isPlaying } = usePlayerStore();
   const isActive = currentTrack?.id === track.id;
@@ -88,9 +90,13 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   }
 
   // ── List (default) ────────────────────────────────────────────────────────
-  return (
+  const listCard = (
     <TouchableOpacity
-      style={[styles.listCard, isActive && styles.listCardActive]}
+      style={[
+        styles.listCard,
+        isActive && styles.listCardActive,
+        trailing ? styles.listCardFlex : null,
+      ]}
       onPress={handlePress}
       activeOpacity={0.75}
       {...a11yButton(`${track.title} by ${track.artist}`)}
@@ -133,6 +139,17 @@ export const TrackCard: React.FC<TrackCardProps> = ({
       </View>
     </TouchableOpacity>
   );
+
+  if (trailing !== undefined) {
+    return (
+      <View style={styles.listWithTrailing}>
+        {listCard}
+        <View style={styles.trailingSlot}>{trailing}</View>
+      </View>
+    );
+  }
+
+  return listCard;
 };
 
 const EqualizerBars: React.FC<{ small?: boolean }> = ({ small }) => {
@@ -184,6 +201,14 @@ const styles = StyleSheet.create({
   horizontalArtist: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
 
   // ── List ──────────────────────────────────────────────────────────────────
+  listWithTrailing: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 8,
+    marginVertical: 2,
+  },
+  listCardFlex: { flex: 1, marginHorizontal: 0, marginVertical: 0 },
+  trailingSlot: { paddingLeft: 4, paddingRight: 4, justifyContent: 'center' },
   listCard: {
     flexDirection: 'row',
     alignItems: 'center',

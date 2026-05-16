@@ -12,10 +12,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeScreen } from '../screens/HomeScreen';
 import { SearchScreen } from '../screens/SearchScreen';
 import { LibraryScreen } from '../screens/LibraryScreen';
+import { CollectionScreen } from '../screens/CollectionScreen';
 import { PlayerScreen } from '../screens/PlayerScreen';
 import { PlaylistScreen } from '../screens/PlaylistScreen';
 import { TrackListScreen } from '../screens/TrackListScreen';
 import { ChartsScreen } from '../screens/ChartsScreen';
+import { MyPlaylistsScreen } from '../screens/MyPlaylistsScreen';
+import { UserPlaylistDetailScreen } from '../screens/UserPlaylistDetailScreen';
 import { MiniPlayer } from '../components/MiniPlayer';
 import { Colors } from '../theme/colors';
 import { usePlayerStore } from '../store/playerStore';
@@ -73,6 +76,8 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
               iconName = focused ? 'home' : 'home-outline';
             else if (route.name === 'Search')
               iconName = focused ? 'search' : 'search-outline';
+            else if (route.name === 'Collection')
+              iconName = focused ? 'albums' : 'albums-outline';
             else if (route.name === 'Library')
               iconName = focused ? 'library' : 'library-outline';
             return <Ionicons name={iconName} size={22} color={color} />;
@@ -81,6 +86,7 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
       >
         <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t('tabs.home') }} />
         <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: t('tabs.search') }} />
+        <Tab.Screen name="Collection" component={CollectionScreen} options={{ tabBarLabel: t('tabs.collection') }} />
         <Tab.Screen name="Library" component={LibraryScreen} options={{ tabBarLabel: t('tabs.library') }} />
       </Tab.Navigator>
 
@@ -123,6 +129,8 @@ export function AppNavigator() {
         <Stack.Screen name="Playlist" component={PlaylistScreen} options={{ presentation: 'card' }} />
         <Stack.Screen name="TrackList" component={TrackListScreen} options={{ presentation: 'card' }} />
         <Stack.Screen name="Charts" component={ChartsScreen} options={{ presentation: 'card' }} />
+        <Stack.Screen name="MyPlaylists" component={MyPlaylistsScreen} options={{ presentation: 'card' }} />
+        <Stack.Screen name="UserPlaylist" component={UserPlaylistDetailScreen} options={{ presentation: 'card' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

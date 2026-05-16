@@ -9,6 +9,8 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { OfflineBanner } from './src/components/OfflineBanner';
 import { useRecentStore } from './src/store/recentStore';
+import { useLikeStore } from './src/store/likeStore';
+import { useUserPlaylistStore } from './src/store/userPlaylistStore';
 
 onlineManager.setEventListener((setOnline) =>
   NetInfo.addEventListener((state) => {
@@ -33,10 +35,14 @@ const queryClient = new QueryClient({
 
 export default function App() {
   const hydrateRecent = useRecentStore((s) => s.hydrate);
+  const hydrateLikes = useLikeStore((s) => s.hydrate);
+  const hydratePlaylists = useUserPlaylistStore((s) => s.hydrate);
 
   useEffect(() => {
     void hydrateRecent();
-  }, [hydrateRecent]);
+    void hydrateLikes();
+    void hydratePlaylists();
+  }, [hydrateRecent, hydrateLikes, hydratePlaylists]);
 
   return (
     <GestureHandlerRootView style={styles.root}>

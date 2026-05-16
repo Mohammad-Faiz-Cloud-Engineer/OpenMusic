@@ -10,12 +10,19 @@ import {
   ScrollView,
   Modal,
   Pressable,
+  Alert,
+  FlatList,
+  TextInput,
+  Platform,
+  KeyboardAvoidingView,
   type GestureResponderEvent,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { usePlayerStore, RepeatMode } from '../store/playerStore';
+import { useLikeStore } from '../store/likeStore';
+import { useUserPlaylistStore, PLAYLIST_NAME_MAX } from '../store/userPlaylistStore';
 import { Colors, Gradients } from '../theme/colors';
 import { formatDuration } from '../api/jiosaavn';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -44,6 +51,48 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
   const seekBarWidth = useRef(0);
   const [showGuide, setShowGuide] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showPlaylistPicker, setShowPlaylistPicker] = useState(false);
+  const [showNewPlaylistPrompt, setShowNewPlaylistPrompt] = useState(false);
+  const [newPlaylistNameInput, setNewPlaylistNameInput] = useState('');
+
+  const likedIds = useLikeStore((s) => s.likedIds);
+  const toggleLikeTrack = useLikeStore((s) => s.toggleLike);
+  const isLikedSong = Boolean(currentTrack && likedIds.has(currentTrack.id));
+  const userPlaylists = useUserPlaylistStore((s) => s.playlists);
+  const addTrackToPlaylistStore = useUserPlaylistStore((s) => s.addTrackToPlaylist);
+  const createPlaylistStore = useUserPlaylistStore((s) => s.createPlaylist);
+
+  const onPickPlaylistForCurrent = useCallback(
+    async (playlistId: string, playlistDisplayName: string) => {
+      if (!currentTrack) return;
+      const ok = await addTrackToPlaylistStore(playlistId, currentTrack);
+      setShowPlaylistPicker(false);
+      Alert.alert(
+        '',
+        ok
+          ? t('player.addedToPlaylist', { name: playlistDisplayName })
+          : t('player.alreadyInPlaylist', { name: playlistDisplayName })
+      );
+    },
+    [addTrackToPlaylistStore, currentTrack, t]
+  );
+
+  const submitInlineNewPlaylist = useCallback(async () => {
+    if (!currentTrack) return;
+    const nameNorm = newPlaylistNameInput.trim() || t('library.defaultPlaylistName');
+    const playlistId = await createPlaylistStore(nameNorm);
+    await addTrackToPlaylistStore(playlistId, currentTrack);
+    setShowNewPlaylistPrompt(false);
+    setNewPlaylistNameInput('');
+    setShowPlaylistPicker(false);
+    Alert.alert('', t('player.addedToPlaylist', { name: nameNorm }));
+  }, [
+    addTrackToPlaylistStore,
+    createPlaylistStore,
+    currentTrack,
+    newPlaylistNameInput,
+    t,
+  ]);
 
   React.useEffect(() => {
     Animated.spring(artworkScale, {
@@ -142,8 +191,17 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             <Text style={styles.trackTitle} numberOfLines={1}>{currentTrack.title}</Text>
             <Text style={styles.trackArtist} numberOfLines={1}>{currentTrack.artist}</Text>
           </View>
-          <TouchableOpacity style={styles.likeBtn} {...a11yButton(t('player.controls.like'))}>
-            <Ionicons name="heart-outline" size={24} color={Colors.textSecondary} />
+          <TouchableOpacity
+            style={styles.likeBtn}
+            onPress={() => void toggleLikeTrack(currentTrack)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            {...a11yButton(isLikedSong ? t('player.unlike') : t('player.controls.like'))}
+          >
+            <Ionicons
+              name={isLikedSong ? 'heart' : 'heart-outline'}
+              size={24}
+              color={isLikedSong ? Colors.accent : Colors.textSecondary}
+            />
           </TouchableOpacity>
         </View>
 
@@ -245,6 +303,25 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
               style={styles.sheetItem}
               onPress={() => {
                 setShowMenu(false);
+                setShowPlaylistPicker(true);
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.sheetIconWrap}>
+                <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+                <View style={styles.sheetIconGlass} />
+                <Ionicons name="list-circle-outline" size={20} color={Colors.text} />
+              </View>
+              <View style={styles.sheetItemText}>
+                <Text style={styles.sheetItemLabel}>{t('player.addToPlaylist')}</Text>
+                <Text style={styles.sheetItemSub}>{t('player.addToPlaylistSubtitle')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.sheetItem}
+              onPress={() => {
+                setShowMenu(false);
                 guideTimerRef.current = setTimeout(() => setShowGuide(true), 250);
               }}
               activeOpacity={0.7}
@@ -262,6 +339,131 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             </TouchableOpacity>
           </Pressable>
         </Pressable>
+      </Modal>
+
+      {/* ── Add to playlist ─────────────────────────────────────────────────── */}
+      <Modal
+        visible={showPlaylistPicker}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={() => setShowPlaylistPicker(false)}
+      >
+        <Pressable style={styles.sheetOverlay} onPress={() => setShowPlaylistPicker(false)}>
+          <Pressable style={[styles.sheet, styles.playlistPickSheet]} onPress={() => {}}>
+            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+            <View style={styles.sheetGlass} />
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>{t('player.choosePlaylist')}</Text>
+            <FlatList
+              data={userPlaylists}
+              keyExtractor={(p) => p.id}
+              style={styles.playlistPickList}
+              ListHeaderComponent={
+                <TouchableOpacity
+                  style={styles.sheetItem}
+                  onPress={() => {
+                    setShowPlaylistPicker(false);
+                    setShowNewPlaylistPrompt(true);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.sheetIconWrap}>
+                    <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+                    <View style={styles.sheetIconGlass} />
+                    <Ionicons name="add-circle-outline" size={22} color={Colors.accent} />
+                  </View>
+                  <View style={styles.sheetItemText}>
+                    <Text style={styles.sheetItemLabel}>{t('player.newPlaylistDotMenu')}</Text>
+                    <Text style={styles.sheetItemSub}>{t('library.playlistNamePlaceholder')}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+                </TouchableOpacity>
+              }
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.sheetItem}
+                  onPress={() => void onPickPlaylistForCurrent(item.id, item.name)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.sheetIconWrap}>
+                    <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+                    <View style={styles.sheetIconGlass} />
+                    <Ionicons name="musical-notes" size={18} color={Colors.textSecondary} />
+                  </View>
+                  <View style={styles.sheetItemText}>
+                    <Text style={styles.sheetItemLabel}>{item.name}</Text>
+                    <Text style={styles.sheetItemSub}>
+                      {t('common.songs', { count: item.tracks.length })}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                <Text style={styles.playlistPickEmpty}>{t('library.playlistsEmptyHint')}</Text>
+              }
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* ── New playlist name ───────────────────────────────────────────────── */}
+      <Modal
+        visible={showNewPlaylistPrompt}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => {
+          setShowNewPlaylistPrompt(false);
+          setNewPlaylistNameInput('');
+        }}
+      >
+        <KeyboardAvoidingView
+          style={styles.newPlOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => {
+              setShowNewPlaylistPrompt(false);
+              setNewPlaylistNameInput('');
+            }}
+          />
+          <View style={styles.newPlCard}>
+            <BlurView intensity={44} tint="dark" style={StyleSheet.absoluteFill} />
+            <View style={styles.newPlGlass} />
+            <Text style={styles.newPlTitle}>{t('library.createPlaylist')}</Text>
+            <TextInput
+              value={newPlaylistNameInput}
+              onChangeText={setNewPlaylistNameInput}
+              placeholder={t('library.playlistNamePlaceholder')}
+              placeholderTextColor={Colors.textMuted}
+              style={styles.newPlInput}
+              maxLength={PLAYLIST_NAME_MAX}
+              autoFocus
+              autoCorrect={false}
+              autoCapitalize="sentences"
+            />
+            <View style={styles.newPlBtns}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowNewPlaylistPrompt(false);
+                  setNewPlaylistNameInput('');
+                }}
+                style={styles.newPlBtnGhost}
+              >
+                <Text style={styles.newPlBtnGhostText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => void submitInlineNewPlaylist()}
+                style={styles.newPlBtnPrimary}
+              >
+                <Text style={styles.newPlBtnPrimaryText}>{t('common.create')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* ── Controls guide sheet ─────────────────────────────────────────────── */}
@@ -447,6 +649,65 @@ const styles = StyleSheet.create({
   sheetItemText: { flex: 1 },
   sheetItemLabel: { fontSize: 15, fontWeight: '600', color: Colors.text },
   sheetItemSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+
+  playlistPickSheet: { maxHeight: '78%' },
+  playlistPickList: { maxHeight: SCREEN_HEIGHT * 0.52 },
+  playlistPickEmpty: {
+    paddingVertical: 20,
+    paddingHorizontal: 8,
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+
+  newPlOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    padding: 28,
+  },
+  newPlCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+  },
+  newPlGlass: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(18,18,28,0.96)',
+  },
+  newPlTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 14,
+  },
+  newPlInput: {
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: Platform.OS === 'ios' ? 13 : 10,
+    fontSize: 16,
+    color: Colors.text,
+    marginBottom: 18,
+  },
+  newPlBtns: { flexDirection: 'row', justifyContent: 'flex-end', gap: 16 },
+  newPlBtnGhost: { paddingVertical: 10 },
+  newPlBtnGhostText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  newPlBtnPrimary: {
+    backgroundColor: Colors.text,
+    borderRadius: 20,
+    paddingVertical: 11,
+    paddingHorizontal: 20,
+  },
+  newPlBtnPrimaryText: { fontSize: 15, fontWeight: '700', color: '#000' },
 
   // ── Guide ─────────────────────────────────────────────────────────────────
   guideScroll: { flexGrow: 0 },
