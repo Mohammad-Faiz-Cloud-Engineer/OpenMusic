@@ -60,21 +60,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const isRefreshing = chartsFetching || trendingFetching;
   const onRefresh = useCallback(() => { refetchCharts(); refetchTrending(); }, [refetchCharts, refetchTrending]);
 
-  const greeting = useMemo(() => {
+  const getGreeting = useCallback(() => {
     const h = new Date().getHours();
     if (h < 12) return t('home.greetingMorning');
     if (h < 17) return t('home.greetingAfternoon');
     if (h < 21) return t('home.greetingEvening');
     return t('home.greetingNight');
   }, [t]);
-
-  const featuredOverlayColors = useMemo(
-    () =>
-      isDark
-        ? (['transparent', 'rgba(0,0,0,0.95)'] as const)
-        : (['transparent', 'rgba(255,255,255,0.94)'] as const),
-    [isDark]
-  );
 
   const styles = useMemo(
     () =>
@@ -177,7 +169,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     [colors]
   );
 
-  const renderFeaturedBanner = useCallback(() => {
+  const featuredOverlayColors = isDark
+    ? (['transparent', 'rgba(0,0,0,0.95)'] as const)
+    : (['transparent', 'rgba(255,255,255,0.94)'] as const);
+
+  const renderFeaturedBanner = () => {
     const tracks = trendingData?.results?.slice(0, 5) ?? [];
     if (!tracks.length) return null;
     const featured = tracks[0];
@@ -212,9 +208,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         </View>
       </TouchableOpacity>
     );
-  }, [trendingData, styles, featuredOverlayColors, isDark, t, playQueue, colors.text]);
+  };
 
-  const renderQuickPicks = useCallback(() => {
+  const renderQuickPicks = () => {
     const tracks = trendingData?.results?.slice(0, 6) ?? [];
     if (!tracks.length) return null;
     return (
@@ -232,7 +228,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         ))}
       </View>
     );
-  }, [trendingData, styles, isDark, playQueue]);
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -245,7 +241,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>{greeting}</Text>
+            <Text style={styles.greeting}>{getGreeting()}</Text>
             <Text style={styles.headerTitle}>{t('home.headline')}</Text>
           </View>
           <TouchableOpacity style={styles.searchBtn} onPress={() => navigation.navigate('Search')} {...a11yButton(t('tabs.search'))}>

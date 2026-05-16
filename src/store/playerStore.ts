@@ -1,10 +1,5 @@
 import { create } from 'zustand';
-import {
-  createAudioPlayer,
-  setAudioModeAsync,
-  type AudioPlayer,
-  type AudioStatus,
-} from 'expo-audio';
+import { Audio, AVPlaybackStatus } from 'expo-av';
 import { Track, getStreamUrl, getProxyPlayUrl } from '../api/jiosaavn';
 import { useRecentStore } from './recentStore';
 import { devError, devWarn } from '../utils/devLog';
@@ -29,7 +24,7 @@ interface PlayerState {
   currentTrack: Track | null;
 
   // Playback
-  sound: AudioPlayer | null;
+  sound: Audio.Sound | null;
   isPlaying: boolean;
   isLoading: boolean;
   position: number;       // ms
@@ -96,30 +91,24 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           : [track];
     const finalIndex = foundIndex >= 0 ? foundIndex : 0;
 
-    // Bump generation and kill the current sound atomically before any async work.
-    // Reading sound from get() here (not from the stale `state` snapshot) ensures
-    // that even if two playTrack calls race, the second one always removes whatever
-    // player the first one may have already stored in state.
-    const soundToRemove = get().sound;
     set({
       isLoading: true,
       currentTrack: track,
       queue: finalQueue,
       currentIndex: finalIndex,
       playGeneration: generation,
-      sound: null,          // clear immediately so no other call can double-remove it
-      isPlaying: false,
     });
-
-    if (soundToRemove) {
-      soundToRemove.remove();
-    }
 
     if (openFullPlayer) {
       requestOpenFullPlayer();
     }
 
+    const previousSound = state.sound;
+
     try {
+      if (previousSound) {
+        await previousSound.unloadAsync();
+      }
       if (isStale()) return;
 
       // Step 1: resolve the signed CDN URL.
@@ -127,7 +116,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       // trip to the API for every track play and prevents hammering the HF
       // rate limiter (120 req/60s).
       let streamUrl: string;
-      const cached = get().streamCache[track.id];
+      const cached = state.streamCache[track.id];
 
       if (cached && !isCacheExpired(cached)) {
         // Cache hit — use the existing signed URL directly
@@ -139,7 +128,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           if (!streamData.stream_url) {
             throw new Error('No stream URL returned');
           }
-          // web.saavncdn.com needs Referer headers expo-audio does not send (403).
+          // web.saavncdn.com needs Referer headers expo-av does not send (403).
           streamUrl = streamData.stream_url.replace('web.saavncdn.com', 'aac.saavncdn.com');
           if (isStale()) return;
           // Cache it for the duration of its validity
@@ -158,57 +147,43 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       if (isStale()) return;
 
       // Step 2: configure audio session
-      await setAudioModeAsync({
-        playsInSilentMode: true,
-        shouldPlayInBackground: true,
-        interruptionMode: 'duckOthers',
-        shouldRouteThroughEarpiece: false,
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        staysActiveInBackground: true,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
       });
 
-      if (isStale()) return;
-
-      // Step 3: create player and subscribe to status updates.
-      // expo-audio uses a synchronous createAudioPlayer() instead of
-      // the async Audio.Sound.createAsync(). The status callback is
-      // registered via addListener rather than passed to the factory.
-      // Note: expo-audio reports currentTime/duration in SECONDS, not ms.
-      const player = createAudioPlayer(
+      // Step 3: load and play — expo-av uses range requests against the
+      // signed CDN URL directly, no proxy in the hot path.
+      const { sound } = await Audio.Sound.createAsync(
         { uri: streamUrl },
-        { updateInterval: 1000 },
-      );
-
-      player.addListener('playbackStatusUpdate', (status: AudioStatus) => {
-        // Guard: discard events from any player that is no longer the active generation
-        if (get().playGeneration !== generation) return;
-        if (!status.isLoaded) return;
-        const s = get();
-        if (!s.isSeeking) {
-          // Convert seconds → milliseconds to keep the rest of the app unchanged
-          set({
-            position: Math.floor(status.currentTime * 1000),
-            duration: Math.floor(status.duration * 1000),
-          });
-        }
-        if (status.didJustFinish) {
-          // Only auto-advance if this generation is still the active one AND
-          // the player stored in state is still this exact player instance.
-          // This prevents a finishing song from triggering next() when the user
-          // has already started playing something else.
-          if (get().sound === player) {
+        { shouldPlay: true, progressUpdateIntervalMillis: 1000 },
+        (status: AVPlaybackStatus) => {
+          if (get().playGeneration !== generation) return;
+          if (!status.isLoaded) {
+            if ('error' in status && status.error) {
+              devError('[player] playback error:', status.error);
+            }
+            return;
+          }
+          const s = get();
+          if (!s.isSeeking) {
+            set({ position: status.positionMillis, duration: status.durationMillis ?? 0 });
+          }
+          if (status.didJustFinish) {
             void get().next().catch((err) => devError('[player] auto-advance:', err));
           }
         }
-      });
+      );
 
-      // Final stale check — if another playTrack won the race while we were
-      // awaiting the stream URL or audio mode, discard this player immediately.
       if (isStale()) {
-        player.remove();
+        await sound.unloadAsync();
         return;
       }
 
-      player.play();
-      set({ sound: player, isPlaying: true, isLoading: false, position: 0 });
+      set({ sound, isPlaying: true, isLoading: false, position: 0 });
       void useRecentStore.getState().addRecent(track);
     } catch (err) {
       if (!isStale()) {
@@ -231,9 +206,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set({ isPlaying: !wasPlaying });
     try {
       if (wasPlaying) {
-        sound.pause();
+        await sound.pauseAsync();
       } else {
-        sound.play();
+        await sound.playAsync();
       }
     } catch (err) {
       devError('[player] togglePlay:', err);
@@ -277,8 +252,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (position > 3000) {
       const { sound } = get();
       if (sound) {
-        // expo-audio seekTo takes seconds, position is stored in ms
-        sound.seekTo(0);
+        await sound.setPositionAsync(0);
         set({ position: 0 });
       }
       return;
@@ -295,8 +269,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   seekTo: async (positionMs) => {
     const { sound } = get();
     if (!sound) return;
-    // expo-audio seekTo takes seconds; positionMs is in milliseconds
-    sound.seekTo(positionMs / 1000);
+    await sound.setPositionAsync(positionMs);
     set({ position: positionMs, isSeeking: false });
   },
 
@@ -319,7 +292,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   clearQueue: () => {
     const { sound } = get();
     if (sound) {
-      sound.remove();
+      sound.unloadAsync().catch(() => undefined);
     }
     set({
       queue: [],

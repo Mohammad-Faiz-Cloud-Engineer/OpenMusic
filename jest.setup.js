@@ -13,16 +13,20 @@ jest.mock('@expo/vector-icons', () => {
   };
 });
 
-jest.mock('expo-audio', () => ({
-  createAudioPlayer: jest.fn(() => ({
-    play: jest.fn(),
-    pause: jest.fn(),
-    remove: jest.fn(),
-    seekTo: jest.fn(),
-    replace: jest.fn(),
-    addListener: jest.fn(() => ({ remove: jest.fn() })),
-  })),
-  setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
+jest.mock('expo-av', () => ({
+  Audio: {
+    setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
+    Sound: {
+      createAsync: jest.fn().mockResolvedValue({
+        sound: {
+          unloadAsync: jest.fn().mockResolvedValue(undefined),
+          pauseAsync: jest.fn().mockResolvedValue(undefined),
+          playAsync: jest.fn().mockResolvedValue(undefined),
+          setPositionAsync: jest.fn().mockResolvedValue(undefined),
+        },
+      }),
+    },
+  },
 }));
 
 jest.mock('@react-native-async-storage/async-storage', () =>

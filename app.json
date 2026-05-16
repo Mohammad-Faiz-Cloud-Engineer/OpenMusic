@@ -64,7 +64,7 @@
     },
     "plugins": [
       [
-        "expo-audio",
+        "expo-av",
         {
           "microphonePermission": false
         }

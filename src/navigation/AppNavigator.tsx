@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -60,60 +60,51 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
     [colors.glassBorder, isDark]
   );
 
-  const TabBarBackground = useCallback(
-    () => (
-      <View style={StyleSheet.absoluteFill}>
-        <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-        <View style={tabStyles.tabBarGlass} />
-        <View style={tabStyles.tabBarTopBorder} />
-      </View>
-    ),
-    [isDark, tabStyles]
-  );
-
-  const screenOptions = useMemo(
-    () =>
-      ({ route }: { route: { name: string } }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          position: 'absolute' as const,
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: tabBarTotalHeight,
-          backgroundColor: 'transparent',
-          borderTopWidth: 0,
-          elevation: 0,
-        },
-        tabBarBackground: TabBarBackground,
-        tabBarActiveTintColor: colors.text,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '600' as const,
-          letterSpacing: 0.3,
-          marginBottom: 4,
-        },
-        tabBarItemStyle: { paddingTop: 6 },
-        tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => {
-          let iconName: keyof typeof Ionicons.glyphMap = 'home';
-          if (route.name === 'Home')
-            iconName = focused ? 'home' : 'home-outline';
-          else if (route.name === 'Search')
-            iconName = focused ? 'search' : 'search-outline';
-          else if (route.name === 'Collection')
-            iconName = focused ? 'albums' : 'albums-outline';
-          else if (route.name === 'Library')
-            iconName = focused ? 'library' : 'library-outline';
-          return <Ionicons name={iconName} size={22} color={color} />;
-        },
-      }),
-    [tabBarTotalHeight, TabBarBackground, colors.text, colors.textMuted]
-  );
-
   return (
     <View style={styles.tabRoot}>
-      <Tab.Navigator screenOptions={screenOptions}>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarStyle: {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: tabBarTotalHeight,
+            backgroundColor: 'transparent',
+            borderTopWidth: 0,
+            elevation: 0,
+          },
+          tabBarBackground: () => (
+            <View style={StyleSheet.absoluteFill}>
+              <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+              <View style={tabStyles.tabBarGlass} />
+              <View style={tabStyles.tabBarTopBorder} />
+            </View>
+          ),
+          tabBarActiveTintColor: colors.text,
+          tabBarInactiveTintColor: colors.textMuted,
+          tabBarLabelStyle: {
+            fontSize: 10,
+            fontWeight: '600',
+            letterSpacing: 0.3,
+            marginBottom: 4,
+          },
+          tabBarItemStyle: { paddingTop: 6 },
+          tabBarIcon: ({ focused, color }) => {
+            let iconName: keyof typeof Ionicons.glyphMap = 'home';
+            if (route.name === 'Home')
+              iconName = focused ? 'home' : 'home-outline';
+            else if (route.name === 'Search')
+              iconName = focused ? 'search' : 'search-outline';
+            else if (route.name === 'Collection')
+              iconName = focused ? 'albums' : 'albums-outline';
+            else if (route.name === 'Library')
+              iconName = focused ? 'library' : 'library-outline';
+            return <Ionicons name={iconName} size={22} color={color} />;
+          },
+        })}
+      >
         <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t('tabs.home') }} />
         <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: t('tabs.search') }} />
         <Tab.Screen name="Collection" component={CollectionScreen} options={{ tabBarLabel: t('tabs.collection') }} />

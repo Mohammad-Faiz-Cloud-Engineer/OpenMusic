@@ -175,7 +175,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     t,
   ]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     Animated.spring(artworkScale, {
       toValue: isPlaying ? 1 : 0.88,
       useNativeDriver: true,
@@ -397,36 +397,31 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     [colors, isDark]
   );
 
-  const seekStyles: PlayerSeekStyles = {
-    seekSection: styles.seekSection,
-    seekBarHitArea: styles.seekBarHitArea,
-    seekBarTrack: styles.seekBarTrack,
-    seekBarFill: styles.seekBarFill,
-    seekBarThumb: styles.seekBarThumb,
-    seekTimes: styles.seekTimes,
-    seekTime: styles.seekTime,
-  };
+  const seekStyles = useMemo(
+    (): PlayerSeekStyles => ({
+      seekSection: styles.seekSection,
+      seekBarHitArea: styles.seekBarHitArea,
+      seekBarTrack: styles.seekBarTrack,
+      seekBarFill: styles.seekBarFill,
+      seekBarThumb: styles.seekBarThumb,
+      seekTimes: styles.seekTimes,
+      seekTime: styles.seekTime,
+    }),
+    [styles]
+  );
 
-  const cycleRepeat = useCallback(() => {
+  const cycleRepeat = () => {
     const modes: RepeatMode[] = ['off', 'all', 'one'];
     setRepeat(modes[(modes.indexOf(repeatMode) + 1) % modes.length]);
-  }, [repeatMode, setRepeat]);
+  };
 
-  const mainOverlayGradient = useMemo(
-    () =>
-      isDark
-        ? (['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.7)', colors.bg] as const)
-        : (['rgba(255,255,255,0.35)', 'rgba(245,245,247,0.92)', colors.bg] as const),
-    [isDark, colors.bg]
-  );
+  const mainOverlayGradient = isDark
+    ? (['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.7)', colors.bg] as const)
+    : (['rgba(255,255,255,0.35)', 'rgba(245,245,247,0.92)', colors.bg] as const);
 
-  const artworkSheenGradient = useMemo(
-    () =>
-      isDark
-        ? (['rgba(255,255,255,0.06)', 'transparent', 'rgba(0,0,0,0.2)'] as const)
-        : (['rgba(255,255,255,0.45)', 'transparent', 'rgba(0,0,0,0.08)'] as const),
-    [isDark]
-  );
+  const artworkSheenGradient = isDark
+    ? (['rgba(255,255,255,0.06)', 'transparent', 'rgba(0,0,0,0.2)'] as const)
+    : (['rgba(255,255,255,0.45)', 'transparent', 'rgba(0,0,0,0.08)'] as const);
 
   if (!currentTrack) {
     return (
