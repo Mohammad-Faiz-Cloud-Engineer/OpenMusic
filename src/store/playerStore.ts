@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import { Audio, AVPlaybackStatus } from 'expo-av';
+import {
+  createAudioPlayer,
+  setAudioModeAsync,
+  type AudioPlayer,
+  type AudioStatus,
+} from 'expo-audio';
 import { Track, getStreamUrl, getProxyPlayUrl } from '../api/jiosaavn';
 import { useRecentStore } from './recentStore';
 import { devError, devWarn } from '../utils/devLog';
@@ -24,7 +29,7 @@ interface PlayerState {
   currentTrack: Track | null;
 
   // Playback
-  sound: Audio.Sound | null;
+  sound: AudioPlayer | null;
   isPlaying: boolean;
   isLoading: boolean;
   position: number;       // ms
@@ -107,7 +112,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     try {
       if (previousSound) {
-        await previousSound.unloadAsync();
+        previousSound.remove();
       }
       if (isStale()) return;
 
@@ -128,7 +133,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           if (!streamData.stream_url) {
             throw new Error('No stream URL returned');
           }
-          // web.saavncdn.com needs Referer headers expo-av does not send (403).
+          // web.saavncdn.com needs Referer headers expo-audio does not send (403).
           streamUrl = streamData.stream_url.replace('web.saavncdn.com', 'aac.saavncdn.com');
           if (isStale()) return;
           // Cache it for the duration of its validity
@@ -147,43 +152,51 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       if (isStale()) return;
 
       // Step 2: configure audio session
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        staysActiveInBackground: true,
-        playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
+      // expo-audio uses different field names from expo-av:
+      //   playsInSilentMode  (was playsInSilentModeIOS)
+      //   shouldPlayInBackground (was staysActiveInBackground)
+      //   interruptionMode: 'duckOthers' (was shouldDuckAndroid: true)
+      //   shouldRouteThroughEarpiece: false (was playThroughEarpieceAndroid: false)
+      await setAudioModeAsync({
+        playsInSilentMode: true,
+        shouldPlayInBackground: true,
+        interruptionMode: 'duckOthers',
+        shouldRouteThroughEarpiece: false,
       });
 
-      // Step 3: load and play — expo-av uses range requests against the
-      // signed CDN URL directly, no proxy in the hot path.
-      const { sound } = await Audio.Sound.createAsync(
+      // Step 3: create player and subscribe to status updates.
+      // expo-audio uses a synchronous createAudioPlayer() instead of
+      // the async Audio.Sound.createAsync(). The status callback is
+      // registered via addListener rather than passed to the factory.
+      // Note: expo-audio reports currentTime/duration in SECONDS, not ms.
+      const player = createAudioPlayer(
         { uri: streamUrl },
-        { shouldPlay: true, progressUpdateIntervalMillis: 1000 },
-        (status: AVPlaybackStatus) => {
-          if (get().playGeneration !== generation) return;
-          if (!status.isLoaded) {
-            if ('error' in status && status.error) {
-              devError('[player] playback error:', status.error);
-            }
-            return;
-          }
-          const s = get();
-          if (!s.isSeeking) {
-            set({ position: status.positionMillis, duration: status.durationMillis ?? 0 });
-          }
-          if (status.didJustFinish) {
-            void get().next().catch((err) => devError('[player] auto-advance:', err));
-          }
-        }
+        { updateInterval: 1000 },
       );
 
+      player.addListener('playbackStatusUpdate', (status: AudioStatus) => {
+        if (get().playGeneration !== generation) return;
+        if (!status.isLoaded) return;
+        const s = get();
+        if (!s.isSeeking) {
+          // Convert seconds → milliseconds to keep the rest of the app unchanged
+          set({
+            position: Math.floor(status.currentTime * 1000),
+            duration: Math.floor(status.duration * 1000),
+          });
+        }
+        if (status.didJustFinish) {
+          void get().next().catch((err) => devError('[player] auto-advance:', err));
+        }
+      });
+
       if (isStale()) {
-        await sound.unloadAsync();
+        player.remove();
         return;
       }
 
-      set({ sound, isPlaying: true, isLoading: false, position: 0 });
+      player.play();
+      set({ sound: player, isPlaying: true, isLoading: false, position: 0 });
       void useRecentStore.getState().addRecent(track);
     } catch (err) {
       if (!isStale()) {
@@ -206,9 +219,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set({ isPlaying: !wasPlaying });
     try {
       if (wasPlaying) {
-        await sound.pauseAsync();
+        sound.pause();
       } else {
-        await sound.playAsync();
+        sound.play();
       }
     } catch (err) {
       devError('[player] togglePlay:', err);
@@ -252,7 +265,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (position > 3000) {
       const { sound } = get();
       if (sound) {
-        await sound.setPositionAsync(0);
+        // expo-audio seekTo takes seconds, position is stored in ms
+        sound.seekTo(0);
         set({ position: 0 });
       }
       return;
@@ -269,7 +283,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   seekTo: async (positionMs) => {
     const { sound } = get();
     if (!sound) return;
-    await sound.setPositionAsync(positionMs);
+    // expo-audio seekTo takes seconds; positionMs is in milliseconds
+    sound.seekTo(positionMs / 1000);
     set({ position: positionMs, isSeeking: false });
   },
 
@@ -292,7 +307,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   clearQueue: () => {
     const { sound } = get();
     if (sound) {
-      sound.unloadAsync().catch(() => undefined);
+      sound.remove();
     }
     set({
       queue: [],
