@@ -28,12 +28,15 @@ export const useLikeStore = create<LikeState>((set, get) => ({
     try {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       const parsed = raw ? (JSON.parse(raw) as Track[]) : [];
-      const ordered = Array.isArray(parsed)
+      const fromDisk = Array.isArray(parsed)
         ? parsed.map(sanitizeTrackForStorage).slice(0, MAX_LIKED)
         : [];
-      set({ tracksByIdOrder: ordered, likedIds: idsFromTracks(ordered), hydrated: true });
+      const mem = get().tracksByIdOrder;
+      const memIds = new Set(mem.map((t) => t.id));
+      const merged = [...mem, ...fromDisk.filter((t) => !memIds.has(t.id))].slice(0, MAX_LIKED);
+      set({ tracksByIdOrder: merged, likedIds: idsFromTracks(merged), hydrated: true });
     } catch {
-      set({ tracksByIdOrder: [], likedIds: new Set(), hydrated: true });
+      set((s) => ({ ...s, hydrated: true }));
     }
   },
 

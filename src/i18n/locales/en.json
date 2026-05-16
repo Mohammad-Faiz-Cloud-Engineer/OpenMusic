@@ -102,6 +102,8 @@
     "choosePlaylist": "Choose playlist",
     "addedToPlaylist": "Added to \"{{name}}\".",
     "alreadyInPlaylist": "That song is already in \"{{name}}\".",
+    "playlistNotFound": "That playlist could not be found.",
+    "playlistAddFailed": "Couldn't add this song to the playlist. Try again.",
     "controls": {
       "shuffle": "Shuffle",
       "shuffleDesc": "Plays songs in random order.",

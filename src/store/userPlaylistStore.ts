@@ -21,6 +21,8 @@ function normalizePlaylistName(name: string): string {
   return name.trim().slice(0, PLAYLIST_NAME_MAX);
 }
 
+export type AddTrackResult = 'added' | 'duplicate' | 'missing';
+
 interface UserPlaylistState {
   playlists: UserPlaylistStored[];
   hydrated: boolean;
@@ -28,8 +30,8 @@ interface UserPlaylistState {
   createPlaylist: (name: string) => Promise<string>;
   deletePlaylist: (playlistId: string) => Promise<void>;
   renamePlaylist: (playlistId: string, name: string) => Promise<void>;
-  /** Returns false if duplicate track already in playlist */
-  addTrackToPlaylist: (playlistId: string, track: Track) => Promise<boolean>;
+  /** `missing` when playlist id is unknown */
+  addTrackToPlaylist: (playlistId: string, track: Track) => Promise<AddTrackResult>;
   removeTrackFromPlaylist: (playlistId: string, trackId: string) => Promise<void>;
   getPlaylist: (playlistId: string) => UserPlaylistStored | undefined;
 }
@@ -46,7 +48,7 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
     try {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       const parsed = raw ? (JSON.parse(raw) as UserPlaylistStored[]) : [];
-      const playlists = Array.isArray(parsed)
+      const fromDisk = Array.isArray(parsed)
         ? parsed.map((p) => ({
             ...p,
             name:
@@ -59,10 +61,15 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
             updatedAt: typeof p.updatedAt === 'number' ? p.updatedAt : Date.now(),
           }))
         : [];
-      playlists.sort((a, b) => b.updatedAt - a.updatedAt);
+      const inMemory = get().playlists;
+      const mergedById = new Map<string, UserPlaylistStored>();
+      for (const p of fromDisk) mergedById.set(p.id, p);
+      // In-session edits win when ids collide (handles hydrate finishing after offline edits).
+      for (const p of inMemory) mergedById.set(p.id, p);
+      const playlists = [...mergedById.values()].sort((a, b) => b.updatedAt - a.updatedAt);
       set({ playlists, hydrated: true });
     } catch {
-      set({ playlists: [], hydrated: true });
+      set((s) => ({ ...s, hydrated: true }));
     }
   },
 
@@ -109,26 +116,25 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
 
   addTrackToPlaylist: async (playlistId, track) => {
     const persisted = sanitizeTrackForStorage(track);
-    let added = false;
-    const next = get().playlists.map((p) => {
-      if (p.id !== playlistId) return p;
-      if (p.tracks.some((t) => t.id === persisted.id)) return p;
-      added = true;
-      return {
-        ...p,
-        tracks: [...p.tracks, persisted],
-        updatedAt: Date.now(),
-      };
-    });
-    if (!added) return false;
-    next.sort((a, b) => b.updatedAt - a.updatedAt);
-    set({ playlists: next });
+    const playlists = get().playlists;
+    const targetIdx = playlists.findIndex((p) => p.id === playlistId);
+    if (targetIdx < 0) return 'missing';
+    const target = playlists[targetIdx];
+    if (target.tracks.some((t) => t.id === persisted.id)) return 'duplicate';
+
+    const nextPlaylists = playlists.map((p) =>
+      p.id === playlistId
+        ? { ...p, tracks: [...p.tracks, persisted], updatedAt: Date.now() }
+        : p
+    );
+    nextPlaylists.sort((a, b) => b.updatedAt - a.updatedAt);
+    set({ playlists: nextPlaylists });
     try {
-      await persist(next);
+      await persist(nextPlaylists);
     } catch {
       /* */
     }
-    return true;
+    return 'added';
   },
 
   removeTrackFromPlaylist: async (playlistId, trackId) => {

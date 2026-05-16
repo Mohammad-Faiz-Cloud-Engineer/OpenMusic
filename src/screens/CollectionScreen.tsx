@@ -28,7 +28,11 @@ export const CollectionScreen: React.FC<CollectionScreenProps> = ({ navigation }
     <SafeAreaView style={styles.container} edges={['top']}>
       <LinearGradient colors={Gradients.ambientBg} style={StyleSheet.absoluteFill} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 180 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 180 }}
+        nestedScrollEnabled
+      >
         <View style={styles.header}>
           <Text style={styles.headerTitle} accessibilityRole="header">
             {t('collection.title')}

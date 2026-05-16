@@ -65,14 +65,15 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
   const onPickPlaylistForCurrent = useCallback(
     async (playlistId: string, playlistDisplayName: string) => {
       if (!currentTrack) return;
-      const ok = await addTrackToPlaylistStore(playlistId, currentTrack);
+      const result = await addTrackToPlaylistStore(playlistId, currentTrack);
       setShowPlaylistPicker(false);
-      Alert.alert(
-        '',
-        ok
+      const message =
+        result === 'added'
           ? t('player.addedToPlaylist', { name: playlistDisplayName })
-          : t('player.alreadyInPlaylist', { name: playlistDisplayName })
-      );
+          : result === 'duplicate'
+            ? t('player.alreadyInPlaylist', { name: playlistDisplayName })
+            : t('player.playlistNotFound');
+      Alert.alert('', message);
     },
     [addTrackToPlaylistStore, currentTrack, t]
   );
@@ -81,11 +82,15 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     if (!currentTrack) return;
     const nameNorm = newPlaylistNameInput.trim() || t('library.defaultPlaylistName');
     const playlistId = await createPlaylistStore(nameNorm);
-    await addTrackToPlaylistStore(playlistId, currentTrack);
+    const result = await addTrackToPlaylistStore(playlistId, currentTrack);
     setShowNewPlaylistPrompt(false);
     setNewPlaylistNameInput('');
     setShowPlaylistPicker(false);
-    Alert.alert('', t('player.addedToPlaylist', { name: nameNorm }));
+    if (result === 'added') {
+      Alert.alert('', t('player.addedToPlaylist', { name: nameNorm }));
+    } else {
+      Alert.alert('', t('player.playlistAddFailed'));
+    }
   }, [
     addTrackToPlaylistStore,
     createPlaylistStore,

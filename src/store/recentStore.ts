@@ -22,12 +22,15 @@ export const useRecentStore = create<RecentState>((set, get) => ({
     try {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       const parsed = raw ? (JSON.parse(raw) as Track[]) : [];
-      const tracks = Array.isArray(parsed)
-        ? parsed.map(sanitizeTrackForStorage)
+      const fromDisk = Array.isArray(parsed)
+        ? parsed.map(sanitizeTrackForStorage).slice(0, MAX_RECENT)
         : [];
-      set({ tracks, hydrated: true });
+      const mem = get().tracks;
+      const memIds = new Set(mem.map((t) => t.id));
+      const merged = [...mem, ...fromDisk.filter((t) => !memIds.has(t.id))].slice(0, MAX_RECENT);
+      set({ tracks: merged, hydrated: true });
     } catch {
-      set({ tracks: [], hydrated: true });
+      set((s) => ({ ...s, hydrated: true }));
     }
   },
 
