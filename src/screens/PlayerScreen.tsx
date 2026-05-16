@@ -12,6 +12,7 @@ import {
   Pressable,
   Alert,
   FlatList,
+  Share,
   TextInput,
   Platform,
   KeyboardAvoidingView,
@@ -106,7 +107,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
   const {
     currentTrack, isPlaying, isLoading,
     repeatMode, isShuffle, queue, currentIndex,
-    togglePlay, next, prev, setRepeat, toggleShuffle,
+    playTrack, togglePlay, next, prev, setRepeat, toggleShuffle,
   } = usePlayerStore(
     useShallow((s) => ({
       currentTrack: s.currentTrack,
@@ -116,6 +117,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
       isShuffle: s.isShuffle,
       queue: s.queue,
       currentIndex: s.currentIndex,
+      playTrack: s.playTrack,
       togglePlay: s.togglePlay,
       next: s.next,
       prev: s.prev,
@@ -127,6 +129,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
   const artworkScale = useRef(new Animated.Value(isPlaying ? 1 : 0.88)).current;
   const [showGuide, setShowGuide] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showQueue, setShowQueue] = useState(false);
   const [showPlaylistPicker, setShowPlaylistPicker] = useState(false);
   const [showNewPlaylistPrompt, setShowNewPlaylistPrompt] = useState(false);
   const [newPlaylistNameInput, setNewPlaylistNameInput] = useState('');
@@ -174,6 +177,28 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     newPlaylistNameInput,
     t,
   ]);
+
+  const handleShare = useCallback(async () => {
+    if (!currentTrack) return;
+    try {
+      await Share.share({
+        message: `${currentTrack.title} - ${currentTrack.artist}`,
+        title: currentTrack.title,
+      });
+    } catch {
+      Alert.alert('', t('player.shareFailed'));
+    }
+  }, [currentTrack, t]);
+
+  const playQueueItem = useCallback(
+    (index: number) => {
+      const track = queue[index];
+      if (!track) return;
+      setShowQueue(false);
+      void playTrack(track, queue, { openFullPlayer: false });
+    },
+    [playTrack, queue]
+  );
 
   React.useEffect(() => {
     Animated.spring(artworkScale, {
@@ -393,6 +418,21 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           borderRadius: 28, paddingVertical: 15, alignItems: 'center',
         },
         guideDoneBtnText: { fontSize: 15, fontWeight: '700', color: colors.bg },
+        queueList: { maxHeight: SCREEN_HEIGHT * 0.55 },
+        queueItem: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          paddingVertical: 12,
+          borderTopWidth: 1,
+          borderTopColor: colors.glassBorder,
+        },
+        queueItemActive: { backgroundColor: colors.accentOverlay },
+        queueArtwork: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.surface2 },
+        queueText: { flex: 1 },
+        queueTitle: { fontSize: 14, fontWeight: '600', color: colors.text },
+        queueArtist: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+        queueMeta: { fontSize: 12, color: colors.textMuted },
       }),
     [colors, isDark]
   );
@@ -535,11 +575,19 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
         {/* ── Extra controls ───────────────────────────────────────────────── */}
         <View style={styles.extraControls}>
-          <TouchableOpacity style={styles.extraBtn} {...a11yButton(t('player.controls.queue'))}>
+          <TouchableOpacity
+            style={styles.extraBtn}
+            onPress={() => setShowQueue(true)}
+            {...a11yButton(t('player.controls.queue'))}
+          >
             <Ionicons name="list-outline" size={20} color={colors.textSecondary} />
             <Text style={styles.extraBtnText}>{t('player.queue')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.extraBtn} {...a11yButton(t('player.controls.share'))}>
+          <TouchableOpacity
+            style={styles.extraBtn}
+            onPress={() => void handleShare()}
+            {...a11yButton(t('player.controls.share'))}
+          >
             <Ionicons name="share-outline" size={20} color={colors.textSecondary} />
             <Text style={styles.extraBtnText}>{t('player.share')}</Text>
           </TouchableOpacity>
@@ -569,6 +617,45 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
         <View style={{ height: 48 }} />
       </ScrollView>
+
+      {/* Queue sheet */}
+      <Modal visible={showQueue} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setShowQueue(false)}>
+        <Pressable style={styles.sheetOverlay} onPress={() => setShowQueue(false)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+            <View style={styles.sheetGlass} />
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>{t('player.queue')}</Text>
+            <Text style={styles.sheetSubtitle}>{t('common.songs', { count: queue.length })}</Text>
+            <FlatList
+              data={queue}
+              keyExtractor={(track, index) => `${track.id}-${index}`}
+              style={styles.queueList}
+              renderItem={({ item, index }) => {
+                const isActive = index === currentIndex;
+                return (
+                  <TouchableOpacity
+                    style={[styles.queueItem, isActive && styles.queueItemActive]}
+                    onPress={() => playQueueItem(index)}
+                    activeOpacity={0.75}
+                    {...a11yButton(`${item.title} by ${item.artist}`)}
+                  >
+                    <Image
+                      source={item.thumbnail ? { uri: item.thumbnail } : placeholder}
+                      style={styles.queueArtwork}
+                    />
+                    <View style={styles.queueText}>
+                      <Text style={styles.queueTitle} numberOfLines={1}>{item.title}</Text>
+                      <Text style={styles.queueArtist} numberOfLines={1}>{item.artist}</Text>
+                    </View>
+                    <Text style={styles.queueMeta}>{formatDuration(item.duration_seconds)}</Text>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* ── 3-dot menu sheet ─────────────────────────────────────────────────── */}
       <Modal visible={showMenu} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setShowMenu(false)}>

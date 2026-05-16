@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import type { Track } from '../api/jiosaavn';
-import { sanitizeTrackForStorage } from '../utils/storageTrack';
+import { normalizeStoredTrack, sanitizeTrackForStorage } from '../utils/storageTrack';
 
 const STORAGE_KEY = '@openmusic/liked';
 const MAX_LIKED = 500;
@@ -29,7 +29,10 @@ export const useLikeStore = create<LikeState>((set, get) => ({
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       const parsed = raw ? (JSON.parse(raw) as Track[]) : [];
       const fromDisk = Array.isArray(parsed)
-        ? parsed.map(sanitizeTrackForStorage).slice(0, MAX_LIKED)
+        ? parsed
+            .map(normalizeStoredTrack)
+            .filter((track): track is Track => track !== null)
+            .slice(0, MAX_LIKED)
         : [];
       const mem = get().tracksByIdOrder;
       const memIds = new Set(mem.map((t) => t.id));

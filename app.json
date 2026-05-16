@@ -22,9 +22,13 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.openmusic.app",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       },
-      "associatedDomains": ["applinks:openmusic.app"]
+      "associatedDomains": [
+        "applinks:openmusic.app"
+      ]
     },
     "androidStatusBar": {
       "backgroundColor": "#0A0A0F",
@@ -37,11 +41,14 @@
     },
     "android": {
       "package": "com.openmusic.app",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A0A0F"
       },
       "permissions": [
         "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
         "android.permission.WAKE_LOCK"
       ],
       "intentFilters": [
@@ -55,7 +62,10 @@
               "pathPrefix": "/"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -69,7 +79,8 @@
           "microphonePermission": false
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "expo-font"
     ]
   }
 }

@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { Track } from '../api/jiosaavn';
-import { sanitizeTrackForStorage } from '../utils/storageTrack';
+import { normalizeStoredTrack, sanitizeTrackForStorage } from '../utils/storageTrack';
 
 const STORAGE_KEY = '@openmusic/recent';
 const MAX_RECENT = 50;
@@ -23,7 +23,10 @@ export const useRecentStore = create<RecentState>((set, get) => ({
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       const parsed = raw ? (JSON.parse(raw) as Track[]) : [];
       const fromDisk = Array.isArray(parsed)
-        ? parsed.map(sanitizeTrackForStorage).slice(0, MAX_RECENT)
+        ? parsed
+            .map(normalizeStoredTrack)
+            .filter((track): track is Track => track !== null)
+            .slice(0, MAX_RECENT)
         : [];
       const mem = get().tracks;
       const memIds = new Set(mem.map((t) => t.id));

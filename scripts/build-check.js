@@ -49,6 +49,16 @@ function validateAppJson() {
   if (!iosModes.includes('audio')) {
     throw new Error('app.json: ios UIBackgroundModes must include "audio" for background playback');
   }
+  if (!expo.android?.package) {
+    throw new Error('app.json: android.package is required for Play Store builds');
+  }
+  if (!Number.isInteger(expo.android?.versionCode) || expo.android.versionCode < 1) {
+    throw new Error('app.json: android.versionCode must be a positive integer');
+  }
+  if (!expo.android?.adaptiveIcon?.foregroundImage ||
+      !fs.existsSync(path.join(ROOT, expo.android.adaptiveIcon.foregroundImage))) {
+    throw new Error('app.json: android.adaptiveIcon.foregroundImage must point to an existing file');
+  }
 }
 
 function validateTsConfig() {

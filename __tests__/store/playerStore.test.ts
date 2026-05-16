@@ -50,6 +50,29 @@ describe('playerStore', () => {
     expect(usePlayerStore.getState().queue).toHaveLength(2);
   });
 
+  it('playQueue clamps an out-of-range start index', async () => {
+    const tracks = [track('1'), track('2')];
+    const originalPlayTrack = usePlayerStore.getState().playTrack;
+    const playTrack = jest.fn().mockResolvedValue(undefined);
+    usePlayerStore.setState({ playTrack });
+    await usePlayerStore.getState().playQueue(tracks, 99, { openFullPlayer: false });
+    expect(playTrack).toHaveBeenCalledWith(tracks[1], tracks, { openFullPlayer: false });
+    usePlayerStore.setState({ playTrack: originalPlayTrack });
+  });
+
+  it('next marks playback stopped at end of queue without repeat', async () => {
+    usePlayerStore.setState({
+      queue: [track('1')],
+      currentIndex: 0,
+      currentTrack: track('1'),
+      isPlaying: true,
+      duration: 1000,
+    });
+    await usePlayerStore.getState().next();
+    expect(usePlayerStore.getState().isPlaying).toBe(false);
+    expect(usePlayerStore.getState().position).toBe(1000);
+  });
+
   it('removeFromQueue removes item and adjusts index', () => {
     usePlayerStore.setState({
       queue: [track('1'), track('2'), track('3')],
@@ -73,5 +96,6 @@ describe('playerStore', () => {
     expect(s.currentTrack).toBeNull();
     expect(s.isPlaying).toBe(false);
     expect(s.position).toBe(0);
+    expect(s.playGeneration).toBe(1);
   });
 });

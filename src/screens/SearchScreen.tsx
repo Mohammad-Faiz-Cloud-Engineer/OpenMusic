@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blurRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<TextInput>(null);
 
   const handleQueryChange = useCallback((text: string) => {
@@ -40,9 +41,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
     }, 400);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (blurRef.current) clearTimeout(blurRef.current);
     };
   }, []);
 
@@ -61,6 +63,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
   });
 
   const handleSuggestionPress = (suggestion: string) => {
+    if (blurRef.current) clearTimeout(blurRef.current);
     setQuery(suggestion);
     setDebouncedQuery(suggestion);
     setIsFocused(false);
@@ -201,7 +204,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
             value={query}
             onChangeText={handleQueryChange}
             onFocus={() => setIsFocused(true)}
-            onBlur={() => setTimeout(() => setIsFocused(false), 150)}
+            onBlur={() => {
+              if (blurRef.current) clearTimeout(blurRef.current);
+              blurRef.current = setTimeout(() => setIsFocused(false), 150);
+            }}
             onSubmitEditing={() => {
               setIsFocused(false);
               Keyboard.dismiss();

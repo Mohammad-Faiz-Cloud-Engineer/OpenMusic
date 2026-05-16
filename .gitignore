@@ -13,10 +13,15 @@ expo-env.d.ts
 .kotlin/
 *.orig.*
 *.jks
+*.keystore
+*.idsig
+*.apks
 *.p8
 *.p12
 *.key
 *.mobileprovision
+key.properties
+local.properties
 
 # Metro
 .metro-health-check*
@@ -69,6 +74,9 @@ Thumbs.db
 # Xcode / Gradle caches (when native dirs exist locally)
 **/DerivedData/
 android/.gradle/
+android/app/build/
+ios/build/
+*.xcarchive
 
 # Packaging artifacts (if extracted outside ignored native dirs)
 *.aab

@@ -90,6 +90,7 @@
     "upNext": "Up Next",
     "queue": "Queue",
     "share": "Share",
+    "shareFailed": "Unable to open share sheet.",
     "repeatOne": "Repeat one",
     "controlsGuide": "Controls Guide",
     "controlsGuideSubtitle": "What each button does",

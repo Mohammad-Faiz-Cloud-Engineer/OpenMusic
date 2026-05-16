@@ -195,7 +195,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   playQueue: async (tracks, startIndex = 0, options) => {
     if (!tracks.length) return;
-    const track = tracks[startIndex];
+    const safeIndex = Math.max(0, Math.min(startIndex, tracks.length - 1));
+    const track = tracks[safeIndex];
+    if (!track) return;
     await get().playTrack(track, tracks, options);
   },
 
@@ -233,7 +235,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       nextIndex = currentIndex + 1;
       if (nextIndex >= queue.length) {
         if (repeatMode === 'all') nextIndex = 0;
-        else return;
+        else {
+          set({ isPlaying: false, position: get().duration });
+          return;
+        }
       }
     }
 
@@ -269,8 +274,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   seekTo: async (positionMs) => {
     const { sound } = get();
     if (!sound) return;
-    await sound.setPositionAsync(positionMs);
-    set({ position: positionMs, isSeeking: false });
+    try {
+      await sound.setPositionAsync(positionMs);
+      set({ position: positionMs, isSeeking: false });
+    } catch (err) {
+      devError('[player] seekTo:', err);
+      set({ isSeeking: false });
+    }
   },
 
   setRepeat: (mode) => set({ repeatMode: mode }),
@@ -290,7 +300,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }),
 
   clearQueue: () => {
-    const { sound } = get();
+    const { sound, playGeneration } = get();
     if (sound) {
       sound.unloadAsync().catch(() => undefined);
     }
@@ -304,7 +314,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       position: 0,
       duration: 0,
       streamCache: {},
-      playGeneration: 0,
+      playGeneration: playGeneration + 1,
     });
   },
 }));

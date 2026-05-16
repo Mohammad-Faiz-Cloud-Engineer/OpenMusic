@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import type { Track } from '../api/jiosaavn';
-import { sanitizeTrackForStorage } from '../utils/storageTrack';
+import { normalizeStoredTrack, sanitizeTrackForStorage } from '../utils/storageTrack';
 
 const STORAGE_KEY = '@openmusic/user-playlists';
 export const PLAYLIST_NAME_MAX = 72;
@@ -19,6 +19,37 @@ function makePlaylistId(): string {
 
 function normalizePlaylistName(name: string): string {
   return name.trim().slice(0, PLAYLIST_NAME_MAX);
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+function normalizeStoredPlaylist(value: unknown): UserPlaylistStored | null {
+  if (!isRecord(value)) return null;
+  if (typeof value.id !== 'string' || !value.id.trim()) return null;
+
+  const name =
+    typeof value.name === 'string' && value.name.trim()
+      ? normalizePlaylistName(value.name)
+      : 'Playlist';
+
+  const tracks = Array.isArray(value.tracks)
+    ? value.tracks
+        .map(normalizeStoredTrack)
+        .filter((track): track is Track => track !== null)
+    : [];
+
+  const updatedAt =
+    typeof value.updatedAt === 'number' && Number.isFinite(value.updatedAt)
+      ? value.updatedAt
+      : Date.now();
+
+  return {
+    id: value.id.trim(),
+    name,
+    tracks,
+    updatedAt,
+  };
 }
 
 export type AddTrackResult = 'added' | 'duplicate' | 'missing';
@@ -49,17 +80,9 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       const parsed = raw ? (JSON.parse(raw) as UserPlaylistStored[]) : [];
       const fromDisk = Array.isArray(parsed)
-        ? parsed.map((p) => ({
-            ...p,
-            name:
-              typeof p.name === 'string' && p.name.trim()
-                ? normalizePlaylistName(p.name)
-                : 'Playlist',
-            tracks: Array.isArray(p.tracks)
-              ? p.tracks.map((t) => sanitizeTrackForStorage(t))
-              : [],
-            updatedAt: typeof p.updatedAt === 'number' ? p.updatedAt : Date.now(),
-          }))
+        ? parsed
+            .map(normalizeStoredPlaylist)
+            .filter((playlist): playlist is UserPlaylistStored => playlist !== null)
         : [];
       const inMemory = get().playlists;
       const mergedById = new Map<string, UserPlaylistStored>();

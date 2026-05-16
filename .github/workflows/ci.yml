@@ -32,3 +32,6 @@ jobs:
 
       - name: Build check
         run: npm run build:check
+
+      - name: Production dependency audit
+        run: npm run audit:prod

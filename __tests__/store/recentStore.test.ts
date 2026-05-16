@@ -47,4 +47,15 @@ describe('recentStore', () => {
     expect(useRecentStore.getState().tracks[0]?.id).toBe('a');
     expect(useRecentStore.getState().hydrated).toBe(true);
   });
+
+  it('drops malformed persisted rows during hydrate', async () => {
+    await AsyncStorage.setItem(
+      '@openmusic/recent',
+      JSON.stringify([{ id: 'ok', title: 'Ok', artist: 'Artist' }, null, { id: '', title: 'Bad' }])
+    );
+
+    await useRecentStore.getState().hydrate();
+
+    expect(useRecentStore.getState().tracks.map((t) => t.id)).toEqual(['ok']);
+  });
 });
