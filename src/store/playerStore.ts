@@ -96,24 +96,30 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           : [track];
     const finalIndex = foundIndex >= 0 ? foundIndex : 0;
 
+    // Bump generation and kill the current sound atomically before any async work.
+    // Reading sound from get() here (not from the stale `state` snapshot) ensures
+    // that even if two playTrack calls race, the second one always removes whatever
+    // player the first one may have already stored in state.
+    const soundToRemove = get().sound;
     set({
       isLoading: true,
       currentTrack: track,
       queue: finalQueue,
       currentIndex: finalIndex,
       playGeneration: generation,
+      sound: null,          // clear immediately so no other call can double-remove it
+      isPlaying: false,
     });
+
+    if (soundToRemove) {
+      soundToRemove.remove();
+    }
 
     if (openFullPlayer) {
       requestOpenFullPlayer();
     }
 
-    const previousSound = state.sound;
-
     try {
-      if (previousSound) {
-        previousSound.remove();
-      }
       if (isStale()) return;
 
       // Step 1: resolve the signed CDN URL.
@@ -121,7 +127,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       // trip to the API for every track play and prevents hammering the HF
       // rate limiter (120 req/60s).
       let streamUrl: string;
-      const cached = state.streamCache[track.id];
+      const cached = get().streamCache[track.id];
 
       if (cached && !isCacheExpired(cached)) {
         // Cache hit — use the existing signed URL directly
@@ -152,17 +158,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       if (isStale()) return;
 
       // Step 2: configure audio session
-      // expo-audio uses different field names from expo-av:
-      //   playsInSilentMode  (was playsInSilentModeIOS)
-      //   shouldPlayInBackground (was staysActiveInBackground)
-      //   interruptionMode: 'duckOthers' (was shouldDuckAndroid: true)
-      //   shouldRouteThroughEarpiece: false (was playThroughEarpieceAndroid: false)
       await setAudioModeAsync({
         playsInSilentMode: true,
         shouldPlayInBackground: true,
         interruptionMode: 'duckOthers',
         shouldRouteThroughEarpiece: false,
       });
+
+      if (isStale()) return;
 
       // Step 3: create player and subscribe to status updates.
       // expo-audio uses a synchronous createAudioPlayer() instead of
@@ -175,6 +178,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       );
 
       player.addListener('playbackStatusUpdate', (status: AudioStatus) => {
+        // Guard: discard events from any player that is no longer the active generation
         if (get().playGeneration !== generation) return;
         if (!status.isLoaded) return;
         const s = get();
@@ -186,10 +190,18 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           });
         }
         if (status.didJustFinish) {
-          void get().next().catch((err) => devError('[player] auto-advance:', err));
+          // Only auto-advance if this generation is still the active one AND
+          // the player stored in state is still this exact player instance.
+          // This prevents a finishing song from triggering next() when the user
+          // has already started playing something else.
+          if (get().sound === player) {
+            void get().next().catch((err) => devError('[player] auto-advance:', err));
+          }
         }
       });
 
+      // Final stale check — if another playTrack won the race while we were
+      // awaiting the stream URL or audio mode, discard this player immediately.
       if (isStale()) {
         player.remove();
         return;
