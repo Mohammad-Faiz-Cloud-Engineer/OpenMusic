@@ -89,13 +89,12 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: Build release APK (universal + splits) + AAB
-        run: ./gradlew assembleRelease bundleRelease --no-daemon
+        run: |
+          ./gradlew clean assembleRelease bundleRelease --no-daemon
         working-directory: android
         env:
           EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL || 'https://LocalFind-OpenMusic-API.hf.space' }}
           EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
-          # Tell Gradle to produce a universal APK alongside the per-ABI splits
-          GRADLE_OPTS: "-Dandroid.injected.build.abi.filters= -Dandroid.injected.generate.pure.splits=false"
 
       # Collect every APK Gradle produced and rename them clearly.
       # This gives us:
@@ -104,23 +103,38 @@ jobs:
       #   OpenMusic-v0.1.3-armeabi-v7a.apk ← older 32-bit phones
       #   OpenMusic-v0.1.3-x86_64.apk      ← emulators / x86 devices
       #   OpenMusic-v0.1.3.aab             ← Play Store bundle
-      - name: Collect and rename APKs
+      - name: Download bundletool
         run: |
+          mkdir -p tools
+          curl -L -o tools/bundletool.jar https://github.com/google/bundletool/releases/download/1.13.3/bundletool-all-1.13.3.jar
+
+      - name: Build APKs from AAB (bundletool)
+        run: |
+          set -e
           VERSION="${{ steps.version.outputs.VERSION }}"
           mkdir -p release
+          AAB="android/app/build/outputs/bundle/release/app-release.aab"
+          if [ -f "$AAB" ]; then
+            java -jar tools/bundletool.jar build-apks --bundle="$AAB" --output="release/app-${VERSION}.apks" --mode=universal || true
+          else
+            echo "AAB not found at $AAB"
+          fi
+
+      - name: Collect and rename APKs and AAB
+        run: |
+          set -e
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          mkdir -p release tmp_apks
 
           APK_DIR="android/app/build/outputs/apk/release"
 
-          # Universal APK — Gradle names it app-release.apk when splits are off,
-          # or app-universal-release.apk when splits are on alongside it.
-          # We try both names so the step works either way.
+          # Copy Gradle-produced APKs if present
           if [ -f "$APK_DIR/app-universal-release.apk" ]; then
             cp "$APK_DIR/app-universal-release.apk" "release/OpenMusic-v${VERSION}-universal.apk"
           elif [ -f "$APK_DIR/app-release.apk" ]; then
             cp "$APK_DIR/app-release.apk" "release/OpenMusic-v${VERSION}-universal.apk"
           fi
 
-          # Per-ABI splits (present when Gradle produces them)
           for ABI in arm64-v8a armeabi-v7a x86_64 x86; do
             FILE="$APK_DIR/app-${ABI}-release.apk"
             if [ -f "$FILE" ]; then
@@ -128,9 +142,22 @@ jobs:
             fi
           done
 
-          # AAB
-          cp android/app/build/outputs/bundle/release/app-release.aab \
-             "release/OpenMusic-v${VERSION}.aab"
+          # Copy AAB if exists
+          AAB_PATH="android/app/build/outputs/bundle/release/app-release.aab"
+          if [ -f "$AAB_PATH" ]; then
+            cp "$AAB_PATH" "release/OpenMusic-v${VERSION}.aab"
+          fi
+
+          # If bundletool produced an .apks file, extract APKs from it
+          APKS_FILE="release/app-${VERSION}.apks"
+          if [ -f "$APKS_FILE" ]; then
+            unzip -o "$APKS_FILE" -d tmp_apks
+            # Copy any APKs found in the .apks package
+            find tmp_apks -name "*.apk" -type f -print0 | while IFS= read -r -d '' APK; do
+              BASENAME=$(basename "$APK")
+              cp "$APK" "release/OpenMusic-v${VERSION}-${BASENAME}"
+            done
+          fi
 
           echo "── Built artifacts ──"
           ls -lh release/

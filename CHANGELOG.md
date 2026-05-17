@@ -4,24 +4,35 @@ All notable changes to OpenMusic are documented here. The format loosely follows
 
 ---
 
-## [0.1.3] — 2026-05-17
+## [0.1.4] - 2026-05-18
 
-This is the first public release of OpenMusic. Everything listed below is what shipped in this version — there's no prior release to diff against, so this entry covers the full feature set of the app as it stands today.
+### Added
+
+#### Settings screen
+- New Settings tab in the bottom navigation bar.
+- Appearance section with a three-way theme picker: System (follows the device setting), Light, and Dark. The choice is saved and applied immediately across the whole app.
+- Playback section with a stream quality picker: Auto, High, and Normal.
+- Music Source section showing the active catalogue source. Currently JioSaavn is the only available source. The setting is already wired up in the store so adding more sources later is straightforward.
+- Data and Storage section with a Clear Recent Plays option. Tapping it shows a confirmation alert before wiping the history.
+- About section showing the app version (read from package.json at build time), a link to the GitHub repo, and the license.
+- All settings are persisted to AsyncStorage and restored on the next launch. Invalid or unrecognised values fall back to defaults rather than crashing.
 
 ---
+
+## [0.1.3] - 2026-05-17
+
+This is the first public release of OpenMusic. Everything listed below is what shipped in this version. There's no prior release to diff against, so this entry covers the full feature set of the app as it stands today.
 
 ### The app
 
-OpenMusic is a mobile music streaming app for Android and iOS, built with React Native and Expo. It connects to a custom backend ([OpenMusic-API](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic-API)) that pulls song metadata, search results, charts, playlists, and signed stream URLs from JioSaavn. The app itself doesn't bundle any music — it's purely a client.
-
----
+OpenMusic is a mobile music streaming app for Android and iOS, built with React Native and Expo. It connects to a custom backend ([OpenMusic-API](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic-API)) that pulls song metadata, search results, charts, playlists, and signed stream URLs from JioSaavn. The app itself doesn't bundle any music, it's purely a client.
 
 ### Added
 
 #### Home screen
 - Time-aware greeting at the top of the screen (Good morning / afternoon / evening / night based on the device clock).
 - Featured banner showing the first trending track with its artwork as a full-bleed background, a blurred gradient overlay, and Play Now / Shuffle buttons.
-- Quick Picks grid — six trending tracks laid out in a two-column pill grid for fast one-tap playback.
+- Quick Picks grid with six trending tracks laid out in a two-column pill grid for fast one-tap playback.
 - Top Charts horizontal carousel with chart artwork and a direct link to the full Charts screen.
 - Trending Now section showing the top eight trending tracks in a vertical list.
 - Love Songs horizontal scroll row with romantic Hindi hits.
@@ -32,30 +43,30 @@ OpenMusic is a mobile music streaming app for Android and iOS, built with React 
 
 #### Search screen
 - Full-text search against the JioSaavn backend with a 400ms debounce so the API isn't hammered on every keystroke.
-- Live suggestions dropdown that appears while the input is focused, showing up to several autocomplete options. Tapping a suggestion fills the input and fires the search immediately.
+- Live suggestions dropdown that appears while the input is focused, showing autocomplete options. Tapping a suggestion fills the input and fires the search immediately.
 - Result count shown in the section header once results load.
 - Loading spinner inside the search bar while a request is in flight.
-- Clear button (×) to wipe the input and refocus.
+- Clear button to wipe the input and refocus.
 - Empty state with a prompt when a search returns no results.
 - Idle state with a prompt when the search bar hasn't been used yet.
 - Input is capped at 200 characters, matching the API's query length limit.
 
-#### Player screen (full-screen modal)
+#### Player screen
 - Opens as a slide-up modal from anywhere in the app when a track starts playing.
 - Full-screen blurred artwork background with a gradient overlay that adapts to light and dark mode.
 - Animated artwork card that scales up when playing and shrinks slightly when paused, using a spring animation.
 - Track title and artist name below the artwork.
-- Like button (heart) next to the track info — toggles the track in and out of liked songs instantly.
+- Like button next to the track info that toggles the track in and out of liked songs instantly.
 - Seek bar with a draggable thumb. Tap anywhere on the bar to jump to that position. Current position and total duration are shown on either side.
 - Play / Pause button in the centre of the transport controls. Shows a loading indicator while the stream is buffering.
-- Skip back and skip forward buttons. Skip back restarts the current track if you're more than 3 seconds in; otherwise it goes to the previous track.
-- Shuffle toggle — when active, the next track is picked randomly from the queue (never the same track twice in a row).
+- Skip back and skip forward buttons. Skip back restarts the current track if you're more than 3 seconds in, otherwise it goes to the previous track.
+- Shuffle toggle. When active, the next track is picked randomly from the queue, never the same track twice in a row.
 - Repeat button that cycles through three modes: off, repeat all (loops the whole queue), and repeat one (loops the current track). The active mode is highlighted with the accent colour and a small dot indicator. Repeat one shows a "1" badge on the icon.
 - Queue button that opens a bottom sheet listing every track in the current queue. The active track is highlighted. Tapping any track in the list jumps to it.
 - Share button that opens the native share sheet with the track title and artist name.
 - Up Next section at the bottom of the scroll view showing the next three tracks in the queue with artwork, title, artist, and duration. Tapping one plays it immediately.
-- More options menu (⋯) with options to add the current track to a playlist, create a new playlist inline, and open the controls guide.
-- Controls guide sheet that explains what every button does, for users who aren't sure.
+- More options menu with options to add the current track to a playlist, create a new playlist inline, and open the controls guide.
+- Controls guide sheet that explains what every button does.
 - Chevron-down button in the top-left to dismiss the modal and return to wherever you were.
 
 #### Mini player
@@ -67,19 +78,17 @@ OpenMusic is a mobile music streaming app for Android and iOS, built with React 
 - Tapping the mini player (anywhere except the control buttons) opens the full player screen.
 
 #### Queue and playback engine
-- Tracks play from a queue. Starting a track from any list (search results, charts, playlists, liked songs, recent plays, user playlists) sets that list as the current queue.
-- Signed CDN stream URLs are cached in memory with expiry tracking. If a cached URL is still valid (more than 3 minutes from expiry), it's reused without hitting the API again. This reduces round trips and avoids rate-limit issues on the backend.
+- Tracks play from a queue. Starting a track from any list sets that list as the current queue.
+- Signed CDN stream URLs are cached in memory with expiry tracking. If a cached URL is still valid (more than 3 minutes from expiry), it's reused without hitting the API again.
 - If the stream URL fetch fails for any reason, the player falls back to a proxy play URL automatically.
 - Audio session is configured for background playback on both iOS and Android. Music keeps playing when the screen locks or you switch apps.
-- `saavncdn.com` domain substitution is applied to stream URLs to avoid 403 errors caused by missing Referer headers that expo-av doesn't send.
 - Auto-advance: when a track finishes, the next track in the queue starts automatically, respecting the current repeat and shuffle settings.
-- `playGeneration` counter prevents stale async completions from interfering with a newer track that started loading while the previous one was still resolving.
 
 #### Library screen
 - Two tabs: Queue and Recent.
 - Queue tab shows the full current playback queue. The active track is highlighted with the accent colour and a small musical note overlay on its artwork.
 - Now Playing card at the top of the queue tab links directly to the full player screen.
-- Each queue item has a remove button (×) to pull it out of the queue without stopping playback.
+- Each queue item has a remove button to pull it out of the queue without stopping playback.
 - Clear button to wipe the entire queue.
 - Recent tab shows the last 50 tracks played, persisted across app restarts.
 - Empty states for both tabs with contextual prompts and a Find Music shortcut that navigates to Search.
@@ -112,7 +121,7 @@ OpenMusic is a mobile music streaming app for Android and iOS, built with React 
 #### My Playlists screen
 - Lists all user-created playlists with track counts.
 - Create button in the header opens a modal with a text input to name the new playlist. Playlist names are capped at 72 characters.
-- Long-press / trash icon on any playlist row triggers a confirmation alert before deleting.
+- Trash icon on any playlist row triggers a confirmation alert before deleting.
 - Empty state with a Create Playlist call-to-action.
 
 #### User Playlist Detail screen
@@ -135,15 +144,15 @@ OpenMusic is a mobile music streaming app for Android and iOS, built with React 
 #### User playlists
 - Create, rename (via the player's more-options menu), and delete playlists.
 - Add the currently playing track to any playlist from the player's more-options menu.
-- Duplicate detection — adding a track that's already in a playlist shows a message instead of adding it twice.
-- Playlist IDs are generated with a timestamp + random suffix to avoid collisions.
+- Duplicate detection: adding a track that's already in a playlist shows a message instead of adding it twice.
+- Playlist IDs are generated with a timestamp and random suffix to avoid collisions.
 - All playlist data is stored on-device and persists across restarts.
 
 #### Theme and appearance
 - Full dark and light mode support, following the system setting automatically.
-- Dark background: `#0A0A0F` (near-black with a slight blue tint). Light background: `#F5F5F7`.
+- Dark background: `#0A0A0F`. Light background: `#F5F5F7`.
 - Accent colour: `#1DB954` (green) used for active states, the play button, liked hearts, and progress fills.
-- Glassmorphism-style surfaces throughout — frosted blur backgrounds on the tab bar, mini player, sheets, and cards using `expo-blur`.
+- Frosted blur backgrounds on the tab bar, mini player, sheets, and cards using `expo-blur`.
 - Ambient gradient backgrounds on most screens.
 - Adaptive splash screen with a dark variant for dark mode.
 - Status bar style adapts to the current theme.
@@ -166,39 +175,38 @@ OpenMusic is a mobile music streaming app for Android and iOS, built with React 
 - `ErrorBoundary` wraps the entire app. If a render error escapes to the top level, a fallback screen is shown with a "Try again" button that resets the boundary.
 - `QueryErrorView` component used on screens where a data fetch fails, with a Retry button.
 - Global unhandled error handler set via `ErrorUtils` at startup.
-- Optional Sentry integration — set `EXPO_PUBLIC_SENTRY_DSN` in `.env` to enable crash reporting. The app works fine without it.
+- Optional Sentry integration: set `EXPO_PUBLIC_SENTRY_DSN` in `.env` to enable crash reporting. The app works fine without it.
 
 #### Accessibility
 - All interactive elements have `accessibilityRole`, `accessibilityLabel`, and where useful, `accessibilityHint`.
 - Section headers use `accessibilityRole="header"`.
 - The offline banner uses `accessibilityRole="alert"` and `accessibilityLiveRegion="polite"`.
-- Hit slop is applied to small touch targets (skip buttons, close buttons, etc.) to make them easier to tap.
+- Hit slop is applied to small touch targets to make them easier to tap.
 
 #### Internationalisation
 - i18next set up with an English locale file covering all UI strings.
-- RTL layout detection via `expo-localization` — the app calls `I18nManager.forceRTL` at startup if the device locale is RTL.
+- RTL layout detection via `expo-localization`.
 - All user-facing strings go through `t()` rather than being hardcoded, so adding a new language is a matter of adding a locale file.
 
 #### Developer experience and CI
 - TypeScript strict mode throughout. All navigation routes and params are typed.
 - `devWarn` and `devError` utilities that are no-ops in production builds. `console.*` calls are stripped from production bundles via `babel-plugin-transform-remove-console`.
-- Jest test suite covering the API client, player store, recent store, utils, config parsing, navigation linking, and UI components. Tests run in Node without a simulator using mocks for Expo AV, AsyncStorage, and NetInfo.
-- GitHub Actions CI pipeline: TypeScript check → Jest with coverage → build structure check, runs on every push and PR to main.
+- Jest test suite covering the API client, player store, recent store, utils, config parsing, navigation linking, and UI components.
+- GitHub Actions CI pipeline: TypeScript check, Jest with coverage, build structure check, runs on every push and PR to main.
 - `npm run ci` runs the full pipeline locally in one command.
 - `npm audit --omit=dev` script for checking production dependency vulnerabilities.
 - `package.json` overrides to force safe versions of transitive dependencies with known CVEs.
-
----
 
 ### Known limitations in this release
 
 - No album browsing screen. Albums can be fetched via the API but there's no dedicated UI for them yet.
 - Playlist renaming is only accessible from the player's more-options menu, not from the My Playlists screen directly.
-- No download / offline playback support. All audio streams live.
+- No download or offline playback support. All audio streams live.
 - Search is English-biased in the default queries on the Home screen. The API supports other languages but the curated home sections are hardcoded to specific queries.
-- Web support is present but limited — audio behaviour in a browser differs from native and isn't a primary target.
+- Web support is present but limited. Audio behaviour in a browser differs from native and isn't a primary target.
 - No lock screen media controls or notification player. Background audio works but there's no system-level now-playing widget in this release.
 
 ---
 
+[0.1.4]: https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/releases/tag/v0.1.4
 [0.1.3]: https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/releases/tag/v0.1.3

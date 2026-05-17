@@ -19,6 +19,7 @@ Audio is powered by [OpenMusic-API](https://github.com/Mohammad-Faiz-Cloud-Engin
 - **Library** - Your current queue plus recently played tracks (saved on device).
 - **Player** - Play/pause, skip, seek, shuffle, repeat (off / all / one), and a peek at what's up next.
 - **Charts & playlists** - Open a chart or playlist and play or shuffle the whole list.
+- **Settings** - Theme (System / Light / Dark), stream quality, music source, and data management.
 
 Background playback is supported on iOS and Android.
 
@@ -127,6 +128,7 @@ The app registers the custom scheme `openmusic://` and the following paths:
 - `openmusic://player`
 - `openmusic://playlist/:id`
 - `openmusic://charts`
+- `openmusic://settings`
 
 Universal links are configured for `https://openmusic.app` in `app.json`. You'll need to host the associated domain files on that domain for production verification.
 

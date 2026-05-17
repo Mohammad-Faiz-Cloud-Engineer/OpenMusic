@@ -10,12 +10,12 @@ export type StreamQuality = 'auto' | 'high' | 'normal';
 /**
  * The active music catalogue source.
  * Only 'jiosaavn' is available right now. When a new source is integrated,
- * add its identifier here and wire it into the API layer — the store,
+ * add its identifier here and wire it into the API layer. The store,
  * persistence, and settings UI are already structured to support it.
  */
 export type MusicSource = 'jiosaavn';
 
-/** All sources that are currently available for selection. */
+/** All sources currently available for selection. */
 export const AVAILABLE_MUSIC_SOURCES: MusicSource[] = ['jiosaavn'];
 
 interface SettingsState {
@@ -74,8 +74,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           streamQuality: isValidStreamQuality(parsed.streamQuality)
             ? parsed.streamQuality
             : DEFAULT_SETTINGS.streamQuality,
-          // If a persisted source is no longer available (e.g. removed),
-          // fall back to the default rather than crashing.
+          // If a persisted source is no longer available, fall back to the default.
           musicSource: isValidMusicSource(parsed.musicSource)
             ? parsed.musicSource
             : DEFAULT_SETTINGS.musicSource,

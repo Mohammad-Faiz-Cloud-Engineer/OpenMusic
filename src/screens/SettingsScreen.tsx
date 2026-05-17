@@ -23,16 +23,13 @@ import type { ThemeColors } from '../theme/tokens';
 
 const GITHUB_URL = 'https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic';
 
-// Read version from package.json at bundle time — always in sync with the
-// version field without needing expo-constants as an extra dependency.
+// Read version from package.json at bundle time, always in sync without needing extra dependencies.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const APP_VERSION: string = (require('../../package.json') as { version: string }).version;
 
 type SettingsScreenProps = BottomTabScreenProps<TabParamList, 'Settings'>;
 
-// ─── Style factory ───────────────────────────────────────────────────────────
-// Defined before the sub-components so the return type is available to them.
-
+// buildStyles is defined before the sub-components so the return type is available to them.
 function buildStyles(colors: ThemeColors, isDark: boolean) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.bg },
@@ -57,7 +54,6 @@ function buildStyles(colors: ThemeColors, isDark: boolean) {
       borderColor: colors.glassBorder,
       backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
     },
-    // Segmented control
     segmented: {
       flexDirection: 'row',
       margin: 14,
@@ -84,7 +80,6 @@ function buildStyles(colors: ThemeColors, isDark: boolean) {
       fontWeight: '500',
       color: colors.textSecondary,
     },
-    // Row
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -103,7 +98,6 @@ function buildStyles(colors: ThemeColors, isDark: boolean) {
     rowLabel: { fontSize: 15, fontWeight: '500', color: colors.text },
     rowSublabel: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
     rowValue: { fontSize: 13, color: colors.textMuted },
-    // Wrapper for the segmented control inside a section card
     pickerPad: {
       paddingHorizontal: 14,
       paddingBottom: 14,
@@ -112,8 +106,6 @@ function buildStyles(colors: ThemeColors, isDark: boolean) {
 }
 
 type Styles = ReturnType<typeof buildStyles>;
-
-// ─── Section wrapper ─────────────────────────────────────────────────────────
 
 interface SectionProps {
   label: string;
@@ -127,8 +119,6 @@ const Section: React.FC<SectionProps> = ({ label, styles, children }) => (
     <View style={styles.sectionCard}>{children}</View>
   </View>
 );
-
-// ─── Segmented control ───────────────────────────────────────────────────────
 
 interface SegmentedControlProps<T extends string> {
   options: { value: T; label: string }[];
@@ -181,8 +171,6 @@ function SegmentedControl<T extends string>({
   );
 }
 
-// ─── Row ─────────────────────────────────────────────────────────────────────
-
 interface RowProps {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   iconColor?: string;
@@ -229,13 +217,9 @@ const Row: React.FC<RowProps> = ({
   </TouchableOpacity>
 );
 
-// ─── Divider ─────────────────────────────────────────────────────────────────
-
 const Divider: React.FC<{ colors: ThemeColors }> = ({ colors }) => (
   <View style={{ height: 1, backgroundColor: colors.border, marginLeft: 56 }} />
 );
-
-// ─── Main screen ─────────────────────────────────────────────────────────────
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
   const { t } = useTranslation();
@@ -288,7 +272,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
 
   const handleOpenGitHub = useCallback(() => {
     Linking.openURL(GITHUB_URL).catch(() => {
-      // Opening a URL is non-critical — fail silently.
+      // Opening a URL is non-critical, fail silently.
     });
   }, []);
 
@@ -307,7 +291,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Appearance ── */}
         <Section label={t('settings.appearance')} styles={styles}>
           <Row
             icon="color-palette-outline"
@@ -328,7 +311,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
           </View>
         </Section>
 
-        {/* ── Playback ── */}
         <Section label={t('settings.playback')} styles={styles}>
           <Row
             icon="musical-note-outline"
@@ -350,14 +332,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
           </View>
         </Section>
 
-        {/* ── Music Source ── */}
         <Section label={t('settings.musicSource')} styles={styles}>
           {/*
-           * Only one source is available right now so this renders as a
-           * static info row rather than a picker. When AVAILABLE_MUSIC_SOURCES
-           * grows beyond one entry, replace this with a SegmentedControl
-           * wired to setMusicSource — the store is already ready for it.
-           */}
+            Only one source is available right now so this renders as a static
+            info row. When AVAILABLE_MUSIC_SOURCES grows beyond one entry,
+            replace this with a SegmentedControl wired to setMusicSource.
+            The store is already ready for it.
+          */}
           {AVAILABLE_MUSIC_SOURCES.length === 1 ? (
             <Row
               icon="disc-outline"
@@ -371,7 +352,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
           ) : null}
         </Section>
 
-        {/* ── Data & Storage ── */}
         <Section label={t('settings.data')} styles={styles}>
           <Row
             icon="trash-outline"
@@ -385,7 +365,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
           />
         </Section>
 
-        {/* ── About ── */}
         <Section label={t('settings.about')} styles={styles}>
           <Row
             icon="information-circle-outline"
