@@ -98,7 +98,9 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
   const totalDuration = data?.tracks?.reduce((sum, tr) => sum + tr.duration_seconds, 0) ?? 0;
   const hours = Math.floor(totalDuration / 3600);
   const minutes = Math.floor((totalDuration % 3600) / 60);
-  const durationStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes} min`;
+  const durationStr = hours > 0
+    ? t('playlist.durationHoursMinutes', { hours, minutes })
+    : t('playlist.durationMinutes', { minutes });
 
   if (isLoading) {
     return <View style={styles.centered}><ActivityIndicator size="large" color={colors.accent} /></View>;
@@ -150,7 +152,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
               <View style={styles.heroInfo}>
                 <Text style={styles.playlistTitle} numberOfLines={2}>{data.title}</Text>
                 <Text style={styles.playlistOwner}>{t('playlist.by', { owner: data.owner })}</Text>
-                <Text style={styles.playlistMeta}>{data.song_count} songs - {durationStr}</Text>
+                <Text style={styles.playlistMeta}>{t('playlist.meta', { count: data.song_count, duration: durationStr })}</Text>
               </View>
 
               <View style={styles.heroActions}>

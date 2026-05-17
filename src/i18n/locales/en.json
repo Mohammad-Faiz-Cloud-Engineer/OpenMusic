@@ -131,7 +131,10 @@
   },
   "playlist": {
     "error": "Failed to load playlist",
-    "by": "by {{owner}}"
+    "by": "by {{owner}}",
+    "meta": "{{count}} songs · {{duration}}",
+    "durationHoursMinutes": "{{hours}}h {{minutes}}m",
+    "durationMinutes": "{{minutes}} min"
   },
   "errorBoundary": {
     "title": "Something went wrong",
