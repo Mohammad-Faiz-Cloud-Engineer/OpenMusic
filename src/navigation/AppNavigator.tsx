@@ -19,6 +19,7 @@ import { TrackListScreen } from '../screens/TrackListScreen';
 import { ChartsScreen } from '../screens/ChartsScreen';
 import { MyPlaylistsScreen } from '../screens/MyPlaylistsScreen';
 import { UserPlaylistDetailScreen } from '../screens/UserPlaylistDetailScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { MiniPlayer } from '../components/MiniPlayer';
 import { useTheme } from '../theme';
 import { usePlayerStore } from '../store/playerStore';
@@ -101,6 +102,8 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
               iconName = focused ? 'albums' : 'albums-outline';
             else if (route.name === 'Library')
               iconName = focused ? 'library' : 'library-outline';
+            else if (route.name === 'Settings')
+              iconName = focused ? 'settings' : 'settings-outline';
             return <Ionicons name={iconName} size={22} color={color} />;
           },
         })}
@@ -109,6 +112,7 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
         <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: t('tabs.search') }} />
         <Tab.Screen name="Collection" component={CollectionScreen} options={{ tabBarLabel: t('tabs.collection') }} />
         <Tab.Screen name="Library" component={LibraryScreen} options={{ tabBarLabel: t('tabs.library') }} />
+        <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: t('tabs.settings') }} />
       </Tab.Navigator>
 
       {currentTrack && (

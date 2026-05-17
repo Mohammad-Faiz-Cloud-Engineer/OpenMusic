@@ -11,6 +11,7 @@ import { OfflineBanner } from './src/components/OfflineBanner';
 import { useRecentStore } from './src/store/recentStore';
 import { useLikeStore } from './src/store/likeStore';
 import { useUserPlaylistStore } from './src/store/userPlaylistStore';
+import { useSettingsStore } from './src/store/settingsStore';
 import { useTheme } from './src/theme';
 
 onlineManager.setEventListener((setOnline) =>
@@ -39,12 +40,14 @@ function ThemedShell() {
   const hydrateRecent = useRecentStore((s) => s.hydrate);
   const hydrateLikes = useLikeStore((s) => s.hydrate);
   const hydratePlaylists = useUserPlaylistStore((s) => s.hydrate);
+  const hydrateSettings = useSettingsStore((s) => s.hydrate);
 
   useEffect(() => {
     void hydrateRecent();
     void hydrateLikes();
     void hydratePlaylists();
-  }, [hydrateRecent, hydrateLikes, hydratePlaylists]);
+    void hydrateSettings();
+  }, [hydrateRecent, hydrateLikes, hydratePlaylists, hydrateSettings]);
 
   return (
     <>

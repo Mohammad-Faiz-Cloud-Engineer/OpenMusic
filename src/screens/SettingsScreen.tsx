@@ -1,0 +1,421 @@
+import React, { useCallback, useMemo } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Linking,
+} from 'react-native';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { useTheme } from '../theme';
+import { useSettingsStore, type ThemeMode, type StreamQuality, AVAILABLE_MUSIC_SOURCES } from '../store/settingsStore';
+import { useRecentStore } from '../store/recentStore';
+import { a11yButton } from '../utils/a11y';
+import type { TabParamList } from '../navigation/types';
+import type { ThemeColors } from '../theme/tokens';
+
+const GITHUB_URL = 'https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic';
+
+// Read version from package.json at bundle time — always in sync with the
+// version field without needing expo-constants as an extra dependency.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const APP_VERSION: string = (require('../../package.json') as { version: string }).version;
+
+type SettingsScreenProps = BottomTabScreenProps<TabParamList, 'Settings'>;
+
+// ─── Style factory ───────────────────────────────────────────────────────────
+// Defined before the sub-components so the return type is available to them.
+
+function buildStyles(colors: ThemeColors, isDark: boolean) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.bg },
+    header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 20 },
+    headerTitle: { fontSize: 28, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
+    scroll: { flex: 1 },
+    scrollContent: { paddingBottom: 180 },
+    section: { marginBottom: 28, paddingHorizontal: 16 },
+    sectionLabel: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: colors.textMuted,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+      marginBottom: 8,
+      marginLeft: 4,
+    },
+    sectionCard: {
+      borderRadius: 20,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: colors.glassBorder,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+    },
+    // Segmented control
+    segmented: {
+      flexDirection: 'row',
+      margin: 14,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.glassBorder,
+      overflow: 'hidden',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+    },
+    segmentBtn: {
+      flex: 1,
+      paddingVertical: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    segmentFirst: { borderTopLeftRadius: 11, borderBottomLeftRadius: 11 },
+    segmentLast: { borderTopRightRadius: 11, borderBottomRightRadius: 11 },
+    segmentActive: {
+      backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.09)',
+    },
+    segmentText: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.textSecondary,
+    },
+    // Row
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 13,
+      gap: 12,
+    },
+    rowIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rowBody: { flex: 1 },
+    rowLabel: { fontSize: 15, fontWeight: '500', color: colors.text },
+    rowSublabel: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+    rowValue: { fontSize: 13, color: colors.textMuted },
+    // Wrapper for the segmented control inside a section card
+    pickerPad: {
+      paddingHorizontal: 14,
+      paddingBottom: 14,
+    },
+  });
+}
+
+type Styles = ReturnType<typeof buildStyles>;
+
+// ─── Section wrapper ─────────────────────────────────────────────────────────
+
+interface SectionProps {
+  label: string;
+  styles: Styles;
+  children: React.ReactNode;
+}
+
+const Section: React.FC<SectionProps> = ({ label, styles, children }) => (
+  <View style={styles.section}>
+    <Text style={styles.sectionLabel}>{label}</Text>
+    <View style={styles.sectionCard}>{children}</View>
+  </View>
+);
+
+// ─── Segmented control ───────────────────────────────────────────────────────
+
+interface SegmentedControlProps<T extends string> {
+  options: { value: T; label: string }[];
+  selected: T;
+  onSelect: (value: T) => void;
+  colors: ThemeColors;
+  isDark: boolean;
+  styles: Styles;
+}
+
+function SegmentedControl<T extends string>({
+  options, selected, onSelect, colors, isDark, styles,
+}: SegmentedControlProps<T>) {
+  return (
+    <View style={styles.segmented}>
+      {options.map((opt, i) => {
+        const isActive = opt.value === selected;
+        return (
+          <TouchableOpacity
+            key={opt.value}
+            style={[
+              styles.segmentBtn,
+              i === 0 && styles.segmentFirst,
+              i === options.length - 1 && styles.segmentLast,
+              isActive && styles.segmentActive,
+            ]}
+            onPress={() => onSelect(opt.value)}
+            activeOpacity={0.75}
+            {...a11yButton(opt.label)}
+          >
+            {isActive && (
+              <BlurView
+                intensity={isDark ? 30 : 20}
+                tint={isDark ? 'dark' : 'light'}
+                style={StyleSheet.absoluteFill}
+              />
+            )}
+            <Text
+              style={[
+                styles.segmentText,
+                isActive && { color: colors.text, fontWeight: '700' },
+              ]}
+            >
+              {opt.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+// ─── Row ─────────────────────────────────────────────────────────────────────
+
+interface RowProps {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  iconColor?: string;
+  label: string;
+  sublabel?: string;
+  value?: string;
+  onPress?: () => void;
+  destructive?: boolean;
+  colors: ThemeColors;
+  styles: Styles;
+}
+
+const Row: React.FC<RowProps> = ({
+  icon, iconColor, label, sublabel, value, onPress, destructive, colors, styles,
+}) => (
+  <TouchableOpacity
+    style={styles.row}
+    onPress={onPress}
+    activeOpacity={onPress ? 0.7 : 1}
+    disabled={!onPress}
+    {...(onPress ? a11yButton(label) : {})}
+  >
+    <View
+      style={[
+        styles.rowIcon,
+        { backgroundColor: iconColor ? `${iconColor}22` : colors.surface3 },
+      ]}
+    >
+      <Ionicons name={icon} size={18} color={iconColor ?? colors.textSecondary} />
+    </View>
+    <View style={styles.rowBody}>
+      <Text style={[styles.rowLabel, destructive && { color: '#FF453A' }]}>{label}</Text>
+      {sublabel ? <Text style={styles.rowSublabel}>{sublabel}</Text> : null}
+    </View>
+    {value ? <Text style={styles.rowValue}>{value}</Text> : null}
+    {onPress && !destructive ? (
+      <Ionicons
+        name="chevron-forward"
+        size={16}
+        color={colors.textMuted}
+        style={{ marginLeft: 4 }}
+      />
+    ) : null}
+  </TouchableOpacity>
+);
+
+// ─── Divider ─────────────────────────────────────────────────────────────────
+
+const Divider: React.FC<{ colors: ThemeColors }> = ({ colors }) => (
+  <View style={{ height: 1, backgroundColor: colors.border, marginLeft: 56 }} />
+);
+
+// ─── Main screen ─────────────────────────────────────────────────────────────
+
+export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
+  const { t } = useTranslation();
+  const { colors, gradients, isDark } = useTheme();
+
+  const themeMode = useSettingsStore((s) => s.themeMode);
+  const streamQuality = useSettingsStore((s) => s.streamQuality);
+  const musicSource = useSettingsStore((s) => s.musicSource);
+  const setThemeMode = useSettingsStore((s) => s.setThemeMode);
+  const setStreamQuality = useSettingsStore((s) => s.setStreamQuality);
+  const clearRecent = useRecentStore((s) => s.clearRecent);
+
+  const styles = useMemo(() => buildStyles(colors, isDark), [colors, isDark]);
+
+  const themeOptions: { value: ThemeMode; label: string }[] = useMemo(
+    () => [
+      { value: 'system', label: t('settings.themeSystem') },
+      { value: 'light',  label: t('settings.themeLight') },
+      { value: 'dark',   label: t('settings.themeDark') },
+    ],
+    [t]
+  );
+
+  const qualityOptions: { value: StreamQuality; label: string }[] = useMemo(
+    () => [
+      { value: 'auto',   label: t('settings.streamAuto') },
+      { value: 'high',   label: t('settings.streamHigh') },
+      { value: 'normal', label: t('settings.streamNormal') },
+    ],
+    [t]
+  );
+
+  const handleClearRecent = useCallback(() => {
+    Alert.alert(
+      t('settings.clearRecentConfirmTitle'),
+      t('settings.clearRecentConfirmMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('settings.clearRecentConfirm'),
+          style: 'destructive',
+          onPress: async () => {
+            await clearRecent();
+            Alert.alert('', t('settings.clearRecentDone'));
+          },
+        },
+      ]
+    );
+  }, [clearRecent, t]);
+
+  const handleOpenGitHub = useCallback(() => {
+    Linking.openURL(GITHUB_URL).catch(() => {
+      // Opening a URL is non-critical — fail silently.
+    });
+  }, []);
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <LinearGradient colors={gradients.ambientBg} style={StyleSheet.absoluteFill} />
+
+      <View style={styles.header}>
+        <Text style={styles.headerTitle} accessibilityRole="header">
+          {t('settings.title')}
+        </Text>
+      </View>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Appearance ── */}
+        <Section label={t('settings.appearance')} styles={styles}>
+          <Row
+            icon="color-palette-outline"
+            iconColor={colors.accent}
+            label={t('settings.theme')}
+            colors={colors}
+            styles={styles}
+          />
+          <View style={styles.pickerPad}>
+            <SegmentedControl
+              options={themeOptions}
+              selected={themeMode}
+              onSelect={(mode) => void setThemeMode(mode)}
+              colors={colors}
+              isDark={isDark}
+              styles={styles}
+            />
+          </View>
+        </Section>
+
+        {/* ── Playback ── */}
+        <Section label={t('settings.playback')} styles={styles}>
+          <Row
+            icon="musical-note-outline"
+            iconColor="#5E5CE6"
+            label={t('settings.streamQuality')}
+            sublabel={t('settings.streamQualityDesc')}
+            colors={colors}
+            styles={styles}
+          />
+          <View style={styles.pickerPad}>
+            <SegmentedControl
+              options={qualityOptions}
+              selected={streamQuality}
+              onSelect={(q) => void setStreamQuality(q)}
+              colors={colors}
+              isDark={isDark}
+              styles={styles}
+            />
+          </View>
+        </Section>
+
+        {/* ── Music Source ── */}
+        <Section label={t('settings.musicSource')} styles={styles}>
+          {/*
+           * Only one source is available right now so this renders as a
+           * static info row rather than a picker. When AVAILABLE_MUSIC_SOURCES
+           * grows beyond one entry, replace this with a SegmentedControl
+           * wired to setMusicSource — the store is already ready for it.
+           */}
+          {AVAILABLE_MUSIC_SOURCES.length === 1 ? (
+            <Row
+              icon="disc-outline"
+              iconColor="#FF6B35"
+              label={t('settings.musicSourceJioSaavn')}
+              sublabel={t('settings.musicSourceJioSaavnDesc')}
+              value={musicSource === 'jiosaavn' ? '✓' : undefined}
+              colors={colors}
+              styles={styles}
+            />
+          ) : null}
+        </Section>
+
+        {/* ── Data & Storage ── */}
+        <Section label={t('settings.data')} styles={styles}>
+          <Row
+            icon="trash-outline"
+            iconColor="#FF453A"
+            label={t('settings.clearRecent')}
+            sublabel={t('settings.clearRecentDesc')}
+            onPress={handleClearRecent}
+            destructive
+            colors={colors}
+            styles={styles}
+          />
+        </Section>
+
+        {/* ── About ── */}
+        <Section label={t('settings.about')} styles={styles}>
+          <Row
+            icon="information-circle-outline"
+            iconColor={colors.accent}
+            label={t('settings.version')}
+            value={APP_VERSION}
+            colors={colors}
+            styles={styles}
+          />
+          <Divider colors={colors} />
+          <Row
+            icon="logo-github"
+            iconColor={colors.text}
+            label={t('settings.sourceCode')}
+            sublabel={t('settings.sourceCodeDesc')}
+            onPress={handleOpenGitHub}
+            colors={colors}
+            styles={styles}
+          />
+          <Divider colors={colors} />
+          <Row
+            icon="document-text-outline"
+            iconColor="#FF9F0A"
+            label={t('settings.license')}
+            value={t('settings.licenseDesc')}
+            colors={colors}
+            styles={styles}
+          />
+        </Section>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};

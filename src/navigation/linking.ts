@@ -11,6 +11,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
           Search: 'search',
           Collection: 'collection',
           Library: 'library',
+          Settings: 'settings',
         },
       },
       Player: 'player',

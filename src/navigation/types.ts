@@ -6,6 +6,7 @@ export type TabParamList = {
   Search: undefined;
   Collection: undefined;
   Library: undefined;
+  Settings: undefined;
 };
 
 export type RootStackParamList = {

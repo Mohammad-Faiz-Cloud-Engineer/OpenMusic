@@ -24,7 +24,8 @@
     "home": "Home",
     "search": "Search",
     "collection": "Collection",
-    "library": "Library"
+    "library": "Library",
+    "settings": "Settings"
   },
   "collection": {
     "title": "Collection"
@@ -139,5 +140,37 @@
   "errorBoundary": {
     "title": "Something went wrong",
     "subtitle": "Please restart the app."
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "appearanceDesc": "Choose how OpenMusic looks on your device.",
+    "theme": "Theme",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "playback": "Playback",
+    "streamQuality": "Stream Quality",
+    "streamQualityDesc": "Higher quality uses more data.",
+    "streamAuto": "Auto",
+    "streamHigh": "High",
+    "streamNormal": "Normal",
+    "data": "Data & Storage",
+    "clearRecent": "Clear Recent Plays",
+    "clearRecentDesc": "Remove all recently played tracks from your history.",
+    "clearRecentConfirmTitle": "Clear recent plays?",
+    "clearRecentConfirmMessage": "This will remove all tracks from your recent history. This cannot be undone.",
+    "clearRecentConfirm": "Clear",
+    "clearRecentDone": "Recent plays cleared.",
+    "musicSource": "Music Source",
+    "musicSourceDesc": "Where OpenMusic fetches songs, search results, and charts from.",
+    "musicSourceJioSaavn": "JioSaavn",
+    "musicSourceJioSaavnDesc": "Indian music catalogue — Bollywood, regional, and more.",
+    "about": "About",
+    "version": "Version",
+    "sourceCode": "Source Code",
+    "sourceCodeDesc": "View on GitHub",
+    "license": "License",
+    "licenseDesc": "BSD 2-Clause"
   }
 }
