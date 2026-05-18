@@ -11,8 +11,6 @@ All notable changes to OpenMusic are documented here. The format loosely follows
 #### Settings screen
 - New Settings tab in the bottom navigation bar.
 - Appearance section with a three-way theme picker: System (follows the device setting), Light, and Dark. The choice is saved and applied immediately across the whole app.
-- Playback section with a stream quality picker: Auto, High, and Normal.
-- Music Source section showing the active catalogue source. Currently JioSaavn is the only available source. The setting is already wired up in the store so adding more sources later is straightforward.
 - Data and Storage section with a Clear Recent Plays option. Tapping it shows a confirmation alert before wiping the history.
 - About section showing the app version (read from package.json at build time), a link to the GitHub repo, and the license.
 - All settings are persisted to AsyncStorage and restored on the next launch. Invalid or unrecognised values fall back to defaults rather than crashing.
