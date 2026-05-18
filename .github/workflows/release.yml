@@ -1,6 +1,6 @@
 name: Release
 
-# Triggers when you push a version tag like v0.1.3
+# Triggers when you push a version tag like v0.1.4
 # You can also kick it off manually from the Actions tab if needed.
 on:
   push:
@@ -9,9 +9,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Version tag to release (e.g. v0.1.3)'
+        description: 'Version tag to release (e.g. v0.1.4)'
         required: true
-        default: 'v0.1.3'
+        default: 'v0.1.4'
 
 jobs:
   # ─────────────────────────────────────────────
@@ -98,11 +98,11 @@ jobs:
 
       # Collect every APK Gradle produced and rename them clearly.
       # This gives us:
-      #   OpenMusic-v0.1.3-universal.apk   ← works on every Android phone
-      #   OpenMusic-v0.1.3-arm64-v8a.apk   ← modern 64-bit phones (smallest file)
-      #   OpenMusic-v0.1.3-armeabi-v7a.apk ← older 32-bit phones
-      #   OpenMusic-v0.1.3-x86_64.apk      ← emulators / x86 devices
-      #   OpenMusic-v0.1.3.aab             ← Play Store bundle
+      #   OpenMusic-v0.1.4-universal.apk   ← works on every Android phone
+      #   OpenMusic-v0.1.4-arm64-v8a.apk   ← modern 64-bit phones (smallest file)
+      #   OpenMusic-v0.1.4-armeabi-v7a.apk ← older 32-bit phones
+      #   OpenMusic-v0.1.4-x86_64.apk      ← emulators / x86 devices
+      #   OpenMusic-v0.1.4.aab             ← Play Store bundle
       - name: Download bundletool
         run: |
           mkdir -p tools

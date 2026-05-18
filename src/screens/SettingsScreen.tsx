@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme';
-import { useSettingsStore, type ThemeMode, type StreamQuality, AVAILABLE_MUSIC_SOURCES } from '../store/settingsStore';
+import { useSettingsStore, type ThemeMode, type StreamQuality } from '../store/settingsStore';
 import { useRecentStore } from '../store/recentStore';
 import { a11yButton } from '../utils/a11y';
 import type { TabParamList } from '../navigation/types';
@@ -227,7 +227,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
 
   const themeMode = useSettingsStore((s) => s.themeMode);
   const streamQuality = useSettingsStore((s) => s.streamQuality);
-  const musicSource = useSettingsStore((s) => s.musicSource);
   const setThemeMode = useSettingsStore((s) => s.setThemeMode);
   const setStreamQuality = useSettingsStore((s) => s.setStreamQuality);
   const clearRecent = useRecentStore((s) => s.clearRecent);
@@ -330,26 +329,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
               styles={styles}
             />
           </View>
-        </Section>
-
-        <Section label={t('settings.musicSource')} styles={styles}>
-          {/*
-            Only one source is available right now so this renders as a static
-            info row. When AVAILABLE_MUSIC_SOURCES grows beyond one entry,
-            replace this with a SegmentedControl wired to setMusicSource.
-            The store is already ready for it.
-          */}
-          {AVAILABLE_MUSIC_SOURCES.length === 1 ? (
-            <Row
-              icon="disc-outline"
-              iconColor="#FF6B35"
-              label={t('settings.musicSourceJioSaavn')}
-              sublabel={t('settings.musicSourceJioSaavnDesc')}
-              value={musicSource === 'jiosaavn' ? '✓' : undefined}
-              colors={colors}
-              styles={styles}
-            />
-          ) : null}
         </Section>
 
         <Section label={t('settings.data')} styles={styles}>
