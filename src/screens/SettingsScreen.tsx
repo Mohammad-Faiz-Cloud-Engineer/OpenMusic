@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme';
-import { useSettingsStore, type ThemeMode, type StreamQuality } from '../store/settingsStore';
+import { useSettingsStore, type ThemeMode } from '../store/settingsStore';
 import { useRecentStore } from '../store/recentStore';
 import { a11yButton } from '../utils/a11y';
 import type { TabParamList } from '../navigation/types';
@@ -226,9 +226,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
   const { colors, gradients, isDark } = useTheme();
 
   const themeMode = useSettingsStore((s) => s.themeMode);
-  const streamQuality = useSettingsStore((s) => s.streamQuality);
   const setThemeMode = useSettingsStore((s) => s.setThemeMode);
-  const setStreamQuality = useSettingsStore((s) => s.setStreamQuality);
   const clearRecent = useRecentStore((s) => s.clearRecent);
 
   const styles = useMemo(() => buildStyles(colors, isDark), [colors, isDark]);
@@ -238,15 +236,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
       { value: 'system', label: t('settings.themeSystem') },
       { value: 'light',  label: t('settings.themeLight') },
       { value: 'dark',   label: t('settings.themeDark') },
-    ],
-    [t]
-  );
-
-  const qualityOptions: { value: StreamQuality; label: string }[] = useMemo(
-    () => [
-      { value: 'auto',   label: t('settings.streamAuto') },
-      { value: 'high',   label: t('settings.streamHigh') },
-      { value: 'normal', label: t('settings.streamNormal') },
     ],
     [t]
   );
@@ -303,27 +292,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
               options={themeOptions}
               selected={themeMode}
               onSelect={(mode) => void setThemeMode(mode)}
-              colors={colors}
-              isDark={isDark}
-              styles={styles}
-            />
-          </View>
-        </Section>
-
-        <Section label={t('settings.playback')} styles={styles}>
-          <Row
-            icon="musical-note-outline"
-            iconColor="#5E5CE6"
-            label={t('settings.streamQuality')}
-            sublabel={t('settings.streamQualityDesc')}
-            colors={colors}
-            styles={styles}
-          />
-          <View style={styles.pickerPad}>
-            <SegmentedControl
-              options={qualityOptions}
-              selected={streamQuality}
-              onSelect={(q) => void setStreamQuality(q)}
               colors={colors}
               isDark={isDark}
               styles={styles}
