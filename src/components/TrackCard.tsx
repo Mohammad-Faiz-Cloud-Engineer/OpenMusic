@@ -26,13 +26,14 @@ interface TrackCardProps {
   trailing?: ReactNode;
 }
 
+const EQ_HEIGHTS = [10, 16, 8, 14, 6] as const;
+
 const EqualizerBars: React.FC<{ small?: boolean }> = ({ small }) => {
   const { colors } = useTheme();
   const w = small ? 2 : 3;
-  const heights = [10, 16, 8, 14, 6];
   return (
     <View style={[stylesStatic.equalizer, small && stylesStatic.equalizerSmall]}>
-      {heights.map((h, i) => (
+      {EQ_HEIGHTS.map((h, i) => (
         <View
           key={i}
           style={{

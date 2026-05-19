@@ -259,9 +259,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
   }, [clearRecent, t]);
 
   const handleOpenGitHub = useCallback(() => {
-    Linking.openURL(GITHUB_URL).catch(() => {
-      // Opening a URL is non-critical, fail silently.
-    });
+    Linking.openURL(GITHUB_URL).catch(() => {});
   }, []);
 
   return (

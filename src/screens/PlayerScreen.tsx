@@ -125,7 +125,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     }))
   );
 
-  const artworkScale = useRef(new Animated.Value(isPlaying ? 1 : 0.88)).current;
+  const artworkScale = useRef(new Animated.Value(1)).current;
   const [showGuide, setShowGuide] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
