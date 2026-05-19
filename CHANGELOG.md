@@ -4,7 +4,7 @@ All notable changes to OpenMusic are documented here. The format loosely follows
 
 ---
 
-## [0.1.4] - 2026-05-18
+## [0.1.4] - 2026-05-19
 
 ### Added
 
@@ -12,6 +12,7 @@ All notable changes to OpenMusic are documented here. The format loosely follows
 - New Settings tab in the bottom navigation bar.
 - Appearance section with a three-way theme picker: System (follows the device setting), Light, and Dark. The choice is saved and applied immediately across the whole app.
 - Data and Storage section with a Clear Recent Plays option. Tapping it shows a confirmation alert before wiping the history.
+- Home Screen section with individual toggles for each home screen section: Featured Banner, Quick Picks, Top Charts, Trending Now, Love Songs, and Punjabi Hits. Turn one off and it disappears from the home screen until you turn it back on. Settings are persisted and restored on launch.
 - About section showing the app version (read from package.json at build time), a link to the GitHub repo, and the license.
 - All settings are persisted to AsyncStorage and restored on the next launch. Invalid or unrecognised values fall back to defaults rather than crashing.
 
