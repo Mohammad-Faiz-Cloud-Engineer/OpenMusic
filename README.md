@@ -1,3 +1,5 @@
+![OpenMusic Banner](./Banner/Banner.png)
+
 # OpenMusic
 
 [![CI](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/actions/workflows/ci.yml)
