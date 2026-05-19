@@ -21,6 +21,7 @@ import { TrackCard } from '../components/TrackCard';
 import { ChartCard } from '../components/ChartCard';
 import { SkeletonCard } from '../components/LoadingScreen';
 import { usePlayerStore } from '../store/playerStore';
+import { useSettingsStore } from '../store/settingsStore';
 import { useTranslation } from 'react-i18next';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -42,6 +43,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { width } = useWindowDimensions();
   const quickPickWidth = Math.max(140, (width - 48) / 2);
   const playQueue = usePlayerStore((s) => s.playQueue);
+  const homeSections = useSettingsStore((s) => s.homeSections);
   const { colors, gradients, isDark } = useTheme();
 
   const { data: chartsData, isLoading: chartsLoading, isFetching: chartsFetching, refetch: refetchCharts } = useQuery({
@@ -252,52 +254,64 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.section}>
-          {trendingLoading
-            ? <View style={{ paddingHorizontal: 16 }}><SkeletonCard height={210} borderRadius={24} /></View>
-            : renderFeaturedBanner()
-          }
-        </View>
+        {homeSections.featuredBanner && (
+          <View style={styles.section}>
+            {trendingLoading
+              ? <View style={{ paddingHorizontal: 16 }}><SkeletonCard height={210} borderRadius={24} /></View>
+              : renderFeaturedBanner()
+            }
+          </View>
+        )}
 
-        <View style={styles.section}>
-          <SectionHeader title={t('home.quickPicks')} subtitle={t('home.quickPicksSub')} />
-          {trendingLoading
-            ? <View style={styles.quickPicksGrid}>{[...Array(6)].map((_, i) => <SkeletonCard key={i} width={quickPickWidth} height={56} borderRadius={16} />)}</View>
-            : renderQuickPicks()
-          }
-        </View>
+        {homeSections.quickPicks && (
+          <View style={styles.section}>
+            <SectionHeader title={t('home.quickPicks')} subtitle={t('home.quickPicksSub')} />
+            {trendingLoading
+              ? <View style={styles.quickPicksGrid}>{[...Array(6)].map((_, i) => <SkeletonCard key={i} width={quickPickWidth} height={56} borderRadius={16} />)}</View>
+              : renderQuickPicks()
+            }
+          </View>
+        )}
 
-        <View style={styles.section}>
-          <SectionHeader title={t('home.topCharts')} onSeeAll={() => navigation.navigate('Charts')} />
-          {chartsLoading
-            ? <FlatList horizontal data={[1,2,3,4]} keyExtractor={i => String(i)} renderItem={() => <View style={{ marginRight: 12 }}><SkeletonCard width={160} height={160} borderRadius={20} /></View>} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList} />
-            : <FlatList horizontal data={chartsData?.charts ?? []} keyExtractor={c => c.id} renderItem={({ item }) => <ChartCard chart={item} onPress={() => navigation.navigate('Playlist', { id: item.id, title: item.title })} />} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList} />
-          }
-        </View>
+        {homeSections.topCharts && (
+          <View style={styles.section}>
+            <SectionHeader title={t('home.topCharts')} onSeeAll={() => navigation.navigate('Charts')} />
+            {chartsLoading
+              ? <FlatList horizontal data={[1,2,3,4]} keyExtractor={i => String(i)} renderItem={() => <View style={{ marginRight: 12 }}><SkeletonCard width={160} height={160} borderRadius={20} /></View>} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList} />
+              : <FlatList horizontal data={chartsData?.charts ?? []} keyExtractor={c => c.id} renderItem={({ item }) => <ChartCard chart={item} onPress={() => navigation.navigate('Playlist', { id: item.id, title: item.title })} />} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList} />
+            }
+          </View>
+        )}
 
-        <View style={styles.section}>
-          <SectionHeader title={t('home.trendingNow')} onSeeAll={() => navigation.navigate('TrackList', { title: t('home.trendingNow'), tracks: trendingData?.results ?? [] })} />
-          {trendingLoading
-            ? [...Array(5)].map((_, i) => <View key={i} style={{ paddingHorizontal: 16, marginBottom: 8 }}><SkeletonCard height={60} borderRadius={16} /></View>)
-            : (trendingData?.results ?? []).slice(0, 8).map((track, i) => <TrackCard key={track.id} track={track} queue={trendingData?.results} showIndex={i} />)
-          }
-        </View>
+        {homeSections.trendingNow && (
+          <View style={styles.section}>
+            <SectionHeader title={t('home.trendingNow')} onSeeAll={() => navigation.navigate('TrackList', { title: t('home.trendingNow'), tracks: trendingData?.results ?? [] })} />
+            {trendingLoading
+              ? [...Array(5)].map((_, i) => <View key={i} style={{ paddingHorizontal: 16, marginBottom: 8 }}><SkeletonCard height={60} borderRadius={16} /></View>)
+              : (trendingData?.results ?? []).slice(0, 8).map((track, i) => <TrackCard key={track.id} track={track} queue={trendingData?.results} showIndex={i} />)
+            }
+          </View>
+        )}
 
-        <View style={styles.section}>
-          <SectionHeader title={t('home.loveSongs')} subtitle={t('home.loveSongsSub')} onSeeAll={() => navigation.navigate('TrackList', { title: t('home.loveSongs'), tracks: romanticData?.results ?? [] })} />
-          {romanticLoading
-            ? <FlatList horizontal data={[1,2,3,4]} keyExtractor={i => String(i)} renderItem={() => <View style={{ marginRight: 12 }}><SkeletonCard width={140} height={140} borderRadius={16} /></View>} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList} />
-            : <FlatList horizontal data={romanticData?.results?.slice(0, 10) ?? []} keyExtractor={t => t.id} renderItem={({ item }) => <TrackCard track={item} queue={romanticData?.results} variant="grid" />} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList} />
-          }
-        </View>
+        {homeSections.loveSongs && (
+          <View style={styles.section}>
+            <SectionHeader title={t('home.loveSongs')} subtitle={t('home.loveSongsSub')} onSeeAll={() => navigation.navigate('TrackList', { title: t('home.loveSongs'), tracks: romanticData?.results ?? [] })} />
+            {romanticLoading
+              ? <FlatList horizontal data={[1,2,3,4]} keyExtractor={i => String(i)} renderItem={() => <View style={{ marginRight: 12 }}><SkeletonCard width={140} height={140} borderRadius={16} /></View>} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList} />
+              : <FlatList horizontal data={romanticData?.results?.slice(0, 10) ?? []} keyExtractor={t => t.id} renderItem={({ item }) => <TrackCard track={item} queue={romanticData?.results} variant="grid" />} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList} />
+            }
+          </View>
+        )}
 
-        <View style={styles.section}>
-          <SectionHeader title={t('home.punjabiHits')} onSeeAll={() => navigation.navigate('TrackList', { title: t('home.punjabiHits'), tracks: punjabData?.results ?? [] })} />
-          {punjabLoading
-            ? [...Array(4)].map((_, i) => <View key={i} style={{ paddingHorizontal: 16, marginBottom: 8 }}><SkeletonCard height={60} borderRadius={16} /></View>)
-            : (punjabData?.results ?? []).slice(0, 6).map((track, i) => <TrackCard key={track.id} track={track} queue={punjabData?.results} showIndex={i} />)
-          }
-        </View>
+        {homeSections.punjabiHits && (
+          <View style={styles.section}>
+            <SectionHeader title={t('home.punjabiHits')} onSeeAll={() => navigation.navigate('TrackList', { title: t('home.punjabiHits'), tracks: punjabData?.results ?? [] })} />
+            {punjabLoading
+              ? [...Array(4)].map((_, i) => <View key={i} style={{ paddingHorizontal: 16, marginBottom: 8 }}><SkeletonCard height={60} borderRadius={16} /></View>)
+              : (punjabData?.results ?? []).slice(0, 6).map((track, i) => <TrackCard key={track.id} track={track} queue={punjabData?.results} showIndex={i} />)
+            }
+          </View>
+        )}
 
         <View style={{ height: 160 }} />
       </ScrollView>

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
   Linking,
+  Switch,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme';
-import { useSettingsStore, type ThemeMode } from '../store/settingsStore';
+import { useSettingsStore, type ThemeMode, type HomeSectionId } from '../store/settingsStore';
 import { useRecentStore } from '../store/recentStore';
 import { a11yButton } from '../utils/a11y';
 import type { TabParamList } from '../navigation/types';
@@ -217,6 +218,41 @@ const Row: React.FC<RowProps> = ({
   </TouchableOpacity>
 );
 
+interface ToggleRowProps {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  iconColor?: string;
+  label: string;
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  colors: ThemeColors;
+  styles: Styles;
+  isDark: boolean;
+}
+
+const ToggleRow: React.FC<ToggleRowProps> = ({
+  icon, iconColor, label, value, onValueChange, colors, styles, isDark,
+}) => (
+  <View style={styles.row}>
+    <View
+      style={[
+        styles.rowIcon,
+        { backgroundColor: iconColor ? `${iconColor}22` : colors.surface3 },
+      ]}
+    >
+      <Ionicons name={icon} size={18} color={iconColor ?? colors.textSecondary} />
+    </View>
+    <View style={styles.rowBody}>
+      <Text style={styles.rowLabel}>{label}</Text>
+    </View>
+    <Switch
+      value={value}
+      onValueChange={onValueChange}
+      trackColor={{ false: colors.surface3, true: colors.accent }}
+      thumbColor={isDark ? '#fff' : '#fff'}
+    />
+  </View>
+);
+
 const Divider: React.FC<{ colors: ThemeColors }> = ({ colors }) => (
   <View style={{ height: 1, backgroundColor: colors.border, marginLeft: 56 }} />
 );
@@ -227,6 +263,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
 
   const themeMode = useSettingsStore((s) => s.themeMode);
   const setThemeMode = useSettingsStore((s) => s.setThemeMode);
+  const homeSections = useSettingsStore((s) => s.homeSections);
+  const setHomeSection = useSettingsStore((s) => s.setHomeSection);
   const clearRecent = useRecentStore((s) => s.clearRecent);
 
   const styles = useMemo(() => buildStyles(colors, isDark), [colors, isDark]);
@@ -261,6 +299,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
   const handleOpenGitHub = useCallback(() => {
     Linking.openURL(GITHUB_URL).catch(() => {});
   }, []);
+
+  const HOME_SECTION_CONFIG: { id: HomeSectionId; icon: React.ComponentProps<typeof Ionicons>['name']; iconColor: string; i18nKey: string }[] = useMemo(
+    () => [
+      { id: 'featuredBanner', icon: 'image-outline', iconColor: '#FF9F0A', i18nKey: 'settings.showFeaturedBanner' },
+      { id: 'quickPicks', icon: 'time-outline', iconColor: '#30D158', i18nKey: 'settings.showQuickPicks' },
+      { id: 'topCharts', icon: 'stats-chart-outline', iconColor: '#0A84FF', i18nKey: 'settings.showTopCharts' },
+      { id: 'trendingNow', icon: 'flame-outline', iconColor: '#FF453A', i18nKey: 'settings.showTrendingNow' },
+      { id: 'loveSongs', icon: 'heart-outline', iconColor: '#FF375F', i18nKey: 'settings.showLoveSongs' },
+      { id: 'punjabiHits', icon: 'musical-notes-outline', iconColor: '#BF5AF2', i18nKey: 'settings.showPunjabiHits' },
+    ],
+    []
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -308,6 +358,24 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
             colors={colors}
             styles={styles}
           />
+        </Section>
+
+        <Section label={t('settings.homeScreen')} styles={styles}>
+          {HOME_SECTION_CONFIG.map((cfg, i) => (
+            <React.Fragment key={cfg.id}>
+              {i > 0 ? <Divider colors={colors} /> : null}
+              <ToggleRow
+                icon={cfg.icon}
+                iconColor={cfg.iconColor}
+                label={t(cfg.i18nKey)}
+                value={homeSections[cfg.id]}
+                onValueChange={(v) => void setHomeSection(cfg.id, v)}
+                colors={colors}
+                styles={styles}
+                isDark={isDark}
+              />
+            </React.Fragment>
+          ))}
         </Section>
 
         <Section label={t('settings.about')} styles={styles}>
