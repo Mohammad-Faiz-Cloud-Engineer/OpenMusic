@@ -19,7 +19,7 @@ jobs:
   #    Nothing gets released if tests or types fail.
   # ─────────────────────────────────────────────
   ci:
-    name: CI — Typecheck, Tests, Build Check
+    name: CI - Typecheck, Tests, Build Check
     runs-on: ubuntu-latest
 
     steps:
@@ -189,7 +189,7 @@ jobs:
         id: version
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      # Resolve the tag — use the pushed tag if triggered by a push,
+      # Resolve the tag - use the pushed tag if triggered by a push,
       # fall back to the manual input if triggered via workflow_dispatch.
       - name: Resolve tag name
         id: tag
