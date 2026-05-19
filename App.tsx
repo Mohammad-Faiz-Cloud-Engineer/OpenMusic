@@ -8,6 +8,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { OfflineBanner } from './src/components/OfflineBanner';
+import { Toast } from './src/components/Toast';
 import { useRecentStore } from './src/store/recentStore';
 import { useLikeStore } from './src/store/likeStore';
 import { useUserPlaylistStore } from './src/store/userPlaylistStore';
@@ -53,6 +54,7 @@ function ThemedShell() {
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={colors.bg} translucent={false} />
       <OfflineBanner />
+      <Toast />
       <AppNavigator />
     </>
   );

@@ -8,7 +8,6 @@ import {
   useWindowDimensions,
   Animated,
   ScrollView,
-  Alert,
   FlatList,
   Share,
   TextInput,
@@ -25,6 +24,7 @@ import { usePlayerStore, RepeatMode } from '../store/playerStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useLikeStore } from '../store/likeStore';
 import { useUserPlaylistStore, PLAYLIST_NAME_MAX } from '../store/userPlaylistStore';
+import { useToastStore } from '../store/toastStore';
 import { useTheme } from '../theme';
 import { formatDuration } from '../api/jiosaavn';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -140,6 +140,21 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
   const addTrackToPlaylistStore = useUserPlaylistStore((s) => s.addTrackToPlaylist);
   const createPlaylistStore = useUserPlaylistStore((s) => s.createPlaylist);
 
+  const showToast = useToastStore((s) => s.show);
+
+  const handleShare = useCallback(async () => {
+    if (!currentTrack) return;
+    try {
+      await Share.share({
+        message: `${currentTrack.title} - ${currentTrack.artist}`,
+        title: currentTrack.title,
+      });
+    } catch (err) {
+      devWarn('[player] share failed', err);
+      showToast(t('player.shareFailed'));
+    }
+  }, [currentTrack, t, showToast]);
+
   const onPickPlaylistForCurrent = useCallback(
     async (playlistId: string, playlistDisplayName: string) => {
       if (!currentTrack) return;
@@ -151,9 +166,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           : result === 'duplicate'
             ? t('player.alreadyInPlaylist', { name: playlistDisplayName })
             : t('player.playlistNotFound');
-      Alert.alert('', message);
+      showToast(message);
     },
-    [addTrackToPlaylistStore, currentTrack, t]
+    [addTrackToPlaylistStore, currentTrack, t, showToast]
   );
 
   const submitInlineNewPlaylist = useCallback(async () => {
@@ -165,9 +180,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     setNewPlaylistNameInput('');
     setShowPlaylistPicker(false);
     if (result === 'added') {
-      Alert.alert('', t('player.addedToPlaylist', { name: nameNorm }));
+      showToast(t('player.addedToPlaylist', { name: nameNorm }));
     } else {
-      Alert.alert('', t('player.playlistAddFailed'));
+      showToast(t('player.playlistAddFailed'));
     }
   }, [
     addTrackToPlaylistStore,
@@ -175,20 +190,8 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
     currentTrack,
     newPlaylistNameInput,
     t,
+    showToast,
   ]);
-
-  const handleShare = useCallback(async () => {
-    if (!currentTrack) return;
-    try {
-      await Share.share({
-        message: `${currentTrack.title} - ${currentTrack.artist}`,
-        title: currentTrack.title,
-      });
-    } catch (err) {
-      devWarn('[player] share failed', err);
-      Alert.alert('', t('player.shareFailed'));
-    }
-  }, [currentTrack, t]);
 
   const playQueueItem = useCallback(
     (index: number) => {

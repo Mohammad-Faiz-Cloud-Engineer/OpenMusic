@@ -8,6 +8,9 @@ All notable changes to OpenMusic are documented here. The format loosely follows
 
 ### Added
 
+#### Player screen
+- Replaced native Android alert dialogs with an in-app toast when adding a song to a playlist. The toast slides up from the bottom with a spring animation, frosted glass background, green checkmark, and auto-dismisses after two and a half seconds. Fits the look and feel of the rest of the app instead of throwing a system dialog in your face.
+
 #### Settings screen
 - New Settings tab in the bottom navigation bar.
 - Appearance section with a three-way theme picker: System (follows the device setting), Light, and Dark. The choice is saved and applied immediately across the whole app.
