@@ -20,19 +20,21 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
 import { usePlayerStore, RepeatMode } from '../store/playerStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useLikeStore } from '../store/likeStore';
 import { useUserPlaylistStore, PLAYLIST_NAME_MAX } from '../store/userPlaylistStore';
 import { useToastStore } from '../store/toastStore';
 import { useTheme } from '../theme';
-import { formatDuration } from '../api/jiosaavn';
+import { formatDuration, getLyrics, type LyricLine } from '../api/jiosaavn';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { a11yButton } from '../utils/a11y';
 import { devWarn } from '../utils/devLog';
+import LyricsView from '../components/LyricsView';
 
 // Resolved once at module load to avoid repeated require() calls inside render.
 const placeholder = require('../../assets/placeholder.png');
@@ -46,6 +48,31 @@ type PlayerSeekStyles = {
   seekTimes: ViewStyle;
   seekTime: TextStyle;
 };
+
+/** Subscribes only to position for LyricsView so PlayerScreen does not re-render every tick. */
+const LyricsWithPosition = React.memo(function LyricsWithPosition({
+  lines,
+  hasTimedLyrics,
+  isLoading,
+  error,
+}: {
+  lines: LyricLine[];
+  hasTimedLyrics: boolean;
+  isLoading: boolean;
+  error: string | null;
+}) {
+  const position = usePlayerStore((s) => s.position);
+  return (
+    <LyricsView
+      lines={lines}
+      currentPositionMs={position}
+      hasTimedLyrics={hasTimedLyrics}
+      onClose={() => {}}
+      isLoading={isLoading}
+      error={error}
+    />
+  );
+});
 
 /** Subscribes only to position/duration so the rest of PlayerScreen does not re-render every tick. */
 const PlayerSeekSection = memo(function PlayerSeekSection({
@@ -132,6 +159,23 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
   const [showPlaylistPicker, setShowPlaylistPicker] = useState(false);
   const [showNewPlaylistPrompt, setShowNewPlaylistPrompt] = useState(false);
   const [newPlaylistNameInput, setNewPlaylistNameInput] = useState('');
+  const [showLyrics, setShowLyrics] = useState(false);
+
+  const {
+    data: lyricsData,
+    isLoading: lyricsLoading,
+    isError: lyricsError,
+    error: lyricsErrorObj,
+    refetch: fetchLyrics,
+  } = useQuery({
+    queryKey: ['lyrics', currentTrack?.id],
+    queryFn: () => {
+      if (!currentTrack) return Promise.reject(new Error('No track'));
+      return getLyrics(currentTrack.id);
+    },
+    enabled: false,
+    staleTime: 60 * 60 * 1000,
+  });
 
   const likedIds = useLikeStore((s) => s.likedIds);
   const toggleLikeTrack = useLikeStore((s) => s.toggleLike);
@@ -211,6 +255,17 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
       friction: 10,
     }).start();
   }, [isPlaying, artworkScale]);
+
+  useEffect(() => {
+    setShowLyrics(false);
+  }, [currentTrack?.id]);
+
+  const handleArtworkPress = useCallback(() => {
+    setShowLyrics((prev) => {
+      if (!prev) void fetchLyrics();
+      return !prev;
+    });
+  }, [fetchLyrics]);
 
   // Clean up any pending setTimeout on unmount to avoid state updates on
   // an unmounted component (the guide is opened via a delayed call from menu).
@@ -529,17 +584,30 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Artwork */}
-        <View style={styles.artworkContainer}>
-          <Animated.View style={[styles.artworkWrapper, { transform: [{ scale: artworkScale }] }]}>
-            <Image source={imageSource} style={styles.artwork} />
-            {/* Subtle glass sheen on artwork */}
-            <LinearGradient
-              colors={artworkSheenGradient}
-              style={StyleSheet.absoluteFill}
+        {/* Artwork / Lyrics toggle */}
+        <TouchableOpacity
+          activeOpacity={0.92}
+          onPress={handleArtworkPress}
+          style={styles.artworkContainer}
+          {...a11yButton(showLyrics ? t('player.showArtwork') : t('player.showLyrics'))}
+        >
+          {showLyrics ? (
+            <LyricsWithPosition
+              lines={lyricsData?.lines ?? []}
+              hasTimedLyrics={lyricsData?.has_timed_lyrics ?? false}
+              isLoading={lyricsLoading}
+              error={lyricsError ? (lyricsErrorObj?.message ?? t('player.lyricsError')) : null}
             />
-          </Animated.View>
-        </View>
+          ) : (
+            <Animated.View style={[styles.artworkWrapper, { transform: [{ scale: artworkScale }] }]}>
+              <Image source={imageSource} style={styles.artwork} />
+              <LinearGradient
+                colors={artworkSheenGradient}
+                style={StyleSheet.absoluteFill}
+              />
+            </Animated.View>
+          )}
+        </TouchableOpacity>
 
         {/* Track info */}
         <View style={styles.trackInfo}>

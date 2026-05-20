@@ -35,7 +35,6 @@ interface PlayerState {
   repeatMode: RepeatMode;
   isShuffle: boolean;
 
-  // Stream URL cache avoids re-fetching signed CDN URLs that are still valid.
   streamCache: Record<string, CachedStream>;
   /** Bumped on each playTrack to ignore stale async completions */
   playGeneration: number;
@@ -111,27 +110,19 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       }
       if (isStale()) return;
 
-      // Step 1: resolve the signed CDN URL.
-      // Use the client-side cache if the URL is still valid. This avoids a round
-      // trip to the API for every track play and prevents hammering the HF
-      // rate limiter (120 req/60s).
       let streamUrl: string;
       const cached = state.streamCache[track.id];
 
       if (cached && !isCacheExpired(cached)) {
-        // Cache hit: use the existing signed URL directly.
         streamUrl = cached.url;
       } else {
-        // Cache miss or expired: fetch a fresh signed URL from the backend.
         try {
           const streamData = await getStreamUrl(track.id);
           if (!streamData.stream_url) {
             throw new Error('No stream URL returned');
           }
-          // web.saavncdn.com needs Referer headers expo-av does not send (403).
           streamUrl = streamData.stream_url.replace('web.saavncdn.com', 'aac.saavncdn.com');
           if (isStale()) return;
-          // Cache it for the duration of its validity
           set((s) => ({
             streamCache: {
               ...s.streamCache,
@@ -146,7 +137,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
       if (isStale()) return;
 
-      // Step 2: configure audio session
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         staysActiveInBackground: true,
@@ -155,8 +145,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         playThroughEarpieceAndroid: false,
       });
 
-      // Step 3: load and play. expo-av uses range requests against the
-      // signed CDN URL directly, no proxy in the hot path.
       const { sound } = await Audio.Sound.createAsync(
         { uri: streamUrl },
         { shouldPlay: true, progressUpdateIntervalMillis: 1000 },
@@ -184,7 +172,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       }
 
       set({ sound, isPlaying: true, isLoading: false, position: 0 });
-      void useRecentStore.getState().addRecent(track);
+      useRecentStore.getState().addRecent(track).catch((err) => devWarn('[player] addRecent failed:', err));
     } catch (err) {
       if (!isStale()) {
         devError('[player] playTrack error:', err);
@@ -253,7 +241,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { queue, currentIndex, position } = get();
     if (!queue.length) return;
 
-    // If more than 3s in, restart current track
     if (position > 3000) {
       const { sound } = get();
       if (sound) {
@@ -293,10 +280,19 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   removeFromQueue: (index) =>
     set((s) => {
       const newQueue = s.queue.filter((_, i) => i !== index);
-      const newIndex = index < s.currentIndex
+      let newIndex = index < s.currentIndex
         ? s.currentIndex - 1
         : s.currentIndex;
-      return { queue: newQueue, currentIndex: newIndex };
+      if (index === s.currentIndex) {
+        newIndex = newIndex >= newQueue.length ? newQueue.length - 1 : newIndex;
+      }
+      return {
+        queue: newQueue,
+        currentIndex: newIndex,
+        currentTrack: index === s.currentIndex
+          ? (newQueue[newIndex] ?? null)
+          : s.currentTrack,
+      };
     }),
 
   clearQueue: () => {

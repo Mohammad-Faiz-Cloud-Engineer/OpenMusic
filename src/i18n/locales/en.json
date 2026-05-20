@@ -93,6 +93,11 @@
     "share": "Share",
     "shareFailed": "Unable to open share sheet.",
     "repeatOne": "Repeat one",
+    "showLyrics": "Show lyrics",
+    "showArtwork": "Show artwork",
+    "lyricsLoading": "Loading lyrics...",
+    "lyricsError": "Couldn't load lyrics for this song.",
+    "lyricsUnavailable": "No lyrics available for this song.",
     "controlsGuide": "Controls Guide",
     "controlsGuideSubtitle": "What each button does",
     "gotIt": "Got it",
@@ -133,7 +138,7 @@
   "playlist": {
     "error": "Failed to load playlist",
     "by": "by {{owner}}",
-    "meta": "{{count}} songs · {{duration}}",
+    "meta": "{{count}} songs - {{duration}}",
     "durationHoursMinutes": "{{hours}}h {{minutes}}m",
     "durationMinutes": "{{minutes}} min"
   },

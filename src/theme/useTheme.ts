@@ -10,7 +10,6 @@ export function useTheme(): AppTheme {
   return useMemo(() => {
     if (themeMode === 'light') return getTheme('light');
     if (themeMode === 'dark') return getTheme('dark');
-    // 'system' falls back to the OS preference
     return getTheme(systemScheme);
   }, [themeMode, systemScheme]);
 }

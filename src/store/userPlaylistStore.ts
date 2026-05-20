@@ -88,7 +88,6 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
       const inMemory = get().playlists;
       const mergedById = new Map<string, UserPlaylistStored>();
       for (const p of fromDisk) mergedById.set(p.id, p);
-      // In-session edits win when ids collide (handles hydrate finishing after offline edits).
       for (const p of inMemory) mergedById.set(p.id, p);
       const playlists = [...mergedById.values()].sort((a, b) => b.updatedAt - a.updatedAt);
       set({ playlists, hydrated: true });

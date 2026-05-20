@@ -50,7 +50,6 @@ describe('jiosaavn API (HTTP)', () => {
   it('maps network errors to friendly message', async () => {
     const { AxiosError } = require('axios');
     const err = new AxiosError('Network');
-    // No err.response means the request never reached the server (network down)
     err.response = undefined;
     mockGet.mockRejectedValueOnce(err);
 

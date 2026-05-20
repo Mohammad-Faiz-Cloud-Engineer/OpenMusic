@@ -37,8 +37,6 @@ const handleApiError = (err: unknown): never => {
   throw err;
 };
 
-// Types
-
 export interface Track {
   id: string;
   title: string;
@@ -104,13 +102,23 @@ export interface ChartsResult {
   charts: Chart[];
 }
 
+export interface LyricLine {
+  time: number;
+  text: string;
+}
+
+export interface LyricsResponse {
+  source: string;
+  id: string;
+  has_timed_lyrics: boolean;
+  lines: LyricLine[];
+}
+
 export interface SuggestionsResult {
   source: string;
   query: string;
   suggestions: string[];
 }
-
-// API calls
 
 export const searchSongs = async (q: string): Promise<SearchResult> => {
   const query = assertQuery(q);
@@ -159,6 +167,18 @@ export const getPlaylist = async (id: string): Promise<Playlist> => {
 export const getCharts = async (): Promise<ChartsResult> => {
   try {
     const { data } = await api.get<ChartsResult>('/jiosaavn/charts');
+    return data;
+  } catch (err) {
+    return handleApiError(err);
+  }
+};
+
+export const getLyrics = async (id: string): Promise<LyricsResponse> => {
+  const trackId = assertId(id, 'track id');
+  try {
+    const { data } = await api.get<LyricsResponse>(
+      `/jiosaavn/lyrics/${encodeURIComponent(trackId)}`
+    );
     return data;
   } catch (err) {
     return handleApiError(err);
