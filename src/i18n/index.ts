@@ -10,13 +10,13 @@ if (I18nManager.isRTL !== isRtl) {
   I18nManager.forceRTL(isRtl);
 }
 
-i18n.use(initReactI18next).init({
+void i18n.use(initReactI18next).init({
   compatibilityJSON: 'v4',
   resources: { en: { translation: en } },
   lng: 'en',
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
   showSupportNotice: false,
-}).catch((err) => console.warn('[i18n] init failed:', err));
+});
 
 export default i18n;
