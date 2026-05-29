@@ -295,7 +295,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       const newQueue = s.queue.filter((_, i) => i !== index);
       const newIndex = index < s.currentIndex
         ? s.currentIndex - 1
-        : s.currentIndex;
+        : Math.min(s.currentIndex, newQueue.length - 1);
       return { queue: newQueue, currentIndex: newIndex };
     }),
 
