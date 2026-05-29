@@ -16,8 +16,9 @@ export const linking: LinkingOptions<RootStackParamList> = {
       },
       Player: 'player',
       Playlist: 'playlist/:id',
-      TrackList: 'tracks',
       Charts: 'charts',
+      MyPlaylists: 'playlists',
+      UserPlaylist: 'user-playlist/:playlistId',
     },
   },
 };

@@ -12,11 +12,15 @@ describe('deep linking config', () => {
     expect(screens.Player).toBe('player');
     expect(screens.Charts).toBe('charts');
     expect(screens.Playlist).toBe('playlist/:id');
+    expect(screens.MyPlaylists).toBe('playlists');
+    expect(screens.UserPlaylist).toBe('user-playlist/:playlistId');
+    expect(screens.TrackList).toBeUndefined();
 
     const tabs = screens.Tabs as { screens: Record<string, string> };
     expect(tabs.screens.Home).toBe('home');
     expect(tabs.screens.Search).toBe('search');
     expect(tabs.screens.Collection).toBe('collection');
     expect(tabs.screens.Library).toBe('library');
+    expect(tabs.screens.Settings).toBe('settings');
   });
 });

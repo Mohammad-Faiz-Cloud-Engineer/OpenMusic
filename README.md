@@ -132,6 +132,8 @@ The app registers the custom scheme `openmusic://` and the following paths:
 - `openmusic://playlist/:id`
 - `openmusic://charts`
 - `openmusic://settings`
+- `openmusic://playlists`
+- `openmusic://user-playlist/:playlistId`
 
 Universal links are configured for `https://openmusic.app` in `app.json`. You'll need to host the associated domain files on that domain for production verification.
 
@@ -146,8 +148,8 @@ Only `EXPO_PUBLIC_*` variables are embedded in the client bundle. Do not put sec
 
 ## Testing
 
-![Test suites](https://img.shields.io/badge/tests-52%20passing-brightgreen)
-![Test suites](https://img.shields.io/badge/suites-12-blue)
+![Tests](https://img.shields.io/badge/tests-92%20passing-brightgreen)
+![Test suites](https://img.shields.io/badge/suites-25-blue)
 ![Build gate](https://img.shields.io/badge/build%20gate-tsc%20%2B%20structure-success)
 
 Run everything locally (same as CI):
