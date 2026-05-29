@@ -11,6 +11,7 @@ import { shuffleArray } from '../utils/playerUtils';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
+import { a11yButton } from '../utils/a11y';
 
 type TrackListScreenProps = StackScreenProps<RootStackParamList, 'TrackList'>;
 
@@ -80,12 +81,13 @@ export const TrackListScreen: React.FC<TrackListScreenProps> = ({ navigation, ro
           <TouchableOpacity
             style={styles.shuffleBtn}
             onPress={() => playQueue(shuffleArray(tracks), 0)}
+            {...a11yButton(t('common.shuffle'))}
           >
             <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.shuffleBtnGlass} />
             <Ionicons name="shuffle" size={18} color={colors.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.playBtn} onPress={() => playQueue(tracks, 0)}>
+          <TouchableOpacity style={styles.playBtn} onPress={() => playQueue(tracks, 0)} {...a11yButton(t('common.play'))}>
             <Ionicons name="play" size={18} color="#000" />
           </TouchableOpacity>
         </View>

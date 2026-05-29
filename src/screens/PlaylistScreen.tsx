@@ -14,6 +14,7 @@ import { shuffleArray } from '../utils/playerUtils';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
+import { a11yButton } from '../utils/a11y';
 
 type PlaylistScreenProps = StackScreenProps<RootStackParamList, 'Playlist'>;
 
@@ -111,7 +112,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
       <View style={styles.centered}>
         <Ionicons name="alert-circle-outline" size={44} color={colors.textMuted} />
         <Text style={styles.errorText}>{t('playlist.error')}</Text>
-        <TouchableOpacity style={styles.glassBtn} onPress={() => refetch()}>
+        <TouchableOpacity style={styles.glassBtn} onPress={() => { void refetch().catch(() => {}); }}>
           <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           <View style={styles.glassBtnFill} />
           <Text style={styles.glassBtnText}>{t('common.retry')}</Text>
@@ -159,12 +160,13 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
                 <TouchableOpacity
                   style={styles.shuffleBtn}
                   onPress={() => playQueue(shuffleArray(data.tracks), 0)}
+                  {...a11yButton(t('common.shuffle'))}
                 >
                   <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                   <View style={styles.shuffleBtnGlass} />
                   <Ionicons name="shuffle" size={20} color={colors.text} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.playBtn} onPress={() => playQueue(data.tracks, 0)}>
+                <TouchableOpacity style={styles.playBtn} onPress={() => playQueue(data.tracks, 0)} {...a11yButton(t('common.play'))}>
                   <Ionicons name="play" size={22} color="#000" />
                 </TouchableOpacity>
               </View>

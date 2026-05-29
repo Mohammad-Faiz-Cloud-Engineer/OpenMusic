@@ -512,7 +512,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
         {/* Top bar */}
         <View style={styles.topBar}>
-          <TouchableOpacity style={styles.topIconBtn} onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity style={styles.topIconBtn} onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} {...a11yButton(t('common.goBack'))}>
             <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.topIconGlass} />
             <Ionicons name="chevron-down" size={22} color={colors.text} />
@@ -522,7 +522,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             <Text style={styles.topLabel}>{t('player.nowPlaying')}</Text>
           </View>
 
-          <TouchableOpacity style={styles.topIconBtn} onPress={() => setShowMenu(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity style={styles.topIconBtn} onPress={() => setShowMenu(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} {...a11yButton(t('player.menu'))}>
             <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.topIconGlass} />
             <Ionicons name="ellipsis-horizontal" size={20} color={colors.text} />
@@ -565,28 +565,28 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
 
         {/* Controls */}
         <View style={styles.controls}>
-          <TouchableOpacity style={styles.sideControl} onPress={toggleShuffle} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity style={styles.sideControl} onPress={toggleShuffle} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} {...a11yButton(t('player.controls.shuffle'))}>
             <Ionicons name="shuffle" size={22} color={isShuffle ? colors.accent : colors.textSecondary} />
             {isShuffle && <View style={styles.activeIndicator} />}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.skipBtn} onPress={prev} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity style={styles.skipBtn} onPress={prev} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} {...a11yButton(t('player.controls.prev'))}>
             <Ionicons name="play-skip-back" size={28} color={colors.text} />
           </TouchableOpacity>
 
           {/* Play button */}
-          <TouchableOpacity style={styles.playBtn} onPress={() => void togglePlay()} activeOpacity={0.85}>
+          <TouchableOpacity style={styles.playBtn} onPress={() => void togglePlay()} activeOpacity={0.85} {...a11yButton(isPlaying ? t('common.pause') : t('common.play'))}>
             {isLoading
               ? <Ionicons name="hourglass-outline" size={28} color={colors.bg} />
               : <Ionicons name={isPlaying ? 'pause' : 'play'} size={28} color={colors.bg} style={!isPlaying ? { marginLeft: 3 } : undefined} />
             }
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.skipBtn} onPress={next} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity style={styles.skipBtn} onPress={next} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} {...a11yButton(t('player.controls.next'))}>
             <Ionicons name="play-skip-forward" size={28} color={colors.text} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.sideControl} onPress={cycleRepeat} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity style={styles.sideControl} onPress={cycleRepeat} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} {...a11yButton(t('player.controls.repeat'))}>
             <Ionicons name="repeat" size={22} color={repeatMode !== 'off' ? colors.accent : colors.textSecondary} />
             {repeatMode === 'one' && <Text style={styles.repeatOneLabel}>1</Text>}
             {repeatMode !== 'off' && <View style={styles.activeIndicator} />}

@@ -25,7 +25,7 @@ export const ChartsScreen: React.FC<Props> = ({ navigation }) => {
     staleTime: 10 * 60 * 1000,
   });
 
-  const handleRefresh = useCallback(() => { void refetch(); }, [refetch]);
+  const handleRefresh = useCallback(() => { void refetch().catch(() => {}); }, [refetch]);
 
   const styles = useMemo(
     () =>

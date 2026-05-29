@@ -61,7 +61,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   });
 
   const isRefreshing = chartsFetching || trendingFetching;
-  const onRefresh = useCallback(() => { refetchCharts(); refetchTrending(); }, [refetchCharts, refetchTrending]);
+  const onRefresh = useCallback(() => { void refetchCharts().catch(() => {}); void refetchTrending().catch(() => {}); }, [refetchCharts, refetchTrending]);
 
   const getGreeting = useCallback(() => {
     const h = new Date().getHours();
@@ -181,7 +181,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     if (!tracks.length) return null;
     const featured = tracks[0];
     return (
-      <TouchableOpacity style={styles.featuredBanner} onPress={() => playQueue(tracks, 0)} activeOpacity={0.88}>
+      <TouchableOpacity style={styles.featuredBanner} onPress={() => playQueue(tracks, 0)} activeOpacity={0.88} {...a11yButton(t('home.playNow'))}>
         <Image
           source={featured.thumbnail ? { uri: featured.thumbnail } : placeholder}
           style={StyleSheet.absoluteFill}
@@ -195,13 +195,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <Text style={styles.featuredTitle} numberOfLines={2}>{featured.title}</Text>
           <Text style={styles.featuredArtist}>{featured.artist}</Text>
           <View style={styles.featuredActions}>
-            <TouchableOpacity style={styles.featuredPlayBtn} onPress={() => playQueue(tracks, 0)}>
+            <TouchableOpacity style={styles.featuredPlayBtn} onPress={() => playQueue(tracks, 0)} {...a11yButton(t('home.playNow'))}>
               <Ionicons name="play" size={16} color="#000" />
               <Text style={styles.featuredPlayText}>{t('home.playNow')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.featuredShuffleBtn}
               onPress={() => playQueue(shuffleArray(tracks), 0)}
+              {...a11yButton(t('common.shuffle'))}
             >
               <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
               <Ionicons name="shuffle" size={16} color={colors.text} />
@@ -219,7 +220,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return (
       <View style={styles.quickPicksGrid}>
         {tracks.map((track, i) => (
-          <TouchableOpacity key={track.id} style={styles.quickPickItem} onPress={() => playQueue(tracks, i)} activeOpacity={0.75}>
+          <TouchableOpacity key={track.id} style={styles.quickPickItem} onPress={() => playQueue(tracks, i)} activeOpacity={0.75} {...a11yButton(track.title)}>
             <BlurView intensity={30} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.quickPickGlass} />
             <Image
