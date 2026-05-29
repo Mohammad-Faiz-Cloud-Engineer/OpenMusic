@@ -83,6 +83,53 @@ describe('playerStore', () => {
     expect(usePlayerStore.getState().currentIndex).toBe(1);
   });
 
+  it('removeFromQueue advances playback when removing the current item', () => {
+    const tracks = [track('1'), track('2'), track('3')];
+    const originalPlayTrack = usePlayerStore.getState().playTrack;
+    const playTrack = jest.fn().mockResolvedValue(undefined);
+    usePlayerStore.setState({
+      queue: tracks,
+      currentIndex: 1,
+      currentTrack: tracks[1],
+      playTrack,
+    });
+
+    usePlayerStore.getState().removeFromQueue(1);
+
+    const nextQueue = [tracks[0], tracks[2]];
+    expect(usePlayerStore.getState().queue).toEqual(nextQueue);
+    expect(usePlayerStore.getState().currentIndex).toBe(1);
+    expect(playTrack).toHaveBeenCalledWith(tracks[2], nextQueue, { openFullPlayer: false });
+    usePlayerStore.setState({ playTrack: originalPlayTrack });
+  });
+
+  it('removeFromQueue clears playback when removing the only current item', () => {
+    const unloadAsync = jest.fn().mockResolvedValue(undefined);
+    usePlayerStore.setState({
+      queue: [track('1')],
+      currentIndex: 0,
+      currentTrack: track('1'),
+      sound: { unloadAsync } as never,
+      isPlaying: true,
+      position: 5000,
+      duration: 10000,
+      playGeneration: 3,
+    });
+
+    usePlayerStore.getState().removeFromQueue(0);
+
+    const s = usePlayerStore.getState();
+    expect(s.queue).toHaveLength(0);
+    expect(s.currentIndex).toBe(-1);
+    expect(s.currentTrack).toBeNull();
+    expect(s.sound).toBeNull();
+    expect(s.isPlaying).toBe(false);
+    expect(s.position).toBe(0);
+    expect(s.duration).toBe(0);
+    expect(s.playGeneration).toBe(4);
+    expect(unloadAsync).toHaveBeenCalled();
+  });
+
   it('clearQueue resets playback state', () => {
     usePlayerStore.setState({
       queue: [track('1')],

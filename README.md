@@ -17,11 +17,11 @@ Audio is powered by [OpenMusic-API](https://github.com/Mohammad-Faiz-Cloud-Engin
 ## Features
 
 - **Home** - Trending picks, quick-play grids, top charts, and curated rows (romantic, Punjabi, and more).
-- **Search** - Live suggestions, genre shortcuts, and full result lists.
+- **Search** - Live suggestions and full result lists.
 - **Library** - Your current queue plus recently played tracks (saved on device).
 - **Player** - Play/pause, skip, seek, shuffle, repeat (off / all / one), and a peek at what's up next.
 - **Charts & playlists** - Open a chart or playlist and play or shuffle the whole list.
-- **Settings** - Theme (System / Light / Dark), stream quality, music source, and data management.
+- **Settings** - Theme (System / Light / Dark), home-screen sections, and recent-play cleanup.
 
 Background playback is supported on iOS and Android.
 
@@ -33,7 +33,7 @@ Background playback is supported on iOS and Android.
 | Navigation | React Navigation (tabs + stack) |
 | Server state | TanStack React Query |
 | Player state | Zustand + Expo AV |
-| Persistence | AsyncStorage (recent plays) |
+| Persistence | AsyncStorage (recent plays, liked songs, playlists, settings) |
 | i18n | i18next + expo-localization |
 | HTTP | Axios |
 | Tests | Jest, React Native Testing Library |
@@ -91,7 +91,6 @@ If it's empty the app still runs; errors are only logged in development and thro
 | `npm start` | Start Expo dev server |
 | `npm run android` | Open on Android |
 | `npm run ios` | Open on iOS |
-| `npm run web` | Run in the browser (limited audio behavior) |
 | `npm test` | Run all unit tests (Jest) |
 | `npm run test:watch` | Tests in watch mode |
 | `npm run test:coverage` | Tests with coverage report |
@@ -113,7 +112,7 @@ src/
   navigation/           # Navigators, types, deep-link config
   screens/              # Home, Search, Library, Player, ...
   services/             # Monitoring / global error handling
-  store/                # Player + recent-play Zustand stores
+  store/                # Player, library, playlist, and settings Zustand stores
   theme/                # Colors and typography
   utils/                # Small shared helpers
 __tests__/              # Jest tests
@@ -127,6 +126,8 @@ The app registers the custom scheme `openmusic://` and the following paths:
 
 - `openmusic://home`
 - `openmusic://search`
+- `openmusic://collection`
+- `openmusic://library`
 - `openmusic://player`
 - `openmusic://playlist/:id`
 - `openmusic://charts`
@@ -145,7 +146,7 @@ Only `EXPO_PUBLIC_*` variables are embedded in the client bundle. Do not put sec
 
 ## Testing
 
-![Test suites](https://img.shields.io/badge/tests-45%20passing-brightgreen)
+![Test suites](https://img.shields.io/badge/tests-52%20passing-brightgreen)
 ![Test suites](https://img.shields.io/badge/suites-12-blue)
 ![Build gate](https://img.shields.io/badge/build%20gate-tsc%20%2B%20structure-success)
 

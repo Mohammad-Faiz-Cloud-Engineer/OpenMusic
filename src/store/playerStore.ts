@@ -290,14 +290,43 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   addToQueue: (track) =>
     set((s) => ({ queue: [...s.queue, track] })),
 
-  removeFromQueue: (index) =>
-    set((s) => {
-      const newQueue = s.queue.filter((_, i) => i !== index);
-      const newIndex = index < s.currentIndex
-        ? s.currentIndex - 1
-        : Math.min(s.currentIndex, newQueue.length - 1);
-      return { queue: newQueue, currentIndex: newIndex };
-    }),
+  removeFromQueue: (index) => {
+    const { queue, currentIndex, sound, playGeneration } = get();
+    if (index < 0 || index >= queue.length) return;
+
+    const newQueue = queue.filter((_, i) => i !== index);
+
+    if (index === currentIndex) {
+      if (!newQueue.length) {
+        if (sound) {
+          sound.unloadAsync().catch((err) => devWarn('[player] removeFromQueue unload failed:', err));
+        }
+        set({
+          queue: [],
+          currentIndex: -1,
+          currentTrack: null,
+          sound: null,
+          isPlaying: false,
+          isLoading: false,
+          position: 0,
+          duration: 0,
+          playGeneration: playGeneration + 1,
+        });
+        return;
+      }
+
+      const nextIndex = Math.min(index, newQueue.length - 1);
+      const nextTrack = newQueue[nextIndex];
+      set({ queue: newQueue, currentIndex: nextIndex });
+      void get()
+        .playTrack(nextTrack, newQueue, { openFullPlayer: false })
+        .catch((err) => devError('[player] removeFromQueue advance failed:', err));
+      return;
+    }
+
+    const newIndex = index < currentIndex ? currentIndex - 1 : currentIndex;
+    set({ queue: newQueue, currentIndex: newIndex });
+  },
 
   clearQueue: () => {
     const { sound, playGeneration } = get();
