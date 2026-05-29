@@ -148,8 +148,8 @@ Only `EXPO_PUBLIC_*` variables are embedded in the client bundle. Do not put sec
 
 ## Testing
 
-![Tests](https://img.shields.io/badge/tests-92%20passing-brightgreen)
-![Test suites](https://img.shields.io/badge/suites-25-blue)
+![Tests](https://img.shields.io/badge/tests-113%20passing-brightgreen)
+![Test suites](https://img.shields.io/badge/suites-29-blue)
 ![Build gate](https://img.shields.io/badge/build%20gate-tsc%20%2B%20structure-success)
 
 Run everything locally (same as CI):

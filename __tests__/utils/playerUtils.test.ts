@@ -1,4 +1,4 @@
-import { isCacheExpired, pickShuffleIndex } from '../../src/utils/playerUtils';
+import { isCacheExpired, pickShuffleIndex, shuffleArray } from '../../src/utils/playerUtils';
 
 describe('isCacheExpired', () => {
   it('returns false when no expiry', () => {
@@ -32,5 +32,23 @@ describe('pickShuffleIndex', () => {
       expect(next).toBeGreaterThanOrEqual(0);
       expect(next).toBeLessThan(5);
     }
+  });
+});
+
+describe('shuffleArray', () => {
+  it('returns a shuffled copy without mutating the input', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+    const original = ['a', 'b', 'c'];
+
+    const shuffled = shuffleArray(original);
+
+    expect(original).toEqual(['a', 'b', 'c']);
+    expect(shuffled).toEqual(['b', 'c', 'a']);
+    expect(shuffled).not.toBe(original);
+    jest.restoreAllMocks();
+  });
+
+  it('handles an empty array', () => {
+    expect(shuffleArray([])).toEqual([]);
   });
 });

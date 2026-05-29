@@ -1,4 +1,18 @@
+const mockGetStreamUrl = jest.fn();
+const mockGetProxyPlayUrl = jest.fn((id: string) => `https://proxy.example/${id}`);
+
+jest.mock('../../src/api/jiosaavn', () => {
+  const actual = jest.requireActual('../../src/api/jiosaavn');
+  return {
+    ...actual,
+    getStreamUrl: (id: string) => mockGetStreamUrl(id),
+    getProxyPlayUrl: (id: string) => mockGetProxyPlayUrl(id),
+  };
+});
+
+import { Audio } from 'expo-av';
 import { usePlayerStore } from '../../src/store/playerStore';
+import { useRecentStore } from '../../src/store/recentStore';
 import type { Track } from '../../src/api/jiosaavn';
 
 const track = (id: string): Track => ({
@@ -16,6 +30,16 @@ const track = (id: string): Track => ({
 
 describe('playerStore', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+    useRecentStore.setState({ tracks: [], hydrated: true });
+    mockGetStreamUrl.mockResolvedValue({
+      id: '1',
+      source: 'jiosaavn',
+      quality: '320kbps',
+      format: 'm4a',
+      stream_url: 'https://web.saavncdn.com/song.m4a',
+      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    });
     usePlayerStore.setState({
       queue: [],
       currentIndex: -1,
@@ -58,6 +82,62 @@ describe('playerStore', () => {
     await usePlayerStore.getState().playQueue(tracks, 99, { openFullPlayer: false });
     expect(playTrack).toHaveBeenCalledWith(tracks[1], tracks, { openFullPlayer: false });
     usePlayerStore.setState({ playTrack: originalPlayTrack });
+  });
+
+  it('playTrack fetches a stream URL, rewrites the CDN host, and records recent play', async () => {
+    const tracks = [track('1')];
+
+    await usePlayerStore.getState().playTrack(tracks[0], tracks, { openFullPlayer: false });
+
+    expect(mockGetStreamUrl).toHaveBeenCalledWith('1');
+    expect(Audio.setAudioModeAsync).toHaveBeenCalled();
+    expect(Audio.Sound.createAsync).toHaveBeenCalledWith(
+      { uri: 'https://aac.saavncdn.com/song.m4a' },
+      { shouldPlay: true, progressUpdateIntervalMillis: 1000 },
+      expect.any(Function)
+    );
+    expect(usePlayerStore.getState().streamCache['1']?.url).toBe(
+      'https://aac.saavncdn.com/song.m4a'
+    );
+    expect(useRecentStore.getState().tracks[0]?.id).toBe('1');
+  });
+
+  it('playTrack uses an unexpired cached stream URL without calling the API', async () => {
+    const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    const tracks = [track('1')];
+    usePlayerStore.setState({
+      streamCache: { '1': { url: 'https://cached.example/song.m4a', expiresAt: future } },
+    });
+
+    await usePlayerStore.getState().playTrack(tracks[0], tracks, { openFullPlayer: false });
+
+    expect(mockGetStreamUrl).not.toHaveBeenCalled();
+    expect(Audio.Sound.createAsync).toHaveBeenCalledWith(
+      { uri: 'https://cached.example/song.m4a' },
+      { shouldPlay: true, progressUpdateIntervalMillis: 1000 },
+      expect.any(Function)
+    );
+  });
+
+  it('playTrack falls back to the proxy URL when stream lookup fails', async () => {
+    const tracks = [track('1')];
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mockGetStreamUrl.mockRejectedValueOnce(new Error('backend down'));
+
+    await usePlayerStore.getState().playTrack(tracks[0], tracks, { openFullPlayer: false });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[player] stream URL fetch failed, falling back to proxy:',
+      expect.any(Error)
+    );
+    expect(mockGetProxyPlayUrl).toHaveBeenCalledWith('1');
+    expect(Audio.Sound.createAsync).toHaveBeenCalledWith(
+      { uri: 'https://proxy.example/1' },
+      { shouldPlay: true, progressUpdateIntervalMillis: 1000 },
+      expect.any(Function)
+    );
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+    warnSpy.mockRestore();
   });
 
   it('next marks playback stopped at end of queue without repeat', async () => {

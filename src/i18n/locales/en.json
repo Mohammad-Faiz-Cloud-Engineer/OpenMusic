@@ -47,6 +47,8 @@
   "search": {
     "title": "Search",
     "placeholder": "Songs, artists, albums...",
+    "clear": "Clear search",
+    "useSuggestion": "Search for {{suggestion}}",
     "resultsFor": "Results for \"{{query}}\"",
     "idleTitle": "Find your next favourite",
     "idleSubtitle": "Search songs, artists, albums"

@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { TabParamList } from '../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { a11yButton } from '../utils/a11y';
 
 type SearchScreenProps = BottomTabScreenProps<TabParamList, 'Search'>;
 
@@ -72,6 +73,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
   };
 
   const clearSearch = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = null;
     setQuery('');
     setDebouncedQuery('');
     inputRef.current?.focus();
@@ -222,6 +225,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
             <TouchableOpacity
               onPress={clearSearch}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              {...a11yButton(t('search.clear'))}
             >
               <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
             </TouchableOpacity>
@@ -242,6 +246,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
                 i === (suggestionsData.suggestions.length - 1) && styles.suggestionItemLast,
               ]}
               onPress={() => handleSuggestionPress(s)}
+              {...a11yButton(t('search.useSuggestion', { suggestion: s }))}
             >
               <Ionicons name="search-outline" size={16} color={colors.textMuted} />
               <Text style={styles.suggestionText}>{s}</Text>
