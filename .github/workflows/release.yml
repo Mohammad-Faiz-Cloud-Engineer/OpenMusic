@@ -1,0 +1,234 @@
+name: Release
+
+# Triggers when you push a version tag like v0.1.4
+# You can also kick it off manually from the Actions tab if needed.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag to release (e.g. v0.1.4)'
+        required: true
+        default: 'v0.1.4'
+
+jobs:
+  # ─────────────────────────────────────────────
+  # 1. Run the full CI pipeline first.
+  #    Nothing gets released if tests or types fail.
+  # ─────────────────────────────────────────────
+  ci:
+    name: CI - Typecheck, Tests, Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test -- --ci --coverage
+
+      - name: Build check
+        run: npm run build:check
+
+      - name: Production dependency audit
+        run: npm run audit:prod
+
+  # ─────────────────────────────────────────────
+  # 2. Build the Android release APK + AAB.
+  #    Only runs after CI passes.
+  # ─────────────────────────────────────────────
+  build-android:
+    name: Build Android (APK + AAB)
+    runs-on: ubuntu-latest
+    needs: ci
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Read version from package.json
+        id: version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Expo prebuild
+        run: npx expo prebuild --platform android --clean
+        env:
+          EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL || 'https://LocalFind-OpenMusic-API.hf.space' }}
+          EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
+
+      - name: Make Gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build release APK (universal + splits) + AAB
+        run: |
+          ./gradlew clean assembleRelease bundleRelease --no-daemon
+        working-directory: android
+        env:
+          EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL || 'https://LocalFind-OpenMusic-API.hf.space' }}
+          EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
+
+      # Collect every APK Gradle produced and rename them clearly.
+      # This gives us:
+      #   OpenMusic-v0.1.4-universal.apk   ← works on every Android phone
+      #   OpenMusic-v0.1.4-arm64-v8a.apk   ← modern 64-bit phones (smallest file)
+      #   OpenMusic-v0.1.4-armeabi-v7a.apk ← older 32-bit phones
+      #   OpenMusic-v0.1.4-x86_64.apk      ← emulators / x86 devices
+      #   OpenMusic-v0.1.4.aab             ← Play Store bundle
+      - name: Download bundletool
+        run: |
+          mkdir -p tools
+          curl -L -o tools/bundletool.jar https://github.com/google/bundletool/releases/download/1.13.3/bundletool-all-1.13.3.jar
+
+      - name: Build APKs from AAB (bundletool)
+        run: |
+          set -e
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          mkdir -p release
+          AAB="android/app/build/outputs/bundle/release/app-release.aab"
+          if [ -f "$AAB" ]; then
+            java -jar tools/bundletool.jar build-apks --bundle="$AAB" --output="release/app-${VERSION}.apks" --mode=universal || true
+          else
+            echo "AAB not found at $AAB"
+          fi
+
+      - name: Collect and rename APKs and AAB
+        run: |
+          set -e
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          mkdir -p release tmp_apks
+
+          APK_DIR="android/app/build/outputs/apk/release"
+
+          # Copy Gradle-produced APKs if present
+          if [ -f "$APK_DIR/app-universal-release.apk" ]; then
+            cp "$APK_DIR/app-universal-release.apk" "release/OpenMusic-v${VERSION}-universal.apk"
+          elif [ -f "$APK_DIR/app-release.apk" ]; then
+            cp "$APK_DIR/app-release.apk" "release/OpenMusic-v${VERSION}-universal.apk"
+          fi
+
+          for ABI in arm64-v8a armeabi-v7a x86_64 x86; do
+            FILE="$APK_DIR/app-${ABI}-release.apk"
+            if [ -f "$FILE" ]; then
+              cp "$FILE" "release/OpenMusic-v${VERSION}-${ABI}.apk"
+            fi
+          done
+
+          # Copy AAB if exists
+          AAB_PATH="android/app/build/outputs/bundle/release/app-release.aab"
+          if [ -f "$AAB_PATH" ]; then
+            cp "$AAB_PATH" "release/OpenMusic-v${VERSION}.aab"
+          fi
+
+          # If bundletool produced an .apks file, extract APKs from it
+          APKS_FILE="release/app-${VERSION}.apks"
+          if [ -f "$APKS_FILE" ]; then
+            unzip -o "$APKS_FILE" -d tmp_apks
+            # Copy any APKs found in the .apks package
+            find tmp_apks -name "*.apk" -type f -print0 | while IFS= read -r -d '' APK; do
+              BASENAME=$(basename "$APK")
+              cp "$APK" "release/OpenMusic-v${VERSION}-${BASENAME}"
+            done
+          fi
+
+          echo "── Built artifacts ──"
+          ls -lh release/
+
+      # Upload everything in the release/ folder as one artifact bundle
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: release/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # 3. Create the GitHub Release and attach both
+  #    the APK and AAB as downloadable assets.
+  # ─────────────────────────────────────────────
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-android
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from package.json
+        id: version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      # Resolve the tag - use the pushed tag if triggered by a push,
+      # fall back to the manual input if triggered via workflow_dispatch.
+      - name: Resolve tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "TAG=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: release
+
+      # Pull the changelog entry for this version out of CHANGELOG.md
+      # and use it as the release body so the notes are always in sync.
+      - name: Extract changelog entry
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          # Grab everything between the matching ## [x.y.z] header and the next ## header
+          NOTES=$(awk "/^## \[${VERSION}\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md)
+          # GitHub Actions multiline output
+          {
+            echo "NOTES<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.TAG }}
+          name: OpenMusic ${{ steps.tag.outputs.TAG }}
+          body: ${{ steps.changelog.outputs.NOTES }}
+          draft: false
+          prerelease: false
+          files: release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

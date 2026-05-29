@@ -1,0 +1,223 @@
+![OpenMusic Banner](./Banner/Banner.png)
+
+# OpenMusic
+
+[![CI](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-Jest-2e93ff?logo=jest)](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/actions/workflows/ci.yml)
+[![Build Check](https://img.shields.io/badge/build%20check-passing-brightgreen)](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/blob/main/scripts/build-check.js)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020?logo=expo&logoColor=white)](https://expo.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react&logoColor=black)](https://reactnative.dev/)
+[![Coverage](https://img.shields.io/badge/coverage-npm_run_test:coverage-lightgrey)](./package.json)
+
+A mobile music app built with React Native and Expo. Browse charts, search for songs, build a queue, and listen with a full-screen player and a mini player that stays above the tab bar. The UI follows the system light/dark appearance.
+
+Audio is powered by [OpenMusic-API](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic-API), a custom backend that scrapes JioSaavn for song metadata and stream URLs. The app does not ship its own music library; it talks to that API.
+
+## Features
+
+- **Home** - Trending picks, quick-play grids, top charts, and curated rows (romantic, Punjabi, and more).
+- **Search** - Live suggestions and full result lists.
+- **Library** - Your current queue plus recently played tracks (saved on device).
+- **Player** - Play/pause, skip, seek, shuffle, repeat (off / all / one), and a peek at what's up next.
+- **Charts & playlists** - Open a chart or playlist and play or shuffle the whole list.
+- **Settings** - Theme (System / Light / Dark), home-screen sections, and recent-play cleanup.
+
+Background playback is supported on iOS and Android.
+
+## Tech stack
+
+| Layer | Choice |
+|--------|--------|
+| Framework | Expo SDK 54, React Native 0.81, React 19 |
+| Navigation | React Navigation (tabs + stack) |
+| Server state | TanStack React Query |
+| Player state | Zustand + Expo AV |
+| Persistence | AsyncStorage (recent plays, liked songs, playlists, settings) |
+| i18n | i18next + expo-localization |
+| HTTP | Axios |
+| Tests | Jest, React Native Testing Library |
+
+TypeScript is used throughout. Navigation routes and params are typed.
+
+## Requirements
+
+- **Node.js** 18+ (20 LTS recommended)
+- **npm** or **yarn**
+- For device testing: [Expo Go](https://expo.dev/go) on your phone, or Android Studio / Xcode for emulators and production builds
+
+## Getting started
+
+Clone the repo and install dependencies:
+
+```bash
+git clone https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic.git
+cd OpenMusic
+npm install --legacy-peer-deps
+```
+
+`--legacy-peer-deps` avoids a peer-resolution conflict between React 19 and some test packages. If a plain `npm install` works on your machine, you can skip the flag.
+
+Copy the environment template:
+
+```bash
+cp .env.example .env
+```
+
+By default the app points at the public API URL in `.env.example`. Change `EXPO_PUBLIC_API_BASE_URL` if you run your own backend.
+
+Start the dev server:
+
+```bash
+npx expo start
+```
+
+Press `i` for iOS simulator, `a` for Android, or scan the QR code with Expo Go.
+
+### Optional: crash reporting
+
+Add a Sentry DSN to `.env`:
+
+```env
+EXPO_PUBLIC_SENTRY_DSN=https://your-key@sentry.io/your-project
+```
+
+If it's empty the app still runs; errors are only logged in development and through the in-app error boundary.
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm start` | Start Expo dev server |
+| `npm run android` | Open on Android |
+| `npm run ios` | Open on iOS |
+| `npm test` | Run all unit tests (Jest) |
+| `npm run test:watch` | Tests in watch mode |
+| `npm run test:coverage` | Tests with coverage report |
+| `npm run test:build` | Run only build-check tests |
+| `npm run typecheck` | TypeScript check without emitting files |
+| `npm run build:check` | Validate project structure + `tsc` (CI build gate) |
+| `npm run ci` | Full pipeline: typecheck, tests, build check |
+
+## Project layout
+
+```
+App.tsx                 # Root providers, offline banner, query client
+src/
+  api/                  # JioSaavn API client and types
+  components/           # TrackCard, MiniPlayer, charts, errors, etc.
+  config/               # Env (API URL, Sentry)
+  hooks/                # Network status
+  i18n/                 # Translations (en, easy to extend)
+  navigation/           # Navigators, types, deep-link config
+  screens/              # Home, Search, Library, Player, ...
+  services/             # Monitoring / global error handling
+  store/                # Player, library, playlist, and settings Zustand stores
+  theme/                # Colors and typography
+  utils/                # Small shared helpers
+__tests__/              # Jest tests
+```
+
+Native `ios/` and `android/` folders are generated by Expo prebuild and are gitignored. Run `npx expo prebuild` when you need a bare workflow or store builds.
+
+## Deep linking
+
+The app registers the custom scheme `openmusic://` and the following paths:
+
+- `openmusic://home`
+- `openmusic://search`
+- `openmusic://collection`
+- `openmusic://library`
+- `openmusic://player`
+- `openmusic://playlist/:id`
+- `openmusic://charts`
+- `openmusic://settings`
+
+Universal links are configured for `https://openmusic.app` in `app.json`. You'll need to host the associated domain files on that domain for production verification.
+
+## Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `EXPO_PUBLIC_API_BASE_URL` | No | API base URL (default in `.env.example`) |
+| `EXPO_PUBLIC_SENTRY_DSN` | No | Sentry DSN for crash reporting |
+
+Only `EXPO_PUBLIC_*` variables are embedded in the client bundle. Do not put secrets there.
+
+## Testing
+
+![Test suites](https://img.shields.io/badge/tests-52%20passing-brightgreen)
+![Test suites](https://img.shields.io/badge/suites-12-blue)
+![Build gate](https://img.shields.io/badge/build%20gate-tsc%20%2B%20structure-success)
+
+Run everything locally (same as CI):
+
+```bash
+npm run ci
+```
+
+Or run steps individually:
+
+```bash
+npm test                 # All Jest tests
+npm run test:build       # Build-check tests only
+npm run build:check      # Structure + TypeScript (no Jest)
+npm run test:coverage    # Tests with coverage table
+```
+
+### What is covered
+
+| Suite | What it checks |
+|--------|----------------|
+| `__tests__/build/` | Build check: required files, `app.json` / `package.json`, strict TS, `tsc --noEmit` |
+| `__tests__/api/` | API validation, HTTP success paths, proxy URL, error mapping |
+| `__tests__/store/` | Player store actions, recent-play persistence |
+| `__tests__/utils/` | Stream cache expiry, shuffle index, a11y helpers |
+| `__tests__/config/` | Environment URL / Sentry DSN parsing |
+| `__tests__/navigation/` | Deep-link prefixes and screen paths |
+| `__tests__/components/` | `SectionHeader`, `QueryErrorView`, `TrackCard` |
+
+Tests use mocks for Expo AV, AsyncStorage, NetInfo, and native UI modules so they run in Node without a simulator, suitable for GitHub Actions and pre-push checks.
+
+### CI
+
+On every push/PR to `main` or `master`, [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs:
+
+1. `npm run typecheck`
+2. `npm test -- --ci --coverage`
+3. `npm run build:check`
+
+## Building for stores
+
+This project uses the managed Expo workflow:
+
+```bash
+npx expo prebuild
+eas build --platform all
+```
+
+You'll need your own Apple/Google credentials, bundle IDs (`com.openmusic.app` in `app.json`), and signing setup. Background audio and foreground service permissions are already declared.
+
+## API
+
+This app uses our own [OpenMusic-API](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic-API), a custom backend that scrapes JioSaavn for song metadata, search results, charts, playlists, and stream URLs.
+
+The default `EXPO_PUBLIC_API_BASE_URL` in `.env.example` points at a hosted instance of that API. Rate limits, URL expiry, and regional availability are controlled by the backend. The player caches signed stream URLs briefly and falls back to a proxy play URL when direct fetches fail.
+
+If you want to self-host, clone and run OpenMusic-API and update `EXPO_PUBLIC_API_BASE_URL` in your `.env`.
+
+## Contributing
+
+Issues and pull requests are welcome. Run `npm run ci` before opening a PR. Keep changes focused and diffs small.
+
+## License
+
+This project is licensed under the **BSD 2-Clause License**. See [LICENSE](LICENSE) for the full text.
+
+Copyright © 2026 [Mohammad Faiz](https://github.com/Mohammad-Faiz-Cloud-Engineer). All rights reserved.
+
+Redistribution and use, with or without modification, are permitted provided the copyright notice and disclaimer are retained. See the LICENSE file for the exact conditions.
+
+## Credits
+
+Created and maintained by **Mohammad Faiz** ([@Mohammad-Faiz-Cloud-Engineer](https://github.com/Mohammad-Faiz-Cloud-Engineer)).
