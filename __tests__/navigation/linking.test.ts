@@ -18,5 +18,6 @@ describe('deep linking config', () => {
     expect(tabs.screens.Search).toBe('search');
     expect(tabs.screens.Collection).toBe('collection');
     expect(tabs.screens.Library).toBe('library');
+    expect(tabs.screens.Settings).toBe('settings');
   });
 });
