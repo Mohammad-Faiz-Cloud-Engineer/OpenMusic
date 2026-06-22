@@ -53,6 +53,7 @@
     "typescript": "~5.9.2"
   },
   "overrides": {
+    "js-yaml": "4.2.0",
     "@tootallnate/once": ">=3.0.1",
     "postcss": ">=8.5.10",
     "glob": "^13.0.0",
