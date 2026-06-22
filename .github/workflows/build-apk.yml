@@ -62,7 +62,7 @@ jobs:
           EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: openmusic-${{ inputs.build_type }}-apk
           path: android/app/build/outputs/apk/${{ inputs.build_type }}/app-${{ inputs.build_type }}.apk
