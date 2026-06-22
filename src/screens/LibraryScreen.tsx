@@ -259,7 +259,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
 
               <View style={styles.queueHeader}>
                 <Text style={styles.queueHeaderTitle}>
-                  {t('library.nextUp', { count: Math.max(0, queue.length - 1) })}
+                  {t('library.nextUp', { count: Math.max(0, queue.length - currentIndex - 1) })}
                 </Text>
                 <TouchableOpacity onPress={clearQueue} {...a11yButton(t('library.clear'))}>
                   <Text style={styles.clearBtn}>{t('library.clear')}</Text>
