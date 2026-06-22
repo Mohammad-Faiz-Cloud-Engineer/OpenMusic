@@ -51,7 +51,7 @@ export const UserPlaylistDetailScreen: React.FC<Props> = ({ navigation, route })
           borderWidth: 1,
           borderColor: colors.glassBorder,
         },
-        backBtnGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        backBtnGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
         headerTitle: {
           flex: 1,
           fontSize: 18,
@@ -79,7 +79,7 @@ export const UserPlaylistDetailScreen: React.FC<Props> = ({ navigation, route })
           borderWidth: 1,
           borderColor: colors.glassBorder,
         },
-        shuffleBtnGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        shuffleBtnGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
         playBtn: {
           width: 50,
           height: 50,

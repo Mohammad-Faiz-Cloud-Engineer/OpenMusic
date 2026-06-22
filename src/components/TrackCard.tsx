@@ -81,7 +81,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
         },
         gridImage: { width: '100%', height: '100%' },
         gridActiveOverlay: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: 'rgba(0,0,0,0.5)',
           alignItems: 'center',
           justifyContent: 'center',
@@ -130,7 +130,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
         listImageWrap: { position: 'relative', marginRight: 12 },
         listImage: { width: 48, height: 48, borderRadius: 12, backgroundColor: colors.surface2 },
         listActiveOverlay: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: 'rgba(0,0,0,0.55)',
           borderRadius: 12,
           alignItems: 'center',

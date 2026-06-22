@@ -98,7 +98,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           borderWidth: 1,
           borderColor: colors.glassBorder,
         },
-        searchBtnGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        searchBtnGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
         featuredBanner: {
           marginHorizontal: 16,
           height: 210,
@@ -165,7 +165,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           borderWidth: 1,
           borderColor: colors.glassBorder,
         },
-        quickPickGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        quickPickGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
         quickPickImage: { width: 56, height: 56, borderRadius: 0 },
         quickPickTitle: { flex: 1, fontSize: 12, fontWeight: '600', color: colors.text, paddingHorizontal: 10 },
       }),

@@ -52,7 +52,7 @@ function ThemedShell() {
 
   return (
     <>
-      <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={colors.bg} translucent={false} />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <OfflineBanner />
       <Toast />
       <AppNavigator />

@@ -46,7 +46,7 @@ function TabNavigator({ navigation }: TabNavigatorProps) {
     () =>
       StyleSheet.create({
         tabBarGlass: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: isDark ? 'rgba(15,15,25,0.82)' : 'rgba(252,252,254,0.92)',
         },
         tabBarTopBorder: {

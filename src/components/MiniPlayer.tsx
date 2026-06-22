@@ -72,7 +72,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
           elevation: 20,
         },
         glassTint: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: isDark ? 'rgba(15,15,25,0.72)' : 'rgba(255,255,255,0.82)',
         },
         progressTrack: {

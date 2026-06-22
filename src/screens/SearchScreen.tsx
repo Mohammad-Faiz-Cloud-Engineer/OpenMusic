@@ -117,7 +117,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
           borderColor: colors.glassBorderStrong,
         },
         searchIcon: { marginRight: 10 },
-        searchBarGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        searchBarGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
         searchInput: {
           flex: 1,
           fontSize: 15,

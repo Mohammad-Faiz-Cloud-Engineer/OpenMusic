@@ -242,7 +242,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           overflow: 'hidden', borderRadius: 24, borderWidth: 1,
           borderColor: colors.glassBorder, paddingHorizontal: 28, paddingVertical: 12,
         },
-        glassBtnFill: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        glassBtnFill: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
         glassBtnText: { color: colors.text, fontWeight: '700', fontSize: 13 },
         topBar: {
           flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -253,7 +253,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           alignItems: 'center', justifyContent: 'center',
           borderWidth: 1, borderColor: colors.glassBorder,
         },
-        topIconGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        topIconGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
         topCenter: { alignItems: 'center' },
         topLabel: { fontSize: 11, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5, textTransform: 'uppercase' },
         artworkContainer: { alignItems: 'center', paddingHorizontal: 28, marginTop: 8, marginBottom: 28 },
@@ -310,7 +310,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           marginHorizontal: 16, borderRadius: 24, overflow: 'hidden',
           padding: 18, borderWidth: 1, borderColor: colors.glassBorder,
         },
-        upNextGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        upNextGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
         upNextTitle: {
           fontSize: 11, fontWeight: '700', color: colors.textSecondary,
           letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 14,
@@ -326,16 +326,16 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
         upNextArtist: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
         upNextDuration: { fontSize: 12, color: colors.textMuted },
         sheetOverlay: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           justifyContent: 'flex-end',
           zIndex: 100,
         },
-        sheetOverlayBlur: { ...StyleSheet.absoluteFillObject },
+        sheetOverlayBlur: { ...StyleSheet.absoluteFill },
         sheetOverlayDim: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: isDark ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.22)',
         },
-        sheetOverlayTap: { ...StyleSheet.absoluteFillObject },
+        sheetOverlayTap: { ...StyleSheet.absoluteFill },
         sheet: {
           borderTopLeftRadius: 28, borderTopRightRadius: 28,
           overflow: 'hidden', paddingHorizontal: 20, paddingTop: 12,
@@ -343,7 +343,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           borderWidth: 1, borderColor: colors.glassBorder, borderBottomWidth: 0,
         },
         sheetGlass: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: isDark ? 'rgba(15,15,25,0.82)' : 'rgba(255,255,255,0.96)',
         },
         sheetHandle: {
@@ -361,7 +361,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           alignItems: 'center', justifyContent: 'center',
           borderWidth: 1, borderColor: colors.glassBorder,
         },
-        sheetIconGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
+        sheetIconGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
         sheetItemText: { flex: 1 },
         sheetItemLabel: { fontSize: 15, fontWeight: '600', color: colors.text },
         sheetItemSub: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
@@ -376,7 +376,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           textAlign: 'center',
         },
         newPlOverlay: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           justifyContent: 'center',
           zIndex: 200,
           padding: 28,
@@ -389,7 +389,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           borderColor: colors.glassBorder,
         },
         newPlGlass: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: isDark ? 'rgba(18,18,28,0.96)' : 'rgba(255,255,255,0.96)',
         },
         newPlTitle: {
@@ -812,7 +812,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
           <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={styles.sheetOverlayBlur} />
           <View style={[styles.sheetOverlayDim, { backgroundColor: isDark ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.3)' }]} />
           <TouchableOpacity
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             onPress={() => {
               setShowNewPlaylistPrompt(false);
               setNewPlaylistNameInput('');
