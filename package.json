@@ -49,8 +49,11 @@
     "babel-plugin-transform-remove-console": "^6.9.4",
     "babel-preset-expo": "~56.0.0",
     "jest": "^30.4.2",
+    "jest-environment-node": "^30.4.0",
+    "jest-environment-jsdom": "^30.4.0",
     "jest-expo": "~56.0.5",
     "react-test-renderer": "19.2.7",
+    "test-renderer": "^1.0.0",
     "typescript": "~6.0.3"
   },
   "expo": {
@@ -72,7 +75,9 @@
     "uuid": "^11.1.0",
     "jsdom": "^28.1.0",
     "test-exclude": "^8.0.0",
-    "babel-plugin-istanbul": "^8.0.2"
+    "babel-plugin-istanbul": "^8.0.2",
+    "jest-environment-node": "^30.4.0",
+    "jest-environment-jsdom": "^30.4.0"
   },
   "private": true
 }
