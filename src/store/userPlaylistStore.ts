@@ -131,6 +131,7 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
     const next = get().playlists.map((p) =>
       p.id === playlistId ? { ...p, name: trimmed, updatedAt: Date.now() } : p
     );
+    next.sort((a, b) => b.updatedAt - a.updatedAt);
     set({ playlists: next });
     try {
       await persist(next);

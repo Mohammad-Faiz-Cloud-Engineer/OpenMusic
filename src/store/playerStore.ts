@@ -3,7 +3,7 @@ import { Audio, AVPlaybackStatus } from 'expo-av';
 import { Track, getStreamUrl, getProxyPlayUrl } from '../api/jiosaavn';
 import { useRecentStore } from './recentStore';
 import { devError, devWarn } from '../utils/devLog';
-import { isCacheExpired, pickShuffleIndex, type CachedStream } from '../utils/playerUtils';
+import { isCacheExpired, shuffleArray, type CachedStream } from '../utils/playerUtils';
 
 import { requestOpenFullPlayer } from '../navigation/rootNavigation';
 
@@ -25,6 +25,7 @@ export type PlayTrackOptions = {
 interface PlayerState {
   // Queue
   queue: Track[];
+  originalQueue: Track[];
   currentIndex: number;
   currentTrack: Track | null;
 
@@ -63,6 +64,7 @@ interface PlayerState {
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
   queue: [],
+  originalQueue: [],
   currentIndex: -1,
   currentTrack: null,
   sound: null,
@@ -101,11 +103,31 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           : [track];
     const finalIndex = foundIndex >= 0 ? foundIndex : 0;
 
+    let appliedQueue = finalQueue;
+    let appliedIndex = finalIndex;
+    let newOriginalQueue = state.originalQueue;
+
+    const isNewContext =
+      (explicitQueue !== undefined && explicitQueue !== state.queue) ||
+      (explicitQueue === undefined && foundIndex < 0);
+
+    if (isNewContext) {
+      if (state.isShuffle) {
+        newOriginalQueue = finalQueue;
+        const remaining = finalQueue.filter((_, i) => i !== finalIndex);
+        appliedQueue = [track, ...shuffleArray(remaining)];
+        appliedIndex = 0;
+      } else {
+        newOriginalQueue = [];
+      }
+    }
+
     set({
       isLoading: true,
       currentTrack: track,
-      queue: finalQueue,
-      currentIndex: finalIndex,
+      queue: appliedQueue,
+      originalQueue: newOriginalQueue,
+      currentIndex: appliedIndex,
       playGeneration: generation,
     });
 
@@ -241,17 +263,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       return;
     }
 
-    let nextIndex: number;
-    if (isShuffle) {
-      nextIndex = pickShuffleIndex(queue.length, currentIndex);
-    } else {
-      nextIndex = currentIndex + 1;
-      if (nextIndex >= queue.length) {
-        if (repeatMode === 'all') nextIndex = 0;
-        else {
-          set({ isPlaying: false, position: get().duration });
-          return;
-        }
+    let nextIndex = currentIndex + 1;
+    if (nextIndex >= queue.length) {
+      if (repeatMode === 'all') nextIndex = 0;
+      else {
+        set({ isPlaying: false, position: get().duration });
+        return;
       }
     }
 
@@ -298,16 +315,51 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   setRepeat: (mode) => set({ repeatMode: mode }),
 
-  toggleShuffle: () => set((s) => ({ isShuffle: !s.isShuffle })),
+  toggleShuffle: () => set((s) => {
+    const isNowShuffle = !s.isShuffle;
+    if (isNowShuffle) {
+      const currentTrack = s.queue[s.currentIndex];
+      const remainingTracks = s.queue.filter((_, i) => i !== s.currentIndex);
+      const shuffled = shuffleArray(remainingTracks);
+      return { 
+        isShuffle: true, 
+        originalQueue: s.queue, 
+        queue: currentTrack ? [currentTrack, ...shuffled] : shuffled, 
+        currentIndex: currentTrack ? 0 : -1 
+      };
+    } else {
+      const currentTrack = s.queue[s.currentIndex];
+      const newQueue = s.originalQueue.length > 0 ? s.originalQueue : s.queue;
+      const newIndex = newQueue.findIndex((t) => t.id === currentTrack?.id);
+      return { 
+        isShuffle: false, 
+        originalQueue: [], 
+        queue: newQueue, 
+        currentIndex: Math.max(0, newIndex) 
+      };
+    }
+  }),
 
   addToQueue: (track) =>
-    set((s) => ({ queue: [...s.queue, track] })),
+    set((s) => ({
+      queue: [...s.queue, track],
+      originalQueue: s.originalQueue.length > 0 ? [...s.originalQueue, track] : [],
+    })),
 
   removeFromQueue: (index) => {
     const { queue, currentIndex, sound, playGeneration } = get();
     if (index < 0 || index >= queue.length) return;
 
     const newQueue = queue.filter((_, i) => i !== index);
+    const removedTrack = queue[index];
+    let newOriginalQueue = get().originalQueue;
+    if (newOriginalQueue.length > 0 && removedTrack) {
+      const origIdx = newOriginalQueue.findIndex((t) => t.id === removedTrack.id);
+      if (origIdx >= 0) {
+        newOriginalQueue = [...newOriginalQueue];
+        newOriginalQueue.splice(origIdx, 1);
+      }
+    }
 
     if (index === currentIndex) {
       if (!newQueue.length) {
@@ -316,6 +368,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         }
         set({
           queue: [],
+          originalQueue: [],
           currentIndex: -1,
           currentTrack: null,
           sound: null,
@@ -330,7 +383,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
       const nextIndex = Math.min(index, newQueue.length - 1);
       const nextTrack = newQueue[nextIndex];
-      set({ queue: newQueue, currentIndex: nextIndex });
+      set({ queue: newQueue, originalQueue: newOriginalQueue, currentIndex: nextIndex });
       void get()
         .playTrack(nextTrack, newQueue, { openFullPlayer: false, index: nextIndex })
         .catch((err) => devError('[player] removeFromQueue advance failed:', err));
@@ -338,7 +391,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
 
     const newIndex = index < currentIndex ? currentIndex - 1 : currentIndex;
-    set({ queue: newQueue, currentIndex: newIndex });
+    set({ queue: newQueue, originalQueue: newOriginalQueue, currentIndex: newIndex });
   },
 
   clearQueue: () => {
@@ -348,6 +401,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
     set({
       queue: [],
+      originalQueue: [],
       currentIndex: -1,
       currentTrack: null,
       sound: null,
