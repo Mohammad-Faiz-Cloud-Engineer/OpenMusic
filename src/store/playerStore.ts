@@ -107,7 +107,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     try {
       if (previousSound) {
-        await previousSound.unloadAsync();
+        try {
+          await previousSound.unloadAsync();
+        } catch (unloadErr) {
+          devWarn('[player] failed to unload previous sound:', unloadErr);
+        }
       }
       if (isStale()) return;
 
