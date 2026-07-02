@@ -56,7 +56,7 @@ describe('playerStore', () => {
     const playTrack = jest.fn().mockResolvedValue(undefined);
     usePlayerStore.setState({ playTrack });
     await usePlayerStore.getState().playQueue(tracks, 99, { openFullPlayer: false });
-    expect(playTrack).toHaveBeenCalledWith(tracks[1], tracks, { openFullPlayer: false });
+    expect(playTrack).toHaveBeenCalledWith(tracks[1], tracks, { openFullPlayer: false, index: 1 });
     usePlayerStore.setState({ playTrack: originalPlayTrack });
   });
 
@@ -99,7 +99,7 @@ describe('playerStore', () => {
     const nextQueue = [tracks[0], tracks[2]];
     expect(usePlayerStore.getState().queue).toEqual(nextQueue);
     expect(usePlayerStore.getState().currentIndex).toBe(1);
-    expect(playTrack).toHaveBeenCalledWith(tracks[2], nextQueue, { openFullPlayer: false });
+    expect(playTrack).toHaveBeenCalledWith(tracks[2], nextQueue, { openFullPlayer: false, index: 1 });
     usePlayerStore.setState({ playTrack: originalPlayTrack });
   });
 

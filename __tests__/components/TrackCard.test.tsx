@@ -40,7 +40,7 @@ describe('TrackCard', () => {
   it('plays track on press', () => {
     render(<TrackCard track={mockTrack} />);
     fireEvent.press(screen.getByLabelText('Test Song by Test Artist'));
-    expect(mockPlayTrack).toHaveBeenCalledWith(mockTrack, undefined);
+    expect(mockPlayTrack).toHaveBeenCalledWith(mockTrack, undefined, { index: undefined });
   });
 
   it('shows explicit badge when track is explicit', () => {
