@@ -66,7 +66,7 @@ export const MyPlaylistsScreen: React.FC<Props> = ({ navigation }) => {
           borderWidth: 1,
           borderColor: colors.glassBorder,
         },
-        backBtnGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        backBtnGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         headerTitle: { flex: 1, fontSize: 18, fontWeight: '700', color: colors.text },
         row: {
           flexDirection: 'row',
@@ -87,7 +87,7 @@ export const MyPlaylistsScreen: React.FC<Props> = ({ navigation }) => {
           borderWidth: 1,
           borderColor: colors.glassBorder,
         },
-        rowIconGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        rowIconGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         rowText: { flex: 1 },
         rowTitle: { fontSize: 16, fontWeight: '600', color: colors.text },
         rowSub: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
@@ -114,7 +114,7 @@ export const MyPlaylistsScreen: React.FC<Props> = ({ navigation }) => {
           borderWidth: 1,
           borderColor: colors.glassBorder,
         },
-        emptyCtaGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        emptyCtaGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         emptyCtaText: { fontSize: 14, fontWeight: '700', color: colors.text },
         modalOverlay: {
           flex: 1,
@@ -131,7 +131,7 @@ export const MyPlaylistsScreen: React.FC<Props> = ({ navigation }) => {
           ...Platform.select({ android: { elevation: 8 } }),
         },
         modalGlass: {
-          ...StyleSheet.absoluteFill,
+          ...StyleSheet.absoluteFillObject,
           backgroundColor: isDark ? 'rgba(20,20,30,0.95)' : 'rgba(255,255,255,0.96)',
         },
         modalTitle: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: 16 },

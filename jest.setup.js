@@ -30,7 +30,7 @@ jest.mock('expo-av', () => ({
 }));
 
 jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest')
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
 jest.mock('expo-linear-gradient', () => {
@@ -59,23 +59,3 @@ jest.mock('@react-native-community/netinfo', () => ({
   addEventListener: jest.fn(() => jest.fn()),
   fetch: jest.fn().mockResolvedValue({ isConnected: true, isInternetReachable: true }),
 }));
-
-// Eagerly resolve expo winter lazy getters to avoid Jest 30's
-// "require outside scope of test code" error when they trigger
-// between tests.
-const expoWinterPolyfills = [
-  'fetch',
-  'URL',
-  'URLSearchParams',
-  'TextDecoder',
-  'TextDecoderStream',
-  'TextEncoderStream',
-  'DOMException',
-  '__ExpoImportMetaRegistry',
-  'structuredClone',
-];
-for (const name of expoWinterPolyfills) {
-  try {
-    globalThis[name];
-  } catch {}
-}

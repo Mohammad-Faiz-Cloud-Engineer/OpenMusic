@@ -90,7 +90,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           borderWidth: 1,
           borderColor: colors.glassBorder,
         },
-        nowPlayingGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        nowPlayingGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         nowPlayingArt: { width: 52, height: 52, borderRadius: 12, backgroundColor: colors.surface3 },
         nowPlayingInfo: { flex: 1 },
         nowPlayingLabel: {
@@ -127,7 +127,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
         queueImageWrap: { position: 'relative' },
         queueImage: { width: 48, height: 48, borderRadius: 12, backgroundColor: colors.surface2 },
         queueActiveOverlay: {
-          ...StyleSheet.absoluteFill,
+          ...StyleSheet.absoluteFillObject,
           backgroundColor: 'rgba(0,0,0,0.5)',
           borderRadius: 12,
           alignItems: 'center',
@@ -154,7 +154,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           paddingVertical: 12,
           borderRadius: 24,
         },
-        emptyActionGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        emptyActionGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         emptyActionText: { fontSize: 14, fontWeight: '700', color: colors.text },
       }),
     [colors]
@@ -259,7 +259,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
 
               <View style={styles.queueHeader}>
                 <Text style={styles.queueHeaderTitle}>
-                  {t('library.nextUp', { count: Math.max(0, queue.length - currentIndex - 1) })}
+                  {t('library.nextUp', { count: queue.length })}
                 </Text>
                 <TouchableOpacity onPress={clearQueue} {...a11yButton(t('library.clear'))}>
                   <Text style={styles.clearBtn}>{t('library.clear')}</Text>

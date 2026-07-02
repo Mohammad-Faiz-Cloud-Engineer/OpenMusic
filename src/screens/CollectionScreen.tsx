@@ -43,7 +43,7 @@ export const CollectionScreen: React.FC<CollectionScreenProps> = ({ navigation }
           borderWidth: 1,
           borderColor: colors.glassBorder,
         },
-        likedRowGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        likedRowGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         likedIconWrap: {
           width: 44,
           height: 44,
@@ -88,7 +88,7 @@ export const CollectionScreen: React.FC<CollectionScreenProps> = ({ navigation }
           borderWidth: 1,
           borderColor: colors.glassBorder,
         },
-        emptyPlaylistsGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        emptyPlaylistsGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         emptyPlaylistsText: { fontSize: 14, fontWeight: '600', color: colors.text },
         playlistCarousel: {
           paddingHorizontal: 16,
@@ -108,7 +108,7 @@ export const CollectionScreen: React.FC<CollectionScreenProps> = ({ navigation }
           justifyContent: 'space-between',
         },
         playlistChipGlass: {
-          ...StyleSheet.absoluteFill,
+          ...StyleSheet.absoluteFillObject,
           backgroundColor: isDark ? 'rgba(18,18,28,0.55)' : 'rgba(255,255,255,0.65)',
         },
         playlistChipTitle: {

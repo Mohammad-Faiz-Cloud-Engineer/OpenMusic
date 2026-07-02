@@ -4,8 +4,8 @@ import { devError } from '../utils/devLog';
 // ErrorUtils is a RN runtime global, not a named export from 'react-native'.
 // Access it via the global object so it degrades gracefully if unavailable.
 const RNErrorUtils: typeof ErrorUtils | undefined =
-  typeof globalThis !== 'undefined'
-    ? (globalThis as unknown as { ErrorUtils?: typeof ErrorUtils }).ErrorUtils
+  typeof global !== 'undefined'
+    ? (global as unknown as { ErrorUtils?: typeof ErrorUtils }).ErrorUtils
     : undefined;
 
 let sentryReady = false;

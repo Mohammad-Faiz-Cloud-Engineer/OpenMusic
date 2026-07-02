@@ -42,7 +42,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
           overflow: 'hidden', borderRadius: 24, borderWidth: 1,
           borderColor: colors.glassBorder, paddingHorizontal: 28, paddingVertical: 12,
         },
-        glassBtnFill: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        glassBtnFill: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         glassBtnText: { color: colors.text, fontWeight: '700', fontSize: 13 },
         hero: { minHeight: 400, paddingBottom: 20, position: 'relative', overflow: 'hidden' },
         heroBg: { position: 'absolute', top: 0, left: 0, right: 0, height: 400, opacity: 0.65 },
@@ -52,7 +52,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
           alignItems: 'center', justifyContent: 'center', zIndex: 10,
           borderWidth: 1, borderColor: colors.glassBorder,
         },
-        backBtnGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        backBtnGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         artworkWrap: {
           alignItems: 'center', marginTop: 88, marginBottom: 20,
           shadowColor: '#000', shadowOffset: { width: 0, height: 20 },
@@ -76,7 +76,7 @@ export const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ navigation, rout
           alignItems: 'center', justifyContent: 'center',
           borderWidth: 1, borderColor: colors.glassBorder,
         },
-        shuffleBtnGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        shuffleBtnGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         playBtn: {
           width: 58, height: 58, borderRadius: 29,
           backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center',

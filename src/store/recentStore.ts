@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import type { Track } from '../api/jiosaavn';
+import { Track } from '../api/jiosaavn';
 import { normalizeStoredTrack, sanitizeTrackForStorage } from '../utils/storageTrack';
 import { devWarn } from '../utils/devLog';
 

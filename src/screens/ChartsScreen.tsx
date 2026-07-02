@@ -40,7 +40,7 @@ export const ChartsScreen: React.FC<Props> = ({ navigation }) => {
           alignItems: 'center', justifyContent: 'center',
           borderWidth: 1, borderColor: colors.glassBorder,
         },
-        backBtnGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        backBtnGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         headerTitle: {
           flex: 1, fontSize: 18, fontWeight: '700', color: colors.text,
           textAlign: 'center', marginHorizontal: 8, letterSpacing: -0.2,

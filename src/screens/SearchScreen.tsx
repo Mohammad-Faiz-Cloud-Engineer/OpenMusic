@@ -65,7 +65,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
 
   const handleSuggestionPress = (suggestion: string) => {
     if (blurRef.current) clearTimeout(blurRef.current);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
     setQuery(suggestion);
     setDebouncedQuery(suggestion);
     setIsFocused(false);
@@ -117,7 +116,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = () => {
           borderColor: colors.glassBorderStrong,
         },
         searchIcon: { marginRight: 10 },
-        searchBarGlass: { ...StyleSheet.absoluteFill, backgroundColor: colors.glass },
+        searchBarGlass: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.glass },
         searchInput: {
           flex: 1,
           fontSize: 15,

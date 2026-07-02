@@ -31,20 +31,20 @@ describe('TrackCard', () => {
     mockPlayTrack.mockClear();
   });
 
-  it('renders track title and artist', async () => {
-    await render(<TrackCard track={mockTrack} />);
+  it('renders track title and artist', () => {
+    render(<TrackCard track={mockTrack} />);
     expect(screen.getByText('Test Song')).toBeTruthy();
     expect(screen.getByText('Test Artist')).toBeTruthy();
   });
 
-  it('plays track on press', async () => {
-    await render(<TrackCard track={mockTrack} />);
+  it('plays track on press', () => {
+    render(<TrackCard track={mockTrack} />);
     fireEvent.press(screen.getByLabelText('Test Song by Test Artist'));
     expect(mockPlayTrack).toHaveBeenCalledWith(mockTrack, undefined);
   });
 
-  it('shows explicit badge when track is explicit', async () => {
-    await render(<TrackCard track={{ ...mockTrack, explicit: true }} />);
+  it('shows explicit badge when track is explicit', () => {
+    render(<TrackCard track={{ ...mockTrack, explicit: true }} />);
     expect(screen.getByText('E')).toBeTruthy();
   });
 });
