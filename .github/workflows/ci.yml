@@ -35,3 +35,67 @@ jobs:
 
       - name: Production dependency audit
         run: npm run audit:prod
+
+  android-build:
+    name: Android Build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Expo Prebuild
+        run: npx expo prebuild -p android
+
+      - name: Build Android
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+  ios-build:
+    name: iOS Build
+    runs-on: macos-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Expo Prebuild
+        run: npx expo prebuild -p ios
+
+      - name: Install Pods
+        working-directory: ios
+        run: pod install
+
+      - name: Build iOS
+        working-directory: ios
+        run: xcodebuild -workspace OpenMusic.xcworkspace -scheme OpenMusic -configuration Debug -sdk iphonesimulator -derivedDataPath build CODE_SIGNING_ALLOWED=NO
