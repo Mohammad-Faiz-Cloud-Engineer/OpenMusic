@@ -29,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -63,14 +63,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
@@ -106,7 +106,7 @@ jobs:
       - name: Download bundletool
         run: |
           mkdir -p tools
-          curl -L -o tools/bundletool.jar https://github.com/google/bundletool/releases/download/1.13.3/bundletool-all-1.13.3.jar
+          curl -L -o tools/bundletool.jar https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
 
       - name: Build APKs from AAB (bundletool)
         run: |
