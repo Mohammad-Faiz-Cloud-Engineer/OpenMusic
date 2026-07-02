@@ -1,4 +1,4 @@
-import { isCacheExpired, pickShuffleIndex } from '../../src/utils/playerUtils';
+import { isCacheExpired } from '../../src/utils/playerUtils';
 
 describe('isCacheExpired', () => {
   it('returns false when no expiry', () => {
@@ -20,17 +20,4 @@ describe('isCacheExpired', () => {
   });
 });
 
-describe('pickShuffleIndex', () => {
-  it('returns 0 for single-item queue', () => {
-    expect(pickShuffleIndex(1, 0)).toBe(0);
-  });
 
-  it('never returns current index when length > 1', () => {
-    for (let i = 0; i < 50; i++) {
-      const next = pickShuffleIndex(5, 2);
-      expect(next).not.toBe(2);
-      expect(next).toBeGreaterThanOrEqual(0);
-      expect(next).toBeLessThan(5);
-    }
-  });
-});

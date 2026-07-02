@@ -13,8 +13,4 @@ export const a11yHeader = (label: string) => ({
   accessibilityLabel: label,
 });
 
-export const a11yImage = (label: string) => ({
-  accessible: true,
-  accessibilityRole: 'image' as AccessibilityRole,
-  accessibilityLabel: label,
-});
+

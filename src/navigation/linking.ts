@@ -18,6 +18,8 @@ export const linking: LinkingOptions<RootStackParamList> = {
       Playlist: 'playlist/:id',
       TrackList: 'tracks',
       Charts: 'charts',
+      MyPlaylists: 'my-playlists',
+      UserPlaylist: 'playlist/user/:playlistId',
     },
   },
 };

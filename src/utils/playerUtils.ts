@@ -11,17 +11,6 @@ export const isCacheExpired = (cached: CachedStream): boolean => {
   return exp - Date.now() <= 3 * 60 * 1000;
 };
 
-/** Pick a shuffle index different from current when possible */
-export const pickShuffleIndex = (queueLength: number, currentIndex: number): number => {
-  if (queueLength <= 0) return 0;
-  if (queueLength === 1) return 0;
-  let nextIndex = currentIndex;
-  do {
-    nextIndex = Math.floor(Math.random() * queueLength);
-  } while (nextIndex === currentIndex);
-  return nextIndex;
-};
-
 /**
  * Returns a new array with elements shuffled using the Fisher-Yates algorithm.
  * Does not mutate the original array.

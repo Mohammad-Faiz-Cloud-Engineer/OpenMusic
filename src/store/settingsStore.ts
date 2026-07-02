@@ -66,7 +66,8 @@ const isValidThemeMode = (v: unknown): v is ThemeMode =>
 
 const isValidHomeSections = (v: unknown): v is Partial<HomeSections> => {
   if (typeof v !== 'object' || v === null) return false;
-  return true;
+  const known = Object.entries(v).filter(([k]) => HOME_SECTIONS.includes(k as HomeSectionId));
+  return known.length === 0 || known.every(([, val]) => typeof val === 'boolean');
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({

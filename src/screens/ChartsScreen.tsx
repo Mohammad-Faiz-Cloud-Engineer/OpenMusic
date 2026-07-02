@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useQuery } from '@tanstack/react-query';
@@ -18,7 +18,9 @@ type Props = StackScreenProps<RootStackParamList, 'Charts'>;
 
 export const ChartsScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
+  const { width: screenWidth } = useWindowDimensions();
   const { colors, gradients, isDark } = useTheme();
+  const cardWidth = Math.max(140, (screenWidth - 48) / 2);
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['charts'],
     queryFn: getCharts,
@@ -82,6 +84,7 @@ export const ChartsScreen: React.FC<Props> = ({ navigation }) => {
           renderItem={({ item }) => (
             <ChartCard
               chart={item}
+              width={cardWidth}
               onPress={() => navigation.navigate('Playlist', { id: item.id, title: item.title })}
             />
           )}

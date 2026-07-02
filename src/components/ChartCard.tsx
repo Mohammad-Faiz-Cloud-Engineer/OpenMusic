@@ -10,19 +10,20 @@ const placeholder = require('../../assets/placeholder.png');
 interface ChartCardProps {
   chart: Chart;
   onPress: () => void;
+  width?: number;
 }
 
-export const ChartCard: React.FC<ChartCardProps> = ({ chart, onPress }) => {
+export const ChartCard: React.FC<ChartCardProps> = ({ chart, onPress, width = 160 }) => {
   const { colors } = useTheme();
   const imageSource = chart.thumbnail ? { uri: chart.thumbnail } : placeholder;
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        card: { width: 160, marginRight: 12 },
+        card: { width, marginRight: 12 },
         imageWrap: {
-          width: 160,
-          height: 160,
+          width,
+          height: width,
           borderRadius: 20,
           overflow: 'hidden',
           backgroundColor: colors.surface2,
@@ -47,7 +48,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, onPress }) => {
         title: { fontSize: 13, fontWeight: '600', color: colors.text, marginTop: 10 },
         desc: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
       }),
-    [colors]
+    [colors, width]
   );
 
   return (

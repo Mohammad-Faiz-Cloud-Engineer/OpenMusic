@@ -1,4 +1,4 @@
-import { a11yButton, a11yHeader, a11yImage } from '../../src/utils/a11y';
+import { a11yButton, a11yHeader } from '../../src/utils/a11y';
 
 describe('a11y helpers', () => {
   it('a11yButton sets role and label', () => {
@@ -17,7 +17,5 @@ describe('a11y helpers', () => {
     expect(a11yHeader('Trending').accessibilityRole).toBe('header');
   });
 
-  it('a11yImage sets image role', () => {
-    expect(a11yImage('Album art').accessibilityRole).toBe('image');
-  });
+
 });
