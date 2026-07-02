@@ -198,7 +198,7 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
       const track = queue[index];
       if (!track) return;
       setShowQueue(false);
-      void playTrack(track, queue, { openFullPlayer: false });
+      void playTrack(track, queue, { openFullPlayer: false, index });
     },
     [playTrack, queue]
   );
@@ -621,9 +621,9 @@ export const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation }) => {
             <Text style={styles.upNextTitle}>{t('player.upNext')}</Text>
             {queue.slice(currentIndex + 1, currentIndex + 4).map((track, i) => (
                 <TouchableOpacity
-                  key={track.id}
+                  key={`${track.id}-${i}`}
                   style={styles.upNextItem}
-                  onPress={() => void playTrack(track, queue, { openFullPlayer: false })}
+                  onPress={() => void playTrack(track, queue, { openFullPlayer: false, index: currentIndex + 1 + i })}
                   activeOpacity={0.7}
                   {...a11yButton(`${track.title} by ${track.artist}`)}
                 >

@@ -157,7 +157,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
 
   const handlePress = () => {
     if (onPress) onPress();
-    else playTrack(track, queue);
+    else playTrack(track, queue, { index: showIndex });
   };
 
   const imageSource = track.thumbnail ? { uri: track.thumbnail } : placeholder;

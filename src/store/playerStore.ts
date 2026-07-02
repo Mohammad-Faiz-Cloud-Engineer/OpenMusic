@@ -15,6 +15,11 @@ export type PlayTrackOptions = {
    * When false, skips navigation (next/prev/auto-advance).
    */
   openFullPlayer?: boolean;
+  /**
+   * Explicit index of the track in the queue, to avoid finding the wrong instance 
+   * of a duplicate track.
+   */
+  index?: number;
 };
 
 interface PlayerState {
@@ -82,7 +87,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     const explicitQueue = queue;
     const baseQueue = explicitQueue ?? state.queue;
-    const foundIndex = baseQueue.findIndex((t) => t.id === track.id);
+    
+    let foundIndex = options?.index;
+    if (foundIndex === undefined || foundIndex < 0 || foundIndex >= baseQueue.length || baseQueue[foundIndex].id !== track.id) {
+      foundIndex = baseQueue.findIndex((t) => t.id === track.id);
+    }
+    
     const finalQueue =
       foundIndex >= 0
         ? baseQueue
@@ -201,8 +211,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (!tracks.length) return;
     const safeIndex = Math.max(0, Math.min(startIndex, tracks.length - 1));
     const track = tracks[safeIndex];
-    if (!track) return;
-    await get().playTrack(track, tracks, options);
+    await get().playTrack(track, tracks, { ...options, index: safeIndex });
   },
 
   togglePlay: async () => {
@@ -228,7 +237,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     if (repeatMode === 'one') {
       const track = queue[currentIndex];
-      if (track) await get().playTrack(track, queue, { openFullPlayer: false });
+      if (track) await get().playTrack(track, queue, { openFullPlayer: false, index: currentIndex });
       return;
     }
 
@@ -249,7 +258,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const nextTrack = queue[nextIndex];
     if (nextTrack) {
       set({ currentIndex: nextIndex });
-      await get().playTrack(nextTrack, queue, { openFullPlayer: false });
+      await get().playTrack(nextTrack, queue, { openFullPlayer: false, index: nextIndex });
     }
   },
 
@@ -271,7 +280,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const prevTrack = queue[prevIndex];
     if (prevTrack) {
       set({ currentIndex: prevIndex });
-      await get().playTrack(prevTrack, queue, { openFullPlayer: false });
+      await get().playTrack(prevTrack, queue, { openFullPlayer: false, index: prevIndex });
     }
   },
 
@@ -323,7 +332,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       const nextTrack = newQueue[nextIndex];
       set({ queue: newQueue, currentIndex: nextIndex });
       void get()
-        .playTrack(nextTrack, newQueue, { openFullPlayer: false })
+        .playTrack(nextTrack, newQueue, { openFullPlayer: false, index: nextIndex })
         .catch((err) => devError('[player] removeFromQueue advance failed:', err));
       return;
     }

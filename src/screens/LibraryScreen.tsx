@@ -165,7 +165,7 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
     return (
       <TouchableOpacity
         style={[styles.queueItem, isActive && styles.queueItemActive]}
-        onPress={() => playTrack(item, queue)}
+        onPress={() => playTrack(item, queue, { index })}
         activeOpacity={0.75}
         {...a11yButton(`${item.title} by ${item.artist}`)}
       >

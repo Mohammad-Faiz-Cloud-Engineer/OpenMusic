@@ -64,9 +64,9 @@ const persist = async (
 const isValidThemeMode = (v: unknown): v is ThemeMode =>
   v === 'system' || v === 'light' || v === 'dark';
 
-const isValidHomeSections = (v: unknown): v is HomeSections => {
+const isValidHomeSections = (v: unknown): v is Partial<HomeSections> => {
   if (typeof v !== 'object' || v === null) return false;
-  return HOME_SECTIONS.every((id) => typeof (v as Record<string, unknown>)[id] === 'boolean');
+  return true;
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -83,7 +83,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           next.themeMode = parsed.themeMode;
         }
         if (isValidHomeSections(parsed.homeSections)) {
-          next.homeSections = { ...DEFAULT_HOME_SECTIONS, ...(parsed.homeSections as HomeSections) };
+          const validSaved = Object.fromEntries(
+             Object.entries(parsed.homeSections).filter(([k, val]) => HOME_SECTIONS.includes(k as any) && typeof val === 'boolean')
+          );
+          next.homeSections = { ...DEFAULT_HOME_SECTIONS, ...validSaved } as HomeSections;
         }
         set(next as SettingsState);
       } else {
