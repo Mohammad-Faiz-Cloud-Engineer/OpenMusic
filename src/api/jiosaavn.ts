@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type AxiosRequestConfig } from 'axios';
 import { API_BASE_URL } from '../config/env';
 
 export const BASE_URL = API_BASE_URL;
@@ -10,6 +10,35 @@ const api = axios.create({
   baseURL: BASE_URL,
   timeout: 15000,
 });
+
+// Retry with exponential backoff for 429 (rate-limit) and 5xx (server) errors.
+// Guarded against missing `interceptors` (e.g. in test environments where axios is
+// mocked without one).
+if (api.interceptors) {
+  const MAX_RETRIES = 2;
+  const RETRY_BASE_DELAY_MS = 1000;
+  const retryCounts = new WeakMap<AxiosRequestConfig, number>();
+
+  api.interceptors.response.use(undefined, async (err) => {
+    if (!axios.isAxiosError(err) || !err.config) return Promise.reject(err);
+
+    const config = err.config;
+    const retryCount = (retryCounts.get(config) ?? 0) + 1;
+
+    if (retryCount > MAX_RETRIES) return Promise.reject(err);
+
+    const status = err.response?.status;
+    const shouldRetry =
+      status === 429 || (status !== undefined && status >= 500) || status === undefined;
+
+    if (!shouldRetry) return Promise.reject(err);
+
+    retryCounts.set(config, retryCount);
+    const delay = RETRY_BASE_DELAY_MS * Math.pow(2, retryCount - 1) * (0.5 + Math.random() * 0.5);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    return api(config);
+  });
+}
 
 const assertQuery = (q: string): string => {
   const trimmed = q.trim();

@@ -20,32 +20,42 @@ interface LikeState {
 const idsFromTracks = (tracks: Track[]): Set<string> =>
   new Set(tracks.map((t) => t.id));
 
+let hydrationPromise: Promise<void> | null = null;
+
 export const useLikeStore = create<LikeState>((set, get) => ({
   tracksByIdOrder: [],
   likedIds: new Set(),
   hydrated: false,
 
   hydrate: async () => {
-    try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const parsed = raw ? (JSON.parse(raw) as Track[]) : [];
-      const fromDisk = Array.isArray(parsed)
-        ? parsed
-            .map(normalizeStoredTrack)
-            .filter((track): track is Track => track !== null)
-            .slice(0, MAX_LIKED)
-        : [];
-      const mem = get().tracksByIdOrder;
-      const memIds = new Set(mem.map((t) => t.id));
-      const merged = [...mem, ...fromDisk.filter((t) => !memIds.has(t.id))].slice(0, MAX_LIKED);
-      set({ tracksByIdOrder: merged, likedIds: idsFromTracks(merged), hydrated: true });
-    } catch (err) {
-      devWarn('[likeStore] hydrate failed', err);
-      set((s) => ({ ...s, hydrated: true }));
-    }
+    hydrationPromise = (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        const parsed = raw ? (JSON.parse(raw) as Track[]) : [];
+        const fromDisk = Array.isArray(parsed)
+          ? parsed
+              .map(normalizeStoredTrack)
+              .filter((track): track is Track => track !== null)
+              .slice(0, MAX_LIKED)
+          : [];
+        const mem = get().tracksByIdOrder;
+        const memIds = new Set(mem.map((t) => t.id));
+        const merged = [...mem, ...fromDisk.filter((t) => !memIds.has(t.id))].slice(0, MAX_LIKED);
+        set({ tracksByIdOrder: merged, likedIds: idsFromTracks(merged), hydrated: true });
+      } catch (err) {
+        devWarn('[likeStore] hydrate failed', err);
+        set((s) => ({ ...s, hydrated: true }));
+      } finally {
+        hydrationPromise = null;
+      }
+    })();
+    await hydrationPromise;
   },
 
   toggleLike: async (track) => {
+    if (!get().hydrated && hydrationPromise) {
+      await hydrationPromise;
+    }
     const persisted = sanitizeTrackForStorage(track);
     const ids = get().likedIds;
     let nextTracks: Track[];

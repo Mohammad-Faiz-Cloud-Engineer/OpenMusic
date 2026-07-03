@@ -67,7 +67,7 @@ const PlayerSeekSection = memo(function PlayerSeekSection({
       const newPos = ratio * duration;
       setIsSeeking(true);
       setPosition(newPos);
-      void seekTo(newPos);
+      void seekTo(newPos).catch(() => {});
     },
     [duration, seekTo, setIsSeeking, setPosition]
   );

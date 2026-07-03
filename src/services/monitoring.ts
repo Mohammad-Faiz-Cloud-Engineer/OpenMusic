@@ -8,6 +8,22 @@ const RNErrorUtils: typeof ErrorUtils | undefined =
     ? (global as unknown as { ErrorUtils?: typeof ErrorUtils }).ErrorUtils
     : undefined;
 
+const sanitizeUrl = (url: string): string => {
+  try {
+    const u = new URL(url);
+    return `${u.protocol}//${u.host}${u.pathname}`;
+  } catch {
+    return url.length > 100 ? `[redacted]` : url;
+  }
+};
+
+const sanitizeMessage = (msg: string | undefined): string | undefined => {
+  if (!msg) return msg;
+  return msg.length > 500 ? msg.slice(0, 500) + '... [truncated]' : msg;
+};
+
+const isHighCardinality = (val: string): boolean => val.length > 200;
+
 let sentryReady = false;
 let monitoringReady = false;
 
@@ -22,6 +38,29 @@ export const initMonitoring = (): void => {
       Sentry.init({
         dsn: SENTRY_DSN,
         tracesSampleRate: 0.2,
+        beforeSend: (event) => {
+          if (event.request?.url) {
+            event.request.url = sanitizeUrl(event.request.url);
+          }
+          if (event.exception?.values) {
+            event.exception.values = event.exception.values.map((v) => ({
+              ...v,
+              value: sanitizeMessage(v.value),
+            }));
+          }
+          if (event.extra) {
+            const sanitized: Record<string, string> = {};
+            for (const [key, val] of Object.entries(event.extra)) {
+              if (typeof val === 'string' && isHighCardinality(val)) {
+                sanitized[key] = `[redacted] (${val.length} chars)`;
+              } else {
+                sanitized[key] = String(val);
+              }
+            }
+            event.extra = sanitized;
+          }
+          return event;
+        },
       });
       sentryReady = true;
     } catch (err) {

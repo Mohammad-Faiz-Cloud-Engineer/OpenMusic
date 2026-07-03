@@ -137,7 +137,8 @@
   },
   "errorBoundary": {
     "title": "Something went wrong",
-    "subtitle": "Please restart the app."
+    "subtitle": "Please restart the app.",
+    "final": "The app keeps crashing. Please restart or reinstall."
   },
   "settings": {
     "title": "Settings",

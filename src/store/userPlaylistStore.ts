@@ -72,33 +72,43 @@ const persist = async (playlists: UserPlaylistStored[]) => {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(playlists));
 };
 
+let hydrationPromise: Promise<void> | null = null;
+
 export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
   playlists: [],
   hydrated: false,
 
   hydrate: async () => {
-    try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const parsed = raw ? (JSON.parse(raw) as UserPlaylistStored[]) : [];
-      const fromDisk = Array.isArray(parsed)
-        ? parsed
-            .map(normalizeStoredPlaylist)
-            .filter((playlist): playlist is UserPlaylistStored => playlist !== null)
-        : [];
-      const inMemory = get().playlists;
-      const mergedById = new Map<string, UserPlaylistStored>();
-      for (const p of fromDisk) mergedById.set(p.id, p);
-      // In-session edits win when ids collide (handles hydrate finishing after offline edits).
-      for (const p of inMemory) mergedById.set(p.id, p);
-      const playlists = [...mergedById.values()].sort((a, b) => b.updatedAt - a.updatedAt);
-      set({ playlists, hydrated: true });
-    } catch (err) {
-      devWarn('[userPlaylistStore] hydrate failed', err);
-      set((s) => ({ ...s, hydrated: true }));
-    }
+    hydrationPromise = (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        const parsed = raw ? (JSON.parse(raw) as UserPlaylistStored[]) : [];
+        const fromDisk = Array.isArray(parsed)
+          ? parsed
+              .map(normalizeStoredPlaylist)
+              .filter((playlist): playlist is UserPlaylistStored => playlist !== null)
+          : [];
+        const inMemory = get().playlists;
+        const mergedById = new Map<string, UserPlaylistStored>();
+        for (const p of fromDisk) mergedById.set(p.id, p);
+        // In-session edits win when ids collide (handles hydrate finishing after offline edits).
+        for (const p of inMemory) mergedById.set(p.id, p);
+        const playlists = [...mergedById.values()].sort((a, b) => b.updatedAt - a.updatedAt);
+        set({ playlists, hydrated: true });
+      } catch (err) {
+        devWarn('[userPlaylistStore] hydrate failed', err);
+        set((s) => ({ ...s, hydrated: true }));
+      } finally {
+        hydrationPromise = null;
+      }
+    })();
+    await hydrationPromise;
   },
 
   createPlaylist: async (name) => {
+    if (!get().hydrated && hydrationPromise) {
+      await hydrationPromise;
+    }
     const trimmed = normalizePlaylistName(name || 'Playlist') || 'Playlist';
     const pl: UserPlaylistStored = {
       id: makePlaylistId(),
@@ -117,6 +127,9 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
   },
 
   deletePlaylist: async (playlistId) => {
+    if (!get().hydrated && hydrationPromise) {
+      await hydrationPromise;
+    }
     const next = get().playlists.filter((p) => p.id !== playlistId);
     set({ playlists: next });
     try {
@@ -127,6 +140,9 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
   },
 
   renamePlaylist: async (playlistId, name) => {
+    if (!get().hydrated && hydrationPromise) {
+      await hydrationPromise;
+    }
     const trimmed = normalizePlaylistName(name || 'Playlist') || 'Playlist';
     const next = get().playlists.map((p) =>
       p.id === playlistId ? { ...p, name: trimmed, updatedAt: Date.now() } : p
@@ -141,6 +157,9 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
   },
 
   addTrackToPlaylist: async (playlistId, track) => {
+    if (!get().hydrated && hydrationPromise) {
+      await hydrationPromise;
+    }
     const persisted = sanitizeTrackForStorage(track);
     const playlists = get().playlists;
     const targetIdx = playlists.findIndex((p) => p.id === playlistId);
@@ -164,6 +183,9 @@ export const useUserPlaylistStore = create<UserPlaylistState>((set, get) => ({
   },
 
   removeTrackFromPlaylist: async (playlistId, trackId) => {
+    if (!get().hydrated && hydrationPromise) {
+      await hydrationPromise;
+    }
     const next = get().playlists.map((p) => {
       if (p.id !== playlistId) return p;
       return {

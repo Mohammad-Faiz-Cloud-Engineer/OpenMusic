@@ -177,7 +177,7 @@ export const MyPlaylistsScreen: React.FC<Props> = ({ navigation }) => {
           {
             text: t('library.delete'),
             style: 'destructive',
-            onPress: () => void deletePlaylist(pl.id),
+            onPress: () => void deletePlaylist(pl.id).catch(() => {}),
           },
         ]
       );
@@ -282,7 +282,7 @@ export const MyPlaylistsScreen: React.FC<Props> = ({ navigation }) => {
               <TouchableOpacity style={styles.modalBtnGhost} onPress={() => setShowCreate(false)}>
                 <Text style={styles.modalBtnGhostText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalBtnPrimary} onPress={() => void onCreate()}>
+              <TouchableOpacity style={styles.modalBtnPrimary} onPress={() => void onCreate().catch(() => {})}>
                 <Text style={styles.modalBtnPrimaryText}>{t('common.create')}</Text>
               </TouchableOpacity>
             </View>

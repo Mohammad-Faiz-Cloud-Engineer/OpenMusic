@@ -8,20 +8,29 @@ interface Props extends WithTranslation {
   children: ReactNode;
 }
 
+const MAX_ATTEMPTS = 3;
+
 interface State {
   hasError: boolean;
+  retryCount: number;
 }
 
 class ErrorBoundaryBase extends Component<Props, State> {
-  state: State = { hasError: false };
+  state: State = { hasError: false, retryCount: 0 };
 
-  static getDerivedStateFromError(): State {
+  static getDerivedStateFromError(): Partial<State> {
     return { hasError: true };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     captureException(error, { componentStack: info.componentStack ?? '' });
+    this.setState((prev) => ({ retryCount: prev.retryCount + 1 }));
   }
+
+  handleRetry = (): void => {
+    if (this.state.retryCount >= MAX_ATTEMPTS) return;
+    this.setState({ hasError: false, retryCount: this.state.retryCount + 1 });
+  };
 
   render(): ReactNode {
     const { t } = this.props;
@@ -65,14 +74,18 @@ class ErrorBoundaryBase extends Component<Props, State> {
         <View style={themed.container}>
           <Text style={themed.title}>{t('errorBoundary.title')}</Text>
           <Text style={themed.subtitle}>{t('errorBoundary.subtitle')}</Text>
-          <TouchableOpacity
-            style={themed.button}
-            onPress={() => this.setState({ hasError: false })}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.tryAgain')}
-          >
-            <Text style={themed.buttonText}>{t('common.tryAgain')}</Text>
-          </TouchableOpacity>
+          {this.state.retryCount < MAX_ATTEMPTS ? (
+            <TouchableOpacity
+              style={themed.button}
+              onPress={this.handleRetry}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.tryAgain')}
+            >
+              <Text style={themed.buttonText}>{t('common.tryAgain')}</Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={themed.subtitle}>{t('errorBoundary.final')}</Text>
+          )}
         </View>
       );
     }

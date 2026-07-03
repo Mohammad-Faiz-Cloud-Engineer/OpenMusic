@@ -84,7 +84,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   playTrack: async (track, queue, options) => {
     const openFullPlayer = options?.openFullPlayer !== false;
     const state = get();
-    const generation = state.playGeneration + 1;
+
+    // Atomic generation bump — prevents stale concurrent playTrack calls
+    // from both computing the same generation value.
+    let generation: number;
+    set((s) => {
+      generation = s.playGeneration + 1;
+      return { playGeneration: generation };
+    });
     const isStale = () => get().playGeneration !== generation;
 
     const explicitQueue = queue;
@@ -128,7 +135,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       queue: appliedQueue,
       originalQueue: newOriginalQueue,
       currentIndex: appliedIndex,
-      playGeneration: generation,
     });
 
     if (openFullPlayer) {
@@ -167,13 +173,19 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           // web.saavncdn.com needs Referer headers expo-av does not send (403).
           streamUrl = streamData.stream_url.replace('web.saavncdn.com', 'aac.saavncdn.com');
           if (isStale()) return;
-          // Cache it for the duration of its validity
-          set((s) => ({
-            streamCache: {
+          // Cache it for the duration of its validity (LRU, max ~100 entries).
+          set((s) => {
+            const next = {
               ...s.streamCache,
               [track.id]: { url: streamUrl, expiresAt: streamData.expires_at },
-            },
-          }));
+            };
+            const keys = Object.keys(next);
+            if (keys.length > 100) {
+              const toRemove = keys.slice(0, keys.length - 100);
+              for (const k of toRemove) delete next[k];
+            }
+            return { streamCache: next };
+          });
         } catch (fetchErr) {
           devWarn('[player] stream URL fetch failed, falling back to proxy:', fetchErr);
           streamUrl = getProxyPlayUrl(track.id);
@@ -205,6 +217,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             return;
           }
           const s = get();
+          // Sync play/pause with OS-level audio interuptions (calls, alarms, etc.)
+          if (s.isPlaying !== status.isPlaying) {
+            set({ isPlaying: status.isPlaying });
+          }
           if (!s.isSeeking) {
             set({ position: status.positionMillis, duration: status.durationMillis ?? 0 });
           }
@@ -220,7 +236,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       }
 
       set({ sound, isPlaying: true, isLoading: false, position: 0 });
-      void useRecentStore.getState().addRecent(track);
+      void useRecentStore.getState().addRecent(track).catch((err) => devError('[player] addRecent failed:', err));
     } catch (err) {
       if (!isStale()) {
         devError('[player] playTrack error:', err);
@@ -347,7 +363,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     })),
 
   removeFromQueue: (index) => {
-    const { queue, currentIndex, sound, playGeneration } = get();
+    const { queue, currentIndex, sound } = get();
     if (index < 0 || index >= queue.length) return;
 
     const newQueue = queue.filter((_, i) => i !== index);
@@ -366,7 +382,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         if (sound) {
           sound.unloadAsync().catch((err) => devWarn('[player] removeFromQueue unload failed:', err));
         }
-        set({
+        set((s) => ({
           queue: [],
           originalQueue: [],
           currentIndex: -1,
@@ -376,8 +392,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           isLoading: false,
           position: 0,
           duration: 0,
-          playGeneration: playGeneration + 1,
-        });
+          playGeneration: s.playGeneration + 1,
+        }));
         return;
       }
 
@@ -395,11 +411,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   clearQueue: () => {
-    const { sound, playGeneration } = get();
+    const { sound } = get();
     if (sound) {
       sound.unloadAsync().catch((err) => devWarn('[player] clearQueue unload failed:', err));
     }
-    set({
+    set((s) => ({
       queue: [],
       originalQueue: [],
       currentIndex: -1,
@@ -410,7 +426,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       position: 0,
       duration: 0,
       streamCache: {},
-      playGeneration: playGeneration + 1,
-    });
+      playGeneration: s.playGeneration + 1,
+    }));
   },
 }));

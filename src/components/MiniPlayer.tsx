@@ -162,7 +162,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
         </View>
         <TouchableOpacity
           style={styles.controlBtn}
-          onPress={(e) => { e.stopPropagation(); void togglePlay(); }}
+          onPress={(e) => { e.stopPropagation(); void togglePlay().catch(() => {}); }}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           {...a11yButton(isPlaying ? t('common.pause') : t('common.play'))}
         >
@@ -173,7 +173,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress, bottomOffset = 
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.controlBtn}
-          onPress={(e) => { e.stopPropagation(); void next(); }}
+          onPress={(e) => { e.stopPropagation(); void next().catch(() => {}); }}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           {...a11yButton(t('player.controls.next'))}
         >
