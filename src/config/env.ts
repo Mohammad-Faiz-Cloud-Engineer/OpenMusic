@@ -14,16 +14,11 @@ const normalizePublicUrl = (value: string, label: string): string => {
 };
 
 /** Public API base URL (set EXPO_PUBLIC_API_BASE_URL in .env). */
-export const API_BASE_URL = (() => {
-  try {
-    return normalizePublicUrl(
-      process.env.EXPO_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL,
-      'EXPO_PUBLIC_API_BASE_URL'
-    );
-  } catch {
-    return DEFAULT_API_BASE_URL;
-  }
-})();
+export const API_BASE_URL =
+  normalizePublicUrl(
+    process.env.EXPO_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL,
+    'EXPO_PUBLIC_API_BASE_URL'
+  );
 
 /** Optional Sentry DSN. Crash reporting is disabled when unset. */
 export const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim() || '';

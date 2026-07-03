@@ -89,7 +89,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           );
           next.homeSections = { ...DEFAULT_HOME_SECTIONS, ...validSaved } as HomeSections;
         }
-        set({ ...DEFAULT_SETTINGS, ...next, hydrated: true });
+        set(next as SettingsState);
       } else {
         set({ hydrated: true });
       }

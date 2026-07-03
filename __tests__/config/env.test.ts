@@ -28,9 +28,8 @@ describe('env config', () => {
     expect(SENTRY_DSN).toBe('');
   });
 
-  it('falls back to default API URL when env is invalid', () => {
+  it('rejects invalid API URLs', () => {
     process.env.EXPO_PUBLIC_API_BASE_URL = 'not-a-url';
-    const { API_BASE_URL } = require('../../src/config/env');
-    expect(API_BASE_URL).toBe('https://LocalFind-OpenMusic-API.hf.space');
+    expect(() => require('../../src/config/env')).toThrow('valid http(s) URL');
   });
 });

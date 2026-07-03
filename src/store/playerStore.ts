@@ -181,8 +181,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             };
             const keys = Object.keys(next);
             if (keys.length > 100) {
-              const toRemove = new Set(keys.slice(0, keys.length - 100));
-              return { streamCache: Object.fromEntries(Object.entries(next).filter(([k]) => !toRemove.has(k))) };
+              const toRemove = keys.slice(0, keys.length - 100);
+              for (const k of toRemove) delete next[k];
             }
             return { streamCache: next };
           });
@@ -216,11 +216,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             }
             return;
           }
+          const s = get();
           // Sync play/pause with OS-level audio interuptions (calls, alarms, etc.)
-          set((state) => ({
-            ...(state.isPlaying !== status.isPlaying ? { isPlaying: status.isPlaying } : {}),
-            ...(!state.isSeeking ? { position: status.positionMillis, duration: status.durationMillis ?? 0 } : {}),
-          }));
+          if (s.isPlaying !== status.isPlaying) {
+            set({ isPlaying: status.isPlaying });
+          }
+          if (!s.isSeeking) {
+            set({ position: status.positionMillis, duration: status.durationMillis ?? 0 });
+          }
           if (status.didJustFinish) {
             void get().next().catch((err) => devError('[player] auto-advance:', err));
           }
@@ -300,13 +303,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (position > 3000) {
       const { sound } = get();
       if (sound) {
-        try {
-          await sound.setPositionAsync(0);
-          set({ position: 0 });
-        } catch {
-          devWarn('[player] prev: sound was unloaded, restarting track');
-          await get().playTrack(queue[currentIndex], queue, { openFullPlayer: false, index: currentIndex });
-        }
+        await sound.setPositionAsync(0);
+        set({ position: 0 });
       }
       return;
     }

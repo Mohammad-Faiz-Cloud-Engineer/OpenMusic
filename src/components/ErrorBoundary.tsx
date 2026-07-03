@@ -29,7 +29,7 @@ class ErrorBoundaryBase extends Component<Props, State> {
 
   handleRetry = (): void => {
     if (this.state.retryCount >= MAX_ATTEMPTS) return;
-    this.setState({ hasError: false });
+    this.setState({ hasError: false, retryCount: this.state.retryCount + 1 });
   };
 
   render(): ReactNode {
