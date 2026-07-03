@@ -72,7 +72,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "./plugins/withCpp20",
+      "./plugins/withFmtConstevalFix",
       [
         "expo-av",
         {
