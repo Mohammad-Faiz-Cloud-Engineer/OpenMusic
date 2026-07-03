@@ -72,6 +72,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "./plugins/withCpp20",
       [
         "expo-av",
         {
