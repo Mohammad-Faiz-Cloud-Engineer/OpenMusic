@@ -106,7 +106,7 @@ jobs:
       - name: Download bundletool
         run: |
           mkdir -p tools
-          curl -L -o tools/bundletool.jar https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
+          curl -L -o tools/bundletool.jar https://github.com/google/bundletool/releases/download/1.13.3/bundletool-all-1.13.3.jar
 
       - name: Build APKs from AAB (bundletool)
         run: |
