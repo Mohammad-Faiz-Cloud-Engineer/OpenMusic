@@ -72,7 +72,6 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "./plugins/withFmtConstevalFix",
       [
         "expo-av",
         {
