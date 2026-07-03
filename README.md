@@ -4,6 +4,7 @@
 
 [![CI](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-Jest-2e93ff?logo=jest)](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/actions/workflows/ci.yml)
+[![Code size](https://img.shields.io/github/languages/code-size/Mohammad-Faiz-Cloud-Engineer/OpenMusic)](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic)
 [![Build Check](https://img.shields.io/badge/build%20check-passing-brightgreen)](https://github.com/Mohammad-Faiz-Cloud-Engineer/OpenMusic/blob/main/scripts/build-check.js)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020?logo=expo&logoColor=white)](https://expo.dev/)
@@ -146,8 +147,8 @@ Only `EXPO_PUBLIC_*` variables are embedded in the client bundle. Do not put sec
 
 ## Testing
 
-![Test suites](https://img.shields.io/badge/tests-52%20passing-brightgreen)
-![Test suites](https://img.shields.io/badge/suites-12-blue)
+![Test suites](https://img.shields.io/badge/tests-83%20passing-brightgreen)
+![Test suites](https://img.shields.io/badge/suites-14-blue)
 ![Build gate](https://img.shields.io/badge/build%20gate-tsc%20%2B%20structure-success)
 
 Run everything locally (same as CI):

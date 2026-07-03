@@ -216,7 +216,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             }
             return;
           }
-          const s = get();
           // Sync play/pause with OS-level audio interuptions (calls, alarms, etc.)
           set((state) => ({
             ...(state.isPlaying !== status.isPlaying ? { isPlaying: status.isPlaying } : {}),
