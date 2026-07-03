@@ -22,7 +22,10 @@ const sanitizeMessage = (msg: string | undefined): string | undefined => {
   return msg.length > 500 ? msg.slice(0, 500) + '... [truncated]' : msg;
 };
 
-const isHighCardinality = (val: string): boolean => val.length > 200;
+const isHighCardinality = (key: string, val: string): boolean => {
+  if (key === 'componentStack' || key === 'isFatal') return false;
+  return val.length > 200;
+};
 
 let sentryReady = false;
 let monitoringReady = false;
@@ -51,7 +54,7 @@ export const initMonitoring = (): void => {
           if (event.extra) {
             const sanitized: Record<string, string> = {};
             for (const [key, val] of Object.entries(event.extra)) {
-              if (typeof val === 'string' && isHighCardinality(val)) {
+              if (typeof val === 'string' && isHighCardinality(key, val)) {
                 sanitized[key] = `[redacted] (${val.length} chars)`;
               } else {
                 sanitized[key] = String(val);

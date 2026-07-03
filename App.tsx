@@ -44,10 +44,12 @@ function ThemedShell() {
   const hydrateSettings = useSettingsStore((s) => s.hydrate);
 
   useEffect(() => {
-    void hydrateRecent();
-    void hydrateLikes();
-    void hydratePlaylists();
-    void hydrateSettings();
+    Promise.allSettled([
+      hydrateRecent(),
+      hydrateLikes(),
+      hydratePlaylists(),
+      hydrateSettings(),
+    ]);
   }, [hydrateRecent, hydrateLikes, hydratePlaylists, hydrateSettings]);
 
   return (

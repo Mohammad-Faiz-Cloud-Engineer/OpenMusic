@@ -16,8 +16,16 @@ export const Toast: React.FC = () => {
   const insets = useSafeAreaInsets();
   const message = useToastStore((s) => s.message);
   const visible = useToastStore((s) => s.visible);
+  const hide = useToastStore((s) => s.hide);
   const translateY = useRef(new Animated.Value(80)).current;
   const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      const id = setTimeout(hide, 2500);
+      return () => clearTimeout(id);
+    }
+  }, [visible, hide]);
 
   useEffect(() => {
     if (visible) {
