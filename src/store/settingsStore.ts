@@ -85,7 +85,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         }
         if (isValidHomeSections(parsed.homeSections)) {
           const validSaved = Object.fromEntries(
-             Object.entries(parsed.homeSections).filter(([k, val]) => HOME_SECTIONS.includes(k as any) && typeof val === 'boolean')
+             Object.entries(parsed.homeSections).filter(([k, val]) => HOME_SECTIONS.includes(k as HomeSectionId) && typeof val === 'boolean')
           );
           next.homeSections = { ...DEFAULT_HOME_SECTIONS, ...validSaved } as HomeSections;
         }

@@ -1,6 +1,12 @@
 import { usePlayerStore } from '../../src/store/playerStore';
 import type { Track } from '../../src/api/jiosaavn';
 
+jest.mock('../../src/api/jiosaavn', () => ({
+  ...jest.requireActual('../../src/api/jiosaavn'),
+  getStreamUrl: jest.fn().mockRejectedValue(new Error('mocked')),
+  getProxyPlayUrl: jest.fn().mockReturnValue('https://proxy.example/play'),
+}));
+
 const track = (id: string): Track => ({
   id,
   title: `Title ${id}`,
@@ -144,5 +150,124 @@ describe('playerStore', () => {
     expect(s.isPlaying).toBe(false);
     expect(s.position).toBe(0);
     expect(s.playGeneration).toBe(1);
+  });
+
+  it('playGeneration bumps atomically on playTrack', async () => {
+    const gen0 = usePlayerStore.getState().playGeneration;
+    // The generation bump happens synchronously in the first set() call,
+    // before any async I/O. The function will reject later due to missing
+    // stream URL, but the generation is already incremented.
+    await expect(
+      usePlayerStore.getState().playTrack(track('1'), undefined, { openFullPlayer: false })
+    ).resolves.toBeUndefined();
+    expect(usePlayerStore.getState().playGeneration).toBe(gen0 + 1);
+  });
+
+  it('playGeneration bumps on removeFromQueue when clearing last item', () => {
+    usePlayerStore.setState({
+      queue: [track('1')],
+      currentIndex: 0,
+      currentTrack: track('1'),
+      sound: null,
+      playGeneration: 5,
+    });
+    usePlayerStore.getState().removeFromQueue(0);
+    expect(usePlayerStore.getState().playGeneration).toBe(6);
+  });
+
+  it('playGeneration bumps on clearQueue', () => {
+    usePlayerStore.setState({ playGeneration: 10, queue: [track('1')] });
+    usePlayerStore.getState().clearQueue();
+    expect(usePlayerStore.getState().playGeneration).toBe(11);
+  });
+
+  it('toggleShuffle preserves current track at index 0', () => {
+    const t1 = track('1');
+    const t2 = track('2');
+    const t3 = track('3');
+    usePlayerStore.setState({
+      queue: [t1, t2, t3],
+      currentIndex: 1,
+      currentTrack: t2,
+      isShuffle: false,
+      originalQueue: [],
+    });
+    usePlayerStore.getState().toggleShuffle();
+    const s = usePlayerStore.getState();
+    expect(s.isShuffle).toBe(true);
+    expect(s.queue[0].id).toBe('2');
+    expect(s.currentIndex).toBe(0);
+    expect(s.originalQueue).toEqual([t1, t2, t3]);
+  });
+
+  it('toggleShuffle restores original order when turning off', () => {
+    const t1 = track('1');
+    const t2 = track('2');
+    const t3 = track('3');
+    usePlayerStore.setState({
+      queue: [t2, t3, t1],
+      currentIndex: 0,
+      currentTrack: t2,
+      isShuffle: true,
+      originalQueue: [t1, t2, t3],
+    });
+    usePlayerStore.getState().toggleShuffle();
+    const s = usePlayerStore.getState();
+    expect(s.isShuffle).toBe(false);
+    expect(s.queue.map((t) => t.id)).toEqual(['1', '2', '3']);
+    expect(s.originalQueue).toEqual([]);
+  });
+
+  it('addToQueue appends to originalQueue when shuffled', () => {
+    const t1 = track('1');
+    const t2 = track('2');
+    usePlayerStore.setState({
+      queue: [t1],
+      originalQueue: [t1],
+      isShuffle: true,
+    });
+    usePlayerStore.getState().addToQueue(t2);
+    expect(usePlayerStore.getState().originalQueue).toHaveLength(2);
+  });
+
+  it('prev restarts track if past 3 seconds', async () => {
+    const setPositionAsync = jest.fn().mockResolvedValue(undefined);
+    usePlayerStore.setState({
+      queue: [track('1')],
+      currentIndex: 0,
+      currentTrack: track('1'),
+      position: 5000,
+      duration: 10000,
+      sound: { setPositionAsync, unloadAsync: jest.fn() } as never,
+    });
+    await usePlayerStore.getState().prev();
+    expect(setPositionAsync).toHaveBeenCalledWith(0);
+    expect(usePlayerStore.getState().position).toBe(0);
+  });
+
+  it('next wraps to start when repeatMode is all at end of queue', async () => {
+    const t1 = track('1');
+    const t2 = track('2');
+    const originalPlayTrack = usePlayerStore.getState().playTrack;
+    const playTrack = jest.fn().mockResolvedValue(undefined);
+    usePlayerStore.setState({
+      queue: [t1, t2],
+      currentIndex: 1,
+      currentTrack: t2,
+      repeatMode: 'all',
+      playTrack,
+    });
+    await usePlayerStore.getState().next();
+    expect(playTrack).toHaveBeenCalledWith(t1, [t1, t2], { openFullPlayer: false, index: 0 });
+    usePlayerStore.setState({ playTrack: originalPlayTrack });
+  });
+
+  it('removeFromQueue adjusts index when removing before current', () => {
+    usePlayerStore.setState({
+      queue: [track('1'), track('2'), track('3')],
+      currentIndex: 2,
+    });
+    usePlayerStore.getState().removeFromQueue(0);
+    expect(usePlayerStore.getState().currentIndex).toBe(1);
   });
 });
